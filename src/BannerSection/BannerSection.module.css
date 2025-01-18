@@ -1,0 +1,98 @@
+.banner-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 90%;
+  margin: 80px auto;
+}
+.title-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 40%;
+  font-family: "Raleway", serif;
+}
+.title-cta > h1 {
+  font-size: 60px;
+  font-family: "Caveat", serif;
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-style: normal;
+  margin: 0;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.title-cta > button {
+  border-radius: 5px;
+  font-size: 20px;
+  padding: 10px 20px;
+  background-color: #eb2172;
+
+  color: white;
+  border-width: 0px;
+}
+.title-cta > p {
+  color: #eb2172;
+  font-size: 18px;
+  font-weight: bold;
+  margin: 0;
+}
+.image {
+  min-width: 40%;
+}
+.image > img {
+  max-height: 500px;
+}
+@media (max-width: 768px) {
+  .banner-section {
+    min-width: 100%;
+    margin: 100px auto;
+    flex-direction: column-reverse;
+  }
+  .image {
+    max-width: 100%;
+  }
+  .title-cta {
+    margin: 20px 0;
+    max-width: 100%;
+  }
+  .eclipse-2 {
+    display: none;
+  }
+  .eclipse-3 {
+    display: none;
+  }
+}
+@media (max-width: 425px) {
+  .banner-section {
+    min-width: 100%;
+  }
+
+  .image > img {
+    max-height: 300px;
+  }
+
+  .title-cta > h1 {
+    font-size: 40px;
+  }
+  .eclipse-1 {
+    top: 700px;
+  }
+}
+
+.eclipse-1 {
+  position: absolute;
+  left: 20px;
+  top: 120px;
+}
+.eclipse-2 {
+  position: absolute;
+  bottom: 0px;
+  left: 250px;
+}
+.eclipse-3 {
+  position: absolute;
+  right: 0;
+  top: 300px;
+}
