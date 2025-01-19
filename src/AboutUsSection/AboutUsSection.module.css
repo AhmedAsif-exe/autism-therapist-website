@@ -1,25 +1,26 @@
-.banner-section {
+.about-us-section {
   display: flex;
   justify-content: center;
   align-items: center;
-
-  margin: 80px auto;
+  padding: 50px;
+  margin: auto;
+  background-color: #f7f7f7;
 }
 .title-cta {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  min-width: 40%;
+  max-width: 40%;
   font-family: "Raleway", serif;
+  padding: 20px;
 }
 .title-cta > h1 {
-  font-size: 60px;
-  font-family: "Caveat", serif;
+  font-size: 35px;
   font-optical-sizing: auto;
-  font-weight: 500;
+  font-weight: bold;
   font-style: normal;
   margin: 0;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   text-align: left;
 }
 
@@ -32,35 +33,48 @@
   color: white;
   border-width: 0px;
 }
-.title-cta > p {
+.para-heading {
   color: #eb2172;
-  font-size: 18px;
+  font-size: 24px;
   font-weight: bold;
+
+  margin-bottom: 10px;
+}
+.content {
+  font-size: 16px;
+  font-weight: 500;
+  text-align: left;
   margin: 0;
+  margin-bottom: 10px;
 }
 .image {
   min-width: 40%;
+  padding: 20px;
 }
 .image > img {
-  max-height: 500px;
+  max-width: 100%;
 }
 @media (max-width: 768px) {
-  .banner-section {
-    /* min-width: 100%; */
+  .about-us-section {
+    min-width: 100%;
     margin: 100px auto;
+    flex-direction: column-reverse;
   }
   .image {
     max-width: 100%;
   }
+  .content {
+    font-size: 20px;
+  }
   .image > img {
-    max-height: 300px;
+    max-width: 100%;
   }
   .title-cta {
     margin: 20px 0;
     max-width: 100%;
   }
   .title-cta > h1 {
-    font-size: 50px;
+    font-size: 35px;
   }
   .eclipse-2 {
     display: none;
@@ -73,10 +87,9 @@
   }
 }
 @media (max-width: 425px) {
-  .banner-section {
-    width: 100%;
+  .about-us-section {
+    min-width: 100%;
     flex-direction: column-reverse;
-    margin: 70px auto;
   }
   .eclipse-1 {
     top: 500px;
@@ -86,7 +99,7 @@
   }
 
   .title-cta > h1 {
-    font-size: 40px;
+    font-size: 30px;
 
     margin-bottom: 10px;
   }
@@ -94,20 +107,4 @@
     top: 700px;
     left: 300px;
   }
-}
-
-.eclipse-1 {
-  position: absolute;
-  left: 20px;
-  top: 120px;
-}
-.eclipse-2 {
-  position: absolute;
-  bottom: 0px;
-  left: 250px;
-}
-.eclipse-3 {
-  position: absolute;
-  right: 0px;
-  top: 300px;
 }
