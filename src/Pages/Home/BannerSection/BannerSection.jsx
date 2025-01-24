@@ -1,9 +1,9 @@
 import { Button } from "@mui/base";
 import style from "./BannerSection.module.css";
-import src from "../Assets/Images/Therapist.png";
-import eclipse3 from "../Assets/Images/Ellipse 3.png";
-import eclipse2 from "../Assets/Images/Ellipse 2.png";
-import eclipse1 from "../Assets/Images/Ellipse 1.png";
+import src from "../../../Assets/Images/Therapist.png";
+import eclipse3 from "../../../Assets/Images/Ellipse 3.png";
+import eclipse2 from "../../../Assets/Images/Ellipse 2.png";
+import eclipse1 from "../../../Assets/Images/Ellipse 1.png";
 export default function BannerSection() {
   return (
     <div className={style["banner-section"]}>

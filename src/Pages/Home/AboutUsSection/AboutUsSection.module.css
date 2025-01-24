@@ -14,14 +14,16 @@
   font-family: "Raleway", serif;
   padding: 20px;
 }
-.title-cta > h1 {
+.title-cta > h2 {
   font-size: 35px;
   font-optical-sizing: auto;
   font-weight: bold;
+  font-family: "Caveat", serif;
   font-style: normal;
   margin: 0;
   margin-bottom: 10px;
   text-align: left;
+  color: #eb2172;
 }
 
 .title-cta > button {
@@ -48,10 +50,12 @@
   margin-bottom: 10px;
 }
 .image {
-  min-width: 40%;
+  max-width: 40%;
   padding: 20px;
+  align-self: center;
 }
 .image > img {
+  border-radius: 5px;
   max-width: 100%;
 }
 @media (max-width: 768px) {
@@ -67,13 +71,13 @@
     font-size: 20px;
   }
   .image > img {
-    max-width: 100%;
+    max-width: 600px;
   }
   .title-cta {
     margin: 20px 0;
     max-width: 100%;
   }
-  .title-cta > h1 {
+  .title-cta > h2 {
     font-size: 35px;
   }
   .eclipse-2 {
@@ -86,7 +90,7 @@
     display: none;
   }
 }
-@media (max-width: 425px) {
+@media (max-width: 426px) {
   .about-us-section {
     min-width: 100%;
     flex-direction: column-reverse;
@@ -95,12 +99,14 @@
     top: 500px;
   }
   .image > img {
-    max-height: 270px;
+    max-width: 100%;
   }
-
-  .title-cta > h1 {
+  .content {
+    font-size: 15px;
+    text-align: justify;
+  }
+  .title-cta > h2 {
     font-size: 30px;
-
     margin-bottom: 10px;
   }
   .eclipse-1 {
