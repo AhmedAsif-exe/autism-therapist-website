@@ -1,0 +1,91 @@
+.about-us-section {
+  display: flex;
+  min-height: 100vh;
+  max-width: fit-content;
+}
+.image {
+  width: 50%;
+  background-image: url("../../../Assets/Images/Faiza.jpg");
+  background-size: cover; /* Ensures the image covers the whole screen */
+  background-position: bottom; /* Centers the image */
+  background-repeat: no-repeat; /* Prevents the image from repeating */
+}
+.title-cta {
+  width: 50%;
+  /* background-color: #f7f7f7; */
+  background: linear-gradient(
+    90deg,
+    rgba(255, 219, 219, 1) 0%,
+    rgba(255, 255, 255, 1) 100%
+  );
+
+  display: flex;
+  align-self: center;
+  flex-direction: column;
+  align-items: flex-start;
+  font-family: "Raleway", serif;
+  padding: 60px;
+  margin: 0;
+  height: 100vh;
+}
+.title-cta > h2 {
+  font-size: 60px;
+  font-optical-sizing: auto;
+  font-weight: bold;
+  font-family: "Caveat", serif;
+  font-style: normal;
+  margin: 0;
+  margin-bottom: 10px;
+  text-align: left;
+  color: #eb2172;
+}
+
+.title-cta > button {
+  border-radius: 5px;
+  font-size: 20px;
+  padding: 10px 20px;
+  background-color: #eb2172;
+
+  color: white;
+  border-width: 0px;
+  margin-top: 15px;
+}
+.para-heading {
+  color: #eb2172;
+  font-size: 24px;
+  font-weight: bold;
+
+  margin-bottom: 10px;
+}
+.content {
+  font-size: 16px;
+  font-weight: 500;
+  text-align: justify;
+  margin: 0;
+  margin-bottom: 10px;
+}
+.image > img {
+  border-radius: 5px;
+  max-width: 100%;
+}
+@media (max-width: 1025px) {
+  .title-cta {
+    padding: 20px 40px;
+  }
+  .content {
+    font-size: 14px;
+  }
+}
+@media (max-width: 769px) {
+  .about-us-section {
+    flex-direction: column-reverse;
+  }
+  .image {
+    min-height: 50vh;
+    width: 100%;
+  }
+  .title-cta {
+    margin: auto;
+    width: 100%;
+  }
+}

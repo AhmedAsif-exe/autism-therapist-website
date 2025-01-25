@@ -1,7 +1,7 @@
 import { Button } from "@mui/base";
-import style from "./AboutUsSection.module.css";
+import style from "./WhatIDoSection.module.css";
 import src from "../../../Assets/Images/About Us.jpg";
-export default function AboutUsSection() {
+export default function WhatIDoSection() {
   return (
     <div className={style["about-us-section"]}>
       <div className={style["image"]}>
