@@ -5,6 +5,7 @@ import OurProcessSection from "./Pages/Home/OurProcessSection/OurProcessSection"
 import AboutMeSection from "./Pages/Home/AboutMeSection/AboutMeSection";
 import SectionDivider from "Utils/SectionDivider/SectionDivider";
 import TestimonialSection from "Pages/Home/TestimonialSection/TestimonialSection";
+import MentorSection from "Pages/Home/MentorSection/MentorSection";
 import "react-responsive-3d-carousel/dist/styles.css";
 
 function App() {
@@ -16,8 +17,9 @@ function App() {
       {/* <SectionDivider /> */}
       <OurProcessSection />
       <TestimonialSection />
-      {/* <SectionDivider />
-      <AboutMeSection /> */}
+      {/* <SectionDivider /> */}
+      {/* <AboutMeSection /> */}
+      <MentorSection />
     </div>
   );
 }
