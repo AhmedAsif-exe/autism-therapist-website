@@ -8,6 +8,7 @@ import TestimonialSection from "Pages/Home/TestimonialSection/TestimonialSection
 import ExpertiseSection from "Pages/Home/ExpertiseSection/ExpertiseSection";
 import MentorSection from "Pages/Home/MentorSection/MentorSection";
 import "react-responsive-3d-carousel/dist/styles.css";
+import Footer from "Layout/Footer";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
       {/* <AboutMeSection /> */}
       <MentorSection />
       <ExpertiseSection />
+      <Footer />
     </div>
   );
 }
