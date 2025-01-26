@@ -58,9 +58,10 @@
   padding: 10px; /* Adds padding around the grid container */
   margin-top: 40px;
 }
-@media (max-width: 1024px) {
+@media (max-width: 1025px) {
   .process-grid {
     padding: 0;
+    grid-template-columns: repeat(1, 1fr); /* Creates 3 equal-width columns */
   }
   .mentor-section {
     margin: 0;
@@ -69,13 +70,6 @@
 }
 @media (max-width: 768px) {
   .process-grid {
-    grid-template-columns: repeat(2, 1fr); /* Creates 3 equal-width columns */
-    grid-template-rows: auto; /* Rows will adjust to the content height */
-  }
-}
-@media (max-width: 426px) {
-  .process-grid {
-    grid-template-columns: repeat(1, 1fr); /* Creates 3 equal-width columns */
     grid-template-rows: auto; /* Rows will adjust to the content height */
   }
 }

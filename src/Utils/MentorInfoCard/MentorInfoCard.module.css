@@ -18,6 +18,11 @@
 .mentor-image {
   width: 12rem;
   border-radius: 20px;
+  transition: transform 0.3s ease; /* Smooth scaling for the image */
+}
+
+.mentor-image:hover {
+  transform: scale(1.1); /* Scales the image by 10% */
 }
 .mentor-body {
   /* width: 70%; */
@@ -76,4 +81,23 @@
     5px,
     -5px
   ); /* Moves the SVG slightly in the x and y directions */
+}
+
+@media (max-width: 426px) {
+  .card {
+    flex-direction: column;
+    align-items: center;
+  }
+  .mentor-image {
+    margin: 10px 0;
+  }
+  .mentor-body {
+    margin: 10px 0;
+  }
+  .statement {
+    text-align: justify;
+  }
+  .mentor-info-name {
+    line-height: 35px;
+  }
 }
