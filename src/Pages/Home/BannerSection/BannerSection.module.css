@@ -16,7 +16,7 @@
   padding: 80px;
   background-image: url("../../../Assets//Images/banner Image.jpg"); /* Replace with your image URL */
   background-size: cover; /* Makes the background cover the entire container */
-  background-position: center; /* Centers the image */
+  background-position: bottom; /* Centers the image */
   background-repeat: no-repeat; /* Ensures the image doesn't repeat */
   height: 100vh; /* Ensures the container takes the full viewport height */
 }
@@ -36,12 +36,12 @@
   align-items: flex-start;
   min-width: 40%;
   z-index: 2;
-  font-family: "Raleway", serif;
+
   animation: fadeIn 1s ease-out;
+  font-family: "Raleway", serif;
 }
 .title-cta > h1 {
   font-size: 65px;
-  animation: fadeIn 1s ease-out 1.5s forwards; /* Delayed slightly */
 
   font-family: "Caveat", serif;
   font-optical-sizing: auto;
@@ -61,14 +61,12 @@
 
   color: white;
   border-width: 0px;
-  animation: fadeIn 1s ease-out 2.5s forwards; /* Button appears last */
 }
 .title-cta > p {
   color: #eb2172;
   font-size: 18px;
   font-weight: bold;
-  margin: 0;
-  animation: fadeIn 1s ease-out 0.5s forwards; /* Even further delay */
+  margin: 0; /* Even further delay */
 }
 .image {
   min-width: 40%;

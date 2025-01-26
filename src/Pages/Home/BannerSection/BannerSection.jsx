@@ -4,10 +4,17 @@ import src from "../../../Assets/Images/Therapist.png";
 import eclipse3 from "../../../Assets/Images/Ellipse 3.png";
 import eclipse2 from "../../../Assets/Images/Ellipse 2.png";
 import eclipse1 from "../../../Assets/Images/Ellipse 1.png";
+import { useState, useEffect } from "react";
 export default function BannerSection() {
+  const [animate, setAnimate] = useState(false);
+
+  useEffect(() => {
+    // This will trigger when the component mounts
+    setAnimate(true);
+  }, []);
   return (
     <div className={style["banner-section"]}>
-      <div className={style["title-cta"]}>
+      <div className={`${style["title-cta"]} ${animate ? style.animate : ""}`}>
         <p>/You are not alone/</p>
         <h1>
           Faiza Faizan <br></br> Autism Therapist
