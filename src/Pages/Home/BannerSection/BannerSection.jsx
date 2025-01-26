@@ -14,7 +14,7 @@ export default function BannerSection() {
         </h1>
         <Button>Contact</Button>
       </div>
-      <div className={style["image"]}>
+      {/* <div className={style["image"]}>
         <img src={src} alt="Therapist" />
       </div>
       <img
@@ -31,7 +31,7 @@ export default function BannerSection() {
         src={eclipse1}
         alt="background effect"
         className={style["eclipse-1"]}
-      />
+      /> */}
     </div>
   );
 }

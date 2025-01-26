@@ -1,24 +1,54 @@
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 .banner-section {
   display: flex;
-  justify-content: center;
-  align-items: center;
+  justify-content: start;
+  align-items: end;
 
-  margin: 80px auto;
+  padding: 80px;
+  background-image: url("../../../Assets//Images/banner Image.jpg"); /* Replace with your image URL */
+  background-size: cover; /* Makes the background cover the entire container */
+  background-position: center; /* Centers the image */
+  background-repeat: no-repeat; /* Ensures the image doesn't repeat */
+  height: 100vh; /* Ensures the container takes the full viewport height */
+}
+.banner-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Black tint with 50% opacity */
+  z-index: 1; /* Makes sure the overlay is on top of the background */
 }
 .title-cta {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   min-width: 40%;
+  z-index: 2;
   font-family: "Raleway", serif;
+  animation: fadeIn 1s ease-out;
 }
 .title-cta > h1 {
-  font-size: 60px;
+  font-size: 65px;
+  animation: fadeIn 1s ease-out 1.5s forwards; /* Delayed slightly */
+
   font-family: "Caveat", serif;
   font-optical-sizing: auto;
   font-weight: 500;
   font-style: normal;
   margin: 0;
+  color: white;
   margin-bottom: 20px;
   text-align: left;
 }
@@ -31,12 +61,14 @@
 
   color: white;
   border-width: 0px;
+  animation: fadeIn 1s ease-out 2.5s forwards; /* Button appears last */
 }
 .title-cta > p {
   color: #eb2172;
   font-size: 18px;
   font-weight: bold;
   margin: 0;
+  animation: fadeIn 1s ease-out 0.5s forwards; /* Even further delay */
 }
 .image {
   min-width: 40%;
@@ -47,7 +79,9 @@
 @media (max-width: 768px) {
   .banner-section {
     /* min-width: 100%; */
-    margin: 100px auto;
+    /* margin: 100px auto; */
+    align-items: center;
+    justify-content: center;
   }
   .image {
     max-width: 100%;
@@ -76,7 +110,6 @@
   .banner-section {
     width: 100%;
     flex-direction: column-reverse;
-    margin: 70px auto;
   }
   .eclipse-1 {
     top: 500px;
@@ -87,6 +120,30 @@
 
   .title-cta > h1 {
     font-size: 40px;
+
+    margin-bottom: 10px;
+  }
+  .eclipse-1 {
+    top: 700px;
+    left: 300px;
+  }
+}
+@media (max-width: 376px) {
+  .banner-section {
+    /* width: 100%;
+    flex-direction: column-reverse; */
+    font-size: 55px;
+    padding: 40px;
+  }
+  .eclipse-1 {
+    top: 500px;
+  }
+  .image > img {
+    max-height: 270px;
+  }
+
+  .title-cta > h1 {
+    font-size: 35px;
 
     margin-bottom: 10px;
   }
