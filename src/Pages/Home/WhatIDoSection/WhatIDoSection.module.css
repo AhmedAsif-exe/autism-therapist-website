@@ -114,3 +114,9 @@
     left: 300px;
   }
 }
+
+@media (max-width: 321px) {
+  .about-us-section {
+    padding: 50px 10px;
+  }
+}

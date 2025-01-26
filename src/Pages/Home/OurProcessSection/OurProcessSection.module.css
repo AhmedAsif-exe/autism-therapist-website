@@ -54,3 +54,9 @@
     grid-template-rows: auto; /* Rows will adjust to the content height */
   }
 }
+
+@media (max-width: 321px) {
+  .our-process-section {
+    padding: 50px 10px;
+  }
+}
