@@ -1,6 +1,6 @@
 .expertise-section {
   padding: 50px;
-  padding: auto 5%;
+  /* padding: auto 5%; */
   display: flex;
   flex-direction: column;
   background-color: #f7f7f7;
