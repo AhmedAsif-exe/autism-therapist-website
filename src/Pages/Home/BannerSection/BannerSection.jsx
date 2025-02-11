@@ -17,7 +17,8 @@ export default function BannerSection() {
       <div className={`${style["title-cta"]} ${animate ? style.animate : ""}`}>
         <p>/You are not alone/</p>
         <h1>
-          Faiza Faizan <br></br> Autism Therapist
+          Faiza Faizan <br></br> Qualified Autism Service Practitioner &
+          Supervisor (QASP-S)
         </h1>
         <Button>Contact</Button>
       </div>
