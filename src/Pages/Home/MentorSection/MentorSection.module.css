@@ -11,14 +11,14 @@
   font-weight: bold;
   font-style: normal;
   margin: 0;
-  font-family: "Caveat", serif;
+  font-family: "Londrina Solid", serif;
   margin-top: 20px;
   text-align: center;
-  color: #eb2172;
+  color: #1047c0;
 }
 .see-more {
   align-self: flex-end;
-  color: #eb2172;
+  color: #1047c0;
   font-weight: 500;
   max-width: fit-content;
   display: inline-flex;
@@ -43,7 +43,7 @@
 }
 
 .para-heading {
-  color: #eb2172;
+  color: #1047c0;
   font-size: 24px;
   font-weight: bold;
 

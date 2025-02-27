@@ -10,15 +10,16 @@
 }
 .banner-section {
   display: flex;
-  justify-content: start;
+  justify-content: space-between;
   align-items: end;
 
-  padding: 80px;
-  background-image: url("../../../Assets//Images/banner Image.jpg"); /* Replace with your image URL */
+  padding: 80px 40px;
+  padding-top: 100px;
+  background-image: url("../../../Assets/Icons/bg_img.png"); /* Replace with your image URL */
   background-size: cover; /* Makes the background cover the entire container */
   background-position: bottom; /* Centers the image */
   background-repeat: no-repeat; /* Ensures the image doesn't repeat */
-  height: 100vh; /* Ensures the container takes the full viewport height */
+  min-height: 100vh; /* Ensures the container takes the full viewport height */
 }
 .banner-section::before {
   content: "";
@@ -27,59 +28,118 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5); /* Black tint with 50% opacity */
+  background-color: rgba(255, 255, 255, 0.65); /* Black tint with 50% opacity */
   z-index: 1; /* Makes sure the overlay is on top of the background */
 }
 .title-cta {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  min-width: 40%;
+  max-width: 40%;
   z-index: 2;
 
   animation: fadeIn 1s ease-out;
   font-family: "Raleway", serif;
 }
 .title-cta > h1 {
-  font-size: 40px;
+  font-size: 70px;
 
-  font-family: "Caveat", serif;
+  font-family: "Londrina Solid", serif;
   font-optical-sizing: auto;
   font-weight: 500;
   font-style: normal;
+  line-height: 75px;
   margin: 0;
-  color: white;
+  color: #1047c0;
   margin-bottom: 20px;
   text-align: left;
 }
 
-.title-cta > button {
+.button-container > button {
+  margin-right: 10px;
+  font-family: "Londrina Solid", sans-serif;
   border-radius: 5px;
   font-size: 20px;
   padding: 10px 20px;
-  background-color: #eb2172;
-
+  background-color: #00b3ad;
+  min-width: 150px;
+  transition: background-color ease-in 100ms;
   color: white;
   border-width: 0px;
 }
-.title-cta > p {
-  color: #eb2172;
+.button-container > button:nth-child(2) {
+  background-color: rgba(255, 255, 255, 1);
+  color: #00b3ad;
+}
+.button-container > button:hover {
+  background-color: #1047c0;
+}
+.button-container > button:nth-child(2):hover {
+  background-color: #00b3ad;
+  color: white;
+}
+
+.title-cta > p:nth-child(1) {
+  color: #00b3ad;
   font-size: 18px;
-  font-weight: bold;
-  margin: 0; /* Even further delay */
+  font-weight: 600;
+
+  margin: 0;
+  font-family: "Inter", sans-serif;
 }
+.title-cta > p {
+  font-size: 18px;
+  font-weight: 300;
+  padding-bottom: 10px;
+  text-align: left;
+  margin: 0;
+  font-family: "Inter", sans-serif;
+}
+
 .image {
-  min-width: 40%;
+  z-index: 200;
+  min-height: 400px;
+  max-width: 50%;
+  min-width: 50%;
+  background-image: url("../../../Assets/Images/boy-on-therapy-swing.jpg"); /* Replace with your image URL */
+  background-size: cover; /* Makes the background cover the entire container */
+  background-position: bottom; /* Centers the image */
+  background-repeat: no-repeat; /* Ensures the image doesn't repeat */
+  border-radius: 7% 7% 7% 50%;
+  box-shadow: 16px -16px 0px 0px #00b3ad;
 }
-.image > img {
-  max-height: 500px;
+.button-container {
+  display: flex;
+  flex-direction: row;
+}
+@media (max-width: 1024px) {
+  .button-container {
+    flex-direction: column;
+    width: 100%;
+  }
+  .title-cta > h1 {
+    font-size: 37px;
+    line-height: 1em;
+  }
+  .button-container > button:first-child {
+    width: 100%;
+  }
+  .button-container > button:nth-child(2) {
+    text-align: left;
+    margin-top: 10px;
+  }
+  .title-cta > p:nth-child(2) {
+    font-size: 15px;
+  }
 }
 @media (max-width: 768px) {
   .banner-section {
     /* min-width: 100%; */
     /* margin: 100px auto; */
+    padding: 80px 20px;
+    margin: 0;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
   }
   .image {
     max-width: 100%;
@@ -89,7 +149,6 @@
   }
   .title-cta {
     margin: 20px 0;
-    max-width: 100%;
   }
   .title-cta > h1 {
     font-size: 50px;
@@ -109,21 +168,14 @@
     width: 100%;
     flex-direction: column-reverse;
   }
-  .eclipse-1 {
-    top: 500px;
-  }
-  .image > img {
-    max-height: 270px;
+
+  .image {
+    width: 100%;
   }
 
-  .title-cta > h1 {
-    font-size: 40px;
-
-    margin-bottom: 10px;
-  }
-  .eclipse-1 {
-    top: 700px;
-    left: 300px;
+  .title-cta {
+    min-width: 100%;
+    margin-top: 30px;
   }
 }
 @media (max-width: 376px) {

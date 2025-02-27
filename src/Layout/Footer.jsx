@@ -95,7 +95,7 @@ export default function Footer() {
                   borderRadius: "5px",
                   // fontSize: "20px",
                   padding: "10px 20px",
-                  backgroundColor: "#eb2172",
+                  backgroundColor: "#1047C0",
                   color: "white",
                   borderWidth: "0px",
                 }}
@@ -115,16 +115,16 @@ export default function Footer() {
           <Typography variant="body2" sx={{ fontWeight: "medium" }}>
             Portfolio
           </Typography>
-          <Link color="#EB2172" variant="body2" href="#">
+          <Link color="#1047C0" variant="body2" href="#">
             Home
           </Link>
-          <Link color="#EB2172" variant="body2" href="#">
+          <Link color="#1047C0" variant="body2" href="#">
             About
           </Link>
-          <Link color="#EB2172" variant="body2" href="#">
+          <Link color="#1047C0" variant="body2" href="#">
             Testimonials
           </Link>
-          <Link color="#EB2172" variant="body2" href="#">
+          <Link color="#1047C0" variant="body2" href="#">
             Mentors
           </Link>
         </Box>
@@ -138,10 +138,10 @@ export default function Footer() {
           <Typography variant="body2" sx={{ fontWeight: "medium" }}>
             Content Writing
           </Typography>
-          <Link color="#EB2172" variant="body2" href="#">
+          <Link color="#1047C0" variant="body2" href="#">
             Blogs
           </Link>
-          <Link color="#EB2172" variant="body2" href="#">
+          <Link color="#1047C0" variant="body2" href="#">
             Research
           </Link>
         </Box>
@@ -155,10 +155,10 @@ export default function Footer() {
           <Typography variant="body2" sx={{ fontWeight: "medium" }}>
             E-Commerce
           </Typography>
-          <Link color="#EB2172" variant="body2" href="#">
+          <Link color="#1047C0" variant="body2" href="#">
             Resources
           </Link>
-          <Link color="#EB2172" variant="body2" href="#">
+          <Link color="#1047C0" variant="body2" href="#">
             Contact
           </Link>
         </Box>

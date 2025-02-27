@@ -18,24 +18,25 @@
   font-size: 35px;
   font-optical-sizing: auto;
   font-weight: bold;
-  font-family: "Caveat", serif;
+  font-family: "Londrina Solid", serif;
   font-style: normal;
   margin: 0;
   margin-bottom: 10px;
   text-align: left;
-  color: #eb2172;
+  color: #1047c0;
 }
 
 .title-cta > button {
+  font-family: "Open Sans", sans-serif;
   border-radius: 5px;
   font-size: 20px;
   padding: 10px 20px;
-  background-color: #eb2172;
+  background-color: #1047c0;
   color: white;
   border-width: 0px;
 }
 .para-heading {
-  color: #eb2172;
+  color: #1047c0;
   font-size: 24px;
   font-weight: bold;
 
