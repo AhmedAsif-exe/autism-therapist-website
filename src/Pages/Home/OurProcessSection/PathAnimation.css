@@ -1,0 +1,55 @@
+
+svg {
+    max-width: 400px;
+    overflow: visible;
+    margin-top: 10vh;
+  }
+  
+  .ball {
+    fill: white;
+    visibility: hidden;
+  }
+  
+  .line {
+    display:none;
+    fill: none;
+    stroke: rgb(48, 111, 131);
+    stroke-width: 2px;
+    stroke-opacity: 0.4;
+  }
+  text {
+    fill: white;
+    font-size: 15px;
+    font-family: "Quicksand", sans-serif; 
+    visibility: hidden;
+    font-weight: 600;
+    letter-spacing:0.1rem;
+  }
+  
+
+  .ball{
+    fill: rgb(66, 121, 192);
+  }
+  .ball01{
+    border: 1rem solid black; 
+
+  }
+
+  @media screen and (max-width: 400px) {
+    svg {
+      max-width: 300px;
+      overflow: visible;
+      margin-top: 10vh;
+    }
+    
+  }
+
+
+  @media screen and (max-width: 800) {
+    svg {
+      max-width: 350px;
+      overflow: visible;
+      margin-top: 10vh;
+    }
+    
+  }
