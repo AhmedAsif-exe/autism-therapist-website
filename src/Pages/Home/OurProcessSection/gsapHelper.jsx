@@ -33,13 +33,15 @@ export const gsapFrontAnimationHelper = () => {
 };
 
 export const gsapScrollAnimationHelper = () => {
+
+
   const t1 = gsap.timeline({
     scrollTrigger: {
       trigger: "#right",
       start: "center center",
-      end: "4000 center",
+      end: "top -150%",
       scrub: 2,
-      pin: "#div",
+      pin: true,
       toggleActions: "restart pause reverse pause",
     },
   });

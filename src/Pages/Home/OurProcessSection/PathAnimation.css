@@ -6,7 +6,7 @@ svg {
   }
   
   .ball {
-    fill: white;
+    fill: #CB4A1B;
     visibility: hidden;
   }
   
@@ -18,18 +18,18 @@ svg {
     stroke-opacity: 0.4;
   }
   text {
-    fill: white;
+    fill: rgb(66, 121, 192);
     font-size: 15px;
     font-family: "Quicksand", sans-serif; 
-    visibility: hidden;
+    /* visibility: hidden; */
     font-weight: 600;
     letter-spacing:0.1rem;
   }
   
-
+/* 
   .ball{
     fill: rgb(66, 121, 192);
-  }
+  } */
   .ball01{
     border: 1rem solid black; 
 

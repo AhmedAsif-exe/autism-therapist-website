@@ -3,7 +3,7 @@ import styles from "./UpperMain.module.css";
 const UpperComponent = () => {
   return (
     <>
-      <div className={styles.beforeStart} id="beforeStart">
+      {/* <div className={styles.beforeStart} id="beforeStart">
         <div className={styles.title} id="title">
           Its nice to have you here ;) Scroll Down Slowly
         </div>
@@ -17,7 +17,7 @@ const UpperComponent = () => {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
     </>
   );
 };

@@ -13,14 +13,14 @@ import UpperComponent from "./UpperMain";
 const MainInfo = (props) => {
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
-    gsapFrontAnimationHelper();
+    // gsapFrontAnimationHelper();
     gsapScrollAnimationHelper();
     ScrollTrigger.refresh();
   }, []);
 
   return (
-    <div className={styles.main} id={props.id}>
-      <UpperComponent />
+    <div className={styles.main} id='home'>
+      {/* <UpperComponent /> */}
       <div className={styles.div} id="div">
         <div className={styles.left}>
           <div className={styles.line1} id="line1"></div>
