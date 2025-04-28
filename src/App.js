@@ -14,16 +14,16 @@ function App() {
   return (
     <div className="App">
       <BannerSection />
-      {/* <SectionDivider /> */}
+      {/* <SectionDivider />
       <WhatIDoSection />
-      {/* <SectionDivider /> */}
+      <SectionDivider /> */}
       <OurProcessSection />
-      <TestimonialSection />
-      {/* <SectionDivider /> */}
-      {/* <AboutMeSection /> */}
+      {/* <TestimonialSection />
+      <SectionDivider />
+      <AboutMeSection />
       <MentorSection />
       <ExpertiseSection />
-      <Footer />
+      <Footer /> */}
     </div>
   );
 }

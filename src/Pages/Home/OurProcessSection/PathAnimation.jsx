@@ -4,44 +4,45 @@ import { gsap } from "gsap";
 import { MotionPathPlugin } from "gsap/MotionPathPlugin";
 import ScrollTrigger from "gsap/ScrollTrigger";
 const PathAnimation = () => {
-  // useEffect(() => {
-  //   gsap.registerPlugin(ScrollTrigger, MotionPathPlugin);
-  //   gsap.defaults({ ease: "none" });
+  useEffect(() => {
+    gsap.registerPlugin(ScrollTrigger, MotionPathPlugin);
+    gsap.defaults({ ease: "none" });
 
-  //   gsap.set(".ball", { xPercent: -50, yPercent: -50 });
+    gsap.set(".ball", { xPercent: -50, yPercent: -50 });
 
-  //   let tl = gsap
-  //     .timeline({
-  //       defaults: {
-  //         duration: 0.05,
-  //         autoAlpha: 1,
-  //         transformOrigin: "center",
-  //         ease: "elastic(2.5, 1)",
-  //       },
-  //     })
-  //     .fromTo(".ball02, .text01", { scale: 1.5 }, { scale: 2 }, 0.13)
-  //     .fromTo(".ball03, .text02", { scale: 1.5 }, { scale: 2 }, 0.43)
-  //     .fromTo(".ball04, .text03", { scale: 1.5 }, { scale: 2.1 }, 0.73);
+    let tl = gsap
+      .timeline({
+        defaults: {
+          duration: 0.05,
+          autoAlpha: 1,
+          transformOrigin: "center",
+          ease: "elastic(2.5, 1)",
+        },
+      })
+      .fromTo(".ball02, .text01", { scale: 1.5 }, { scale: 2 }, 0.13)
+      .fromTo(".ball03, .text02", { scale: 1.5 }, { scale: 2 }, 0.43)
+      .fromTo(".ball04, .text03", { scale: 1.5 }, { scale: 2.1 }, 0.73);
 
-  //   gsap
-  //     .timeline({
-  //       defaults: { duration: 1 },
-  //       scrollTrigger: {
-  //         trigger: "#svg",
-  //         scrub: 2,
-  //         start: "0 center",
-  //         end: "4320 center",
-  //       },
-  //     })
-  //     .to(".ball01", { duration: 0.01, autoAlpha: 1 })
-  //     .from(".theLine", { drawSVG: 0 }, 0)
-  //     .to(
-  //       ".ball01",
-  //       { motionPath: { path: ".theLine", alignOrigin: [0.5, 0.5] } },
-  //       0
-  //     )
-  //     .add(tl, 0);
-  // }, []);
+    gsap
+      .timeline({
+        defaults: { duration: 1 },
+        scrollTrigger: {
+          trigger: "#svg",
+          scrub: 2,
+          markers:true,
+          start: "0 center",
+          end: "4320 center",
+        },
+      })
+      .to(".ball01", { duration: 0.01, autoAlpha: 1 })
+      .from(".theLine", { drawSVG: 0 }, 0)
+      .to(
+        ".ball01",
+        { motionPath: { path: ".theLine", alignOrigin: [0.5, 0.5] } },
+        0
+      )
+      .add(tl, 0);
+  }, []);
 
   return (
     <>
@@ -52,13 +53,13 @@ const PathAnimation = () => {
         <path className="line04 line" d="M 10 800  600 800"></path>
         <path className="line05 line" d="M 10 1000  600 1000"></path>
         <text className="text01" x="70" y="230">
-          Introduction
+          Phase 1
         </text>
         <text className="text02" x="70" y="480">
-          Background
+          Phase 2
         </text>
         <text className="text03" x="120" y="1030">
-          Aim
+          Phase 3
         </text>
 
         <path

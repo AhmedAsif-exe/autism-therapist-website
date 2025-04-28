@@ -27,7 +27,7 @@ const mentors = [
 export default function OurProcessSection() {
   return (
     <div className={style["mentor-section"]}>
-      <h2 className={style["heading"]}>Mentor</h2>
+      {/* <h2 className={style["heading"]}>Mentor</h2>
       <div className={style["process-grid"]}>
         {mentors.map((mentor) => (
           <MentorInfoCard {...mentor} />
@@ -35,7 +35,7 @@ export default function OurProcessSection() {
       </div>
       <a className={style["see-more"]}>
         See More <img src={arrow} />
-      </a>
+      </a> */}
     </div>
   );
 }

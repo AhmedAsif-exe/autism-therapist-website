@@ -36,7 +36,7 @@ export default function TestimonialSection() {
 
   return (
     <div className={style["testimonial-section"]}>
-      <h2 className={style["heading"]}>Testimonial</h2>
+      {/* <h2 className={style["heading"]}>Testimonial</h2>
       <div className={style["carousel"]}>
         <Carousel
           items={items}
@@ -47,7 +47,7 @@ export default function TestimonialSection() {
       </div>
       <a className={style["see-more"]}>
         See More <img src={arrow} />
-      </a>
+      </a> */}
     </div>
   );
 }

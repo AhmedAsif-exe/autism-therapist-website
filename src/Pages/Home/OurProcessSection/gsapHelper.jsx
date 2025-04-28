@@ -1,35 +1,35 @@
 import { gsap } from "gsap";
 export const gsapFrontAnimationHelper = () => {
-  gsap
-    .timeline()
-    .to("#title", {
-      scrollTrigger: {
-        trigger: "#title",
-        start: "0 190",
-        end: "+=20",
-        scrub: 1,
-        toggleActions: "restart pause reverse pause",
-      },
-      stagger: 1,
-      opacity: 0,
-      duration: 2,
-      translateY: -50,
-      rotateX: 30,
-    })
-    .to("#scroll", {
-      scrollTrigger: {
-        trigger: "#scroll",
-        start: "-60 190",
-        end: "+=400",
-        scrub: 2,
-        toggleActions: "restart pause reverse pause",
-      },
-      stagger: 1,
-      rotateY: 720,
-      rotateX: 100,
-      opacity: 0,
-      duration: 3,
-    });
+  // gsap
+  //   .timeline()
+  //   .to("#title", {
+  //     scrollTrigger: {
+  //       trigger: "#title",
+  //       start: "0 190",
+  //       end: "+=20",
+  //       scrub: 1,
+  //       toggleActions: "restart pause reverse pause",
+  //     },
+  //     stagger: 1,
+  //     opacity: 0,
+  //     duration: 2,
+  //     translateY: -50,
+  //     rotateX: 30,
+  //   })
+  //   .to("#scroll", {
+  //     scrollTrigger: {
+  //       trigger: "#scroll",
+  //       start: "-60 190",
+  //       end: "+=400",
+  //       scrub: 2,
+  //       toggleActions: "restart pause reverse pause",
+  //     },
+  //     stagger: 1,
+  //     rotateY: 720,
+  //     rotateX: 100,
+  //     opacity: 0,
+  //     duration: 3,
+  //   });
 };
 
 export const gsapScrollAnimationHelper = () => {
@@ -39,9 +39,10 @@ export const gsapScrollAnimationHelper = () => {
     scrollTrigger: {
       trigger: "#right",
       start: "center center",
-      end: "top -150%",
+      end: "4000 center",      
       scrub: 2,
       pin: true,
+      markers: true,
       toggleActions: "restart pause reverse pause",
     },
   });

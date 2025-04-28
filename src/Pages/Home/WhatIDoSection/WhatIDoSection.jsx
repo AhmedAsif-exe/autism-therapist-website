@@ -4,11 +4,10 @@ import src from "../../../Assets/Images/About Us.jpg";
 export default function WhatIDoSection() {
   return (
     <div className={style["about-us-section"]}>
-      <div className={style["image"]}>
+      {/* <div className={style["image"]}>
         <img src={src} alt="Therapist" />
       </div>
       <div className={style["title-cta"]}>
-        {/* <p className={style["para-heading"]}>/About Us/</p> */}
         <h2>Dedicated to Supporting Children with Autism and Their Families</h2>
         <p className={style["content"]}>
           We provide specialized therapy for children with autism, fostering
@@ -17,7 +16,7 @@ export default function WhatIDoSection() {
           that empower children to thrive.
         </p>
         <Button>Learn more</Button>
-      </div>
+      </div> */}
     </div>
   );
 }
