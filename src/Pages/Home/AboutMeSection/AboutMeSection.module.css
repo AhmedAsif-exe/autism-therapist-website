@@ -1,43 +1,74 @@
 .about-us-section {
-  display: flex;
-  min-height: 100vh;
+  
+  background-image: url("../../../Assets/Images/About-Us-bg.png");
+  background-size: cover;
+  background-position: bottom;
+  background-repeat: no-repeat;
+  /* min-height: 500px; */
+  padding: 40px 0;
+  position: relative;
+    display: flex;
+    max-width: fit-content;
+    
+  }
+
+
+.about-us-section::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(4, 37, 57, 0.71);
+  /* #042539B5 with transparency */
+  z-index: 2;
+  /* Ensures it's on top of the background image */
+}
+
+
+.see-more {
+  align-self: flex-end;
+  font-weight: 500;
   max-width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: underline;
+color: white;
+  transition: color 0.3s ease, transform 0.3s ease;
 }
 .image {
-  width: 50%;
-  background-image: url("../../../Assets/Images/Faiza.jpg");
-  background-size: cover; /* Ensures the image covers the whole screen */
-  background-position: bottom; /* Centers the image */
-  background-repeat: no-repeat; /* Prevents the image from repeating */
+  border-radius: 50%;
+  width: 300px;
+  height: 300px;
+  z-index: 10;
+  border: 2px solid white;
+  padding:5px;
+  align-self: center;
+
 }
 .title-cta {
-  width: 50%;
-  /* background-color: #f7f7f7; */
-  background: linear-gradient(
-    90deg,
-    rgba(255, 219, 219, 1) 0%,
-    rgba(255, 255, 255, 1) 100%
-  );
-
+  width: 70%;
+z-index: 10;
   display: flex;
   align-self: center;
   flex-direction: column;
   align-items: flex-start;
   font-family: "Raleway", serif;
-  padding: 60px;
+  padding:  30px;
   margin: 0;
-  height: 100vh;
+  color: white;
 }
 .title-cta > h2 {
   font-size: 60px;
   font-optical-sizing: auto;
   font-weight: bold;
-  font-family: "Londrina Solid", serif;
+  font-family: "Raleway", serif;
   font-style: normal;
   margin: 0;
+ ;
   margin-bottom: 10px;
   text-align: left;
-  color: #1047c0;
 }
 
 .title-cta > button {
@@ -61,7 +92,9 @@
 .content {
   font-size: 16px;
   font-weight: 500;
-  text-align: justify;
+  color: white;
+  
+  text-align: start;
   margin: 0;
   margin-bottom: 10px;
 }

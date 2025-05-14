@@ -5,7 +5,7 @@ export default function Card({
   description,
   stepNumber,
   src,
-  removeArrow,
+
   className,
 }) {
   let logo;
@@ -15,17 +15,19 @@ export default function Card({
   return (
     <div
       className={`${style["card"]} p-6 pb-8 flex flex-col gap-3 font-Outfit aos-init aos-animate ${className}`}
+      id="card"
     >
       <div className={style["card-header"]}>
         <div className={style["icon-title"]}>
-          {logo}
+        <img src={src} alt="process icon"  className={style["card-logo"]}/>
+          
           <h3>{heading}</h3>
         </div>
-        {!removeArrow && <img src={arrow} alt="arrow" />}
+        {/* {!removeArrow && <img src={arrow} alt="arrow" />} */}
       </div>
 
-      <p className={style["card-body"]}>{description[0]}</p>
-      <p className={style["card-body"]}>{description[1]}</p>
+      <p className={style["card-body"]}>{description}</p>
+
     </div>
   );
 }

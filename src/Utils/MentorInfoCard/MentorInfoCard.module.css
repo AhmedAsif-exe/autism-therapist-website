@@ -1,6 +1,7 @@
 .card {
   border-radius: 10px;
-
+  opacity: 0;
+  transform: translateY(20px);
   padding: 30px 20px;
   display: flex;
   flex-direction: row;
@@ -48,8 +49,7 @@
   text-align: start;
 }
 .mentor-info-position {
-  color: #ff3e54;
-
+  color: #ec5923;
   font-style: italic;
   margin-top: 12px;
   font-size: 1rem;
@@ -57,7 +57,7 @@
 }
 .link {
   display: flex;
-  color: #ff3e54;
+  color: #ec5923;
   font-weight: 500;
   text-align: start;
   transition: color 200ms cubic-bezier(0.4, 0, 0.2, 1),

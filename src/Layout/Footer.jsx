@@ -15,9 +15,9 @@ import TwitterIcon from "@mui/icons-material/X";
 
 function Copyright() {
   return (
-    <Typography variant="body2" sx={{ color: "text.secondary", mt: 1 }}>
+    <Typography variant="body2" sx={{ color: "#ffffff", mt: 1 }}>
       {"Copyright © "}
-      <Link color="text.secondary" href="#">
+      <Link color="#ffffff" href="#">
         Faiza.
       </Link>
       &nbsp;
@@ -34,9 +34,11 @@ export default function Footer() {
         flexDirection: "column",
         alignItems: "center",
         gap: { xs: 4, sm: 8 },
-
+        // m: 0,
+        width: "100%",
         py: { xs: 8, sm: 10 },
         textAlign: { sm: "center", md: "left" },
+        backgroundColor: "#042539",
       }}
     >
       <Box
@@ -65,20 +67,26 @@ export default function Footer() {
                 mt: 2,
                 fontFamily: "'Raleway', sans-serif",
                 fontSize: "20px",
+                color: "white",
               }}
             >
               Join the newsletter
             </Typography>
-            <Typography variant="body2" sx={{ color: "text.secondary", mb: 2 }}>
+            <Typography
+              variant="body2"
+              sx={{ color: "text.secondary", mb: 2, color: "white" }}
+            >
               Subscribe for weekly updates. No spams ever!
             </Typography>
-            <InputLabel htmlFor="email-newsletter">Email</InputLabel>
+            <InputLabel htmlFor="email-newsletter" sx={{ color: "white" }}>
+              Email
+            </InputLabel>
             <Stack direction="row" spacing={1} useFlexGap>
               <TextField
                 id="email-newsletter"
                 hiddenLabel
                 size="small"
-                variant="outlined"
+                // variant="outlined"
                 fullWidth
                 aria-label="Enter your email address"
                 placeholder="Your email address"
@@ -88,14 +96,18 @@ export default function Footer() {
                     "aria-label": "Enter your email address",
                   },
                 }}
-                sx={{ width: "250px" }}
+                sx={{
+                  width: "250px",
+                  color: "whiteSmoke",
+                  backgroundColor: "white",
+                }}
               />
               <Button
                 sx={{
                   borderRadius: "5px",
                   // fontSize: "20px",
                   padding: "10px 20px",
-                  backgroundColor: "#1047C0",
+                  backgroundColor: "#EC5923",
                   color: "white",
                   borderWidth: "0px",
                 }}
@@ -112,19 +124,22 @@ export default function Footer() {
             gap: 1,
           }}
         >
-          <Typography variant="body2" sx={{ fontWeight: "medium" }}>
+          <Typography
+            variant="body2"
+            sx={{ fontWeight: "medium", color: "#EC5923" }}
+          >
             Portfolio
           </Typography>
-          <Link color="#1047C0" variant="body2" href="#">
+          <Link color="#ffffff" variant="body2" href="#">
             Home
           </Link>
-          <Link color="#1047C0" variant="body2" href="#">
+          <Link color="#ffffff" variant="body2" href="#">
             About
           </Link>
-          <Link color="#1047C0" variant="body2" href="#">
+          <Link color="#ffffff" variant="body2" href="#">
             Testimonials
           </Link>
-          <Link color="#1047C0" variant="body2" href="#">
+          <Link color="#ffffff" variant="body2" href="#">
             Mentors
           </Link>
         </Box>
@@ -135,13 +150,16 @@ export default function Footer() {
             gap: 1,
           }}
         >
-          <Typography variant="body2" sx={{ fontWeight: "medium" }}>
+          <Typography
+            variant="body2"
+            sx={{ fontWeight: "medium", color: "#EC5923" }}
+          >
             Content Writing
           </Typography>
-          <Link color="#1047C0" variant="body2" href="#">
+          <Link color="#ffffff" variant="body2" href="#">
             Blogs
           </Link>
-          <Link color="#1047C0" variant="body2" href="#">
+          <Link color="#ffffff" variant="body2" href="#">
             Research
           </Link>
         </Box>
@@ -152,13 +170,16 @@ export default function Footer() {
             gap: 1,
           }}
         >
-          <Typography variant="body2" sx={{ fontWeight: "medium" }}>
+          <Typography
+            variant="body2"
+            sx={{ fontWeight: "medium", color: "#EC5923" }}
+          >
             E-Commerce
           </Typography>
-          <Link color="#1047C0" variant="body2" href="#">
+          <Link color="#ffffff" variant="body2" href="#">
             Resources
           </Link>
-          <Link color="#1047C0" variant="body2" href="#">
+          <Link color="#ffffff" variant="body2" href="#">
             Contact
           </Link>
         </Box>
@@ -181,7 +202,7 @@ export default function Footer() {
           direction="row"
           spacing={1}
           useFlexGap
-          sx={{ justifyContent: "left", color: "text.secondary" }}
+          sx={{ justifyContent: "left", color: "white" }}
         >
           <IconButton
             color="inherit"

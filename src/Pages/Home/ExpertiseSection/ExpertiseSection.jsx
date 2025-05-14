@@ -60,11 +60,7 @@ export default function ExpertiseSection() {
       <h2 className={style["heading"]}>Expertise</h2>
       <div className={style["grid"]}>
         {expertise.map((element, index) => (
-          <Card
-            {...element}
-            removeArrow={true}
-            className={style[`grid-${index}`]}
-          />
+          <Card {...element} className={style[`grid-${index}`]} />
         ))}
       </div>
       <a className={style["see-more"]}>

@@ -4,6 +4,8 @@ import arrow from "../../../Assets/Icons/right-arrow.png";
 import MentorInfoCard from "Utils/MentorInfoCard/MentorInfoCard";
 import Devon from "../../../Assets/Images/Devon Lane.png";
 import Floyd from "../../../Assets/Images/Floyd Miles.png";
+import gsap from "gsap";
+import { useEffect } from "react";
 const mentors = [
   {
     name: "Dr. Devon Lane",
@@ -25,17 +27,57 @@ const mentors = [
   },
 ];
 export default function OurProcessSection() {
+  // useEffect(() => {
+  //   const tl = gsap.timeline({
+  //     scrollTrigger: {
+  //       trigger: "#mentor-section",
+  //       start: "top top",
+  //       end: "center",
+  //       scrub: 1,
+  //       pin: true,
+  //       markers: true,
+  //       // delay: 1 ❌ remove this
+  //     },
+  //   });
+
+  //   tl.to("#mentor-heading", {
+  //     opacity: 1,
+  //     y: 0,
+  //     duration: 1,
+  //   })
+  //     .to(
+  //       "#process-grid > div:nth-child(1)",
+  //       {
+  //         opacity: 1,
+  //         y: 0,
+  //         duration: 1,
+  //       },
+  //       "-=0.5"
+  //     ) // overlap with previous animation by 0.5s
+  //     .to(
+  //       "#process-grid > div:nth-child(2)",
+  //       {
+  //         opacity: 1,
+  //         y: 0,
+  //         duration: 1,
+  //       },
+  //       "-=0.5" // overlap with previous animation by 0.5s
+  //     );
+  // }, []);
+
   return (
-    <div className={style["mentor-section"]}>
-      {/* <h2 className={style["heading"]}>Mentor</h2>
-      <div className={style["process-grid"]}>
+    <div className={style["mentor-section"]} id="mentor-section">
+      <h2 className={style["heading"]} id="mentor-heading">
+        Mentors
+      </h2>
+      <div className={style["process-grid"]} id="process-grid">
         {mentors.map((mentor) => (
           <MentorInfoCard {...mentor} />
         ))}
       </div>
       <a className={style["see-more"]}>
         See More <img src={arrow} />
-      </a> */}
+      </a>
     </div>
   );
 }
