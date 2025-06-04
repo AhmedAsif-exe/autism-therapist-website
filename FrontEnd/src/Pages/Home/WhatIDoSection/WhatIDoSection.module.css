@@ -1,0 +1,122 @@
+.about-us-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 50px;
+  /* margin: auto; */
+  background-color: #f7f7f7;
+}
+.title-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: 50%;
+  font-family: "Raleway", serif;
+  padding: 20px;
+}
+.title-cta > h2 {
+  font-size: 35px;
+  font-optical-sizing: auto;
+  font-weight: bold;
+  font-family: "Londrina Solid", serif;
+  font-style: normal;
+  margin: 0;
+  margin-bottom: 10px;
+  text-align: left;
+  color: #1047c0;
+}
+
+.title-cta > button {
+  font-family: "Open Sans", sans-serif;
+  border-radius: 5px;
+  font-size: 20px;
+  padding: 10px 20px;
+  background-color: #1047c0;
+  color: white;
+  border-width: 0px;
+}
+.para-heading {
+  color: #1047c0;
+  font-size: 24px;
+  font-weight: bold;
+
+  margin-bottom: 10px;
+}
+.content {
+  font-size: 16px;
+  font-weight: 500;
+  text-align: left;
+  margin: 0;
+  margin-bottom: 10px;
+}
+.image {
+  max-width: 40%;
+  padding: 20px;
+  align-self: center;
+}
+.image > img {
+  border-radius: 5px;
+  max-width: 100%;
+}
+@media (max-width: 768px) {
+  .about-us-section {
+    min-width: 100%;
+    /* margin: 100px auto; */
+    flex-direction: column-reverse;
+  }
+  .image {
+    max-width: 100%;
+  }
+  .content {
+    font-size: 20px;
+  }
+  .image > img {
+    max-width: 600px;
+  }
+  .title-cta {
+    margin: 20px 0;
+    max-width: 100%;
+  }
+  .title-cta > h2 {
+    font-size: 35px;
+  }
+  .eclipse-2 {
+    display: none;
+  }
+  .eclipse-3 {
+    display: none;
+  }
+  .eclipse-1 {
+    display: none;
+  }
+}
+@media (max-width: 426px) {
+  .about-us-section {
+    min-width: 100%;
+    flex-direction: column-reverse;
+  }
+  .eclipse-1 {
+    top: 500px;
+  }
+  .image > img {
+    max-width: 100%;
+  }
+  .content {
+    font-size: 15px;
+    text-align: justify;
+  }
+  .title-cta > h2 {
+    font-size: 30px;
+    margin-bottom: 10px;
+  }
+  .eclipse-1 {
+    top: 700px;
+    left: 300px;
+  }
+}
+
+@media (max-width: 321px) {
+  .about-us-section {
+    padding: 50px 10px;
+  }
+}

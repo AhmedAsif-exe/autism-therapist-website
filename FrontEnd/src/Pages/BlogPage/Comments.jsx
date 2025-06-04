@@ -1,0 +1,92 @@
+import { CommentSection } from "react-comments-section";
+import "react-comments-section/dist/index.css";
+import { useState, useEffect } from "react";
+import { toast } from "react-toastify";
+import {
+  fetchComments,
+  submitComment,
+  submitReply,
+  editComment,
+  deleteComment,
+} from "Utils/Queries/Comments";
+import { useAuth } from "Utils/Context";
+const Comments = ({ blogId }) => {
+  const { user, loggedIn, loading } = useAuth();
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    fetchComments(blogId).then((comments) => {
+      if (mounted) setData(comments);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  return (
+    <>
+      {!loading && (
+        <CommentSection
+          advancedInput={true}
+          currentUser={
+            loggedIn
+              ? {
+                  currentUserId: user._id,
+                  currentUserImg:
+                    user.pfp ||
+                    `https://ui-avatars.com/api/?name=${user.name}&background=%23265c7e`,
+                  currentUserProfile: "#",
+                  currentUserFullName: user.name,
+                }
+              : null
+          }
+          logIn={{
+            onLogin: () => toast.info("on login button"),
+            signUpLink: "/login",
+          }}
+          commentData={data}
+          onSubmitAction={async ({ userId, text }) =>
+            await submitComment({ userId, text, blogId })
+          }
+          onReplyAction={async (data) => {
+            await submitReply({
+              userId: data.userId,
+              text: data.text,
+              parentOfRepliedCommentId: data.parentOfRepliedCommentId || null,
+              repliedToCommentId: data.repliedToCommentId,
+              blogId,
+            });
+          }}
+          onEditAction={async (data) => {
+            await editComment(data.comId, data.text);
+          }}
+          onDeleteAction={async (data) => {
+            await deleteComment(data.comIdToDelete);
+          }}
+          placeholder="Write your comment..."
+          inputStyle={{ border: "1px solid rgb(208 208 208)" }}
+          formStyle={{ backgroundColor: "white" }}
+          submitBtnStyle={{
+            border: "1px solid black",
+            backgroundColor: "black",
+            padding: "7px 15px",
+          }}
+          cancelBtnStyle={{
+            border: "1px solid gray",
+            backgroundColor: "gray",
+            color: "white",
+            padding: "7px 15px",
+          }}
+          replyInputStyle={{
+            borderBottom: "1px solid black",
+            color: "black",
+          }}
+        />
+      )}
+    </>
+  );
+};
+
+export default Comments;
