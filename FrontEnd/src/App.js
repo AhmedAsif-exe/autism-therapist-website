@@ -12,6 +12,13 @@ import Layout from "Layout/Layout";
 import Blogs from "./Pages/Blogs/Blogs";
 import BlogPage from "Pages/BlogPage/BlogPage";
 import Login from "Pages/Login/Login";
+import BallPathAnimation from "BallAnimation/Index";
+import BallAnimation from "BallAnimation";
+import About from "Pages/About/About";
+import Testimonial from "Pages/Testimonial/Testimonial";
+import Resources from "Pages/Resources/Resources";
+import SuccessPayment from "Utils/SuccessPayment";
+import ErrorPayment from "Utils/ErrorPayment";
 function App() {
   return (
     <div className="App">
@@ -23,7 +30,8 @@ function App() {
               element={
                 <>
                   <BannerSection />
-                  <OurProcessSection />
+                  {/* <OurProcessSection /> */}
+                  {/* <BallAnimation /> */}
                   <AboutMeSection />
                   <TestimonialSection />
                 </>
@@ -34,6 +42,25 @@ function App() {
             <Route path="/blogs/:id" element={<BlogPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Login />} />
+            <Route
+              path="/testimonials"
+              element={
+                <Testimonial>
+                  <TestimonialSection />
+                </Testimonial>
+              }
+            />
+            <Route
+              path="/about"
+              element={
+                <About>
+                  <AboutMeSection />
+                </About>
+              }
+            />
+            <Route path="/resources" element={<Resources />} />
+            <Route path="/success" element={<SuccessPayment />} />
+            <Route path="/error" element={<ErrorPayment />} />
           </Routes>
         </Layout>
       </Router>

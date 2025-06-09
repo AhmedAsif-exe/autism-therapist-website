@@ -1,14 +1,42 @@
-// src/context/AuthContext.js
-import { createContext, useContext, useEffect, useState } from "react";
+// src/context/ProjectContext.js
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useReducer,
+} from "react";
 import { checkAuthStatus } from "axiosInstance";
 
-const AuthContext = createContext();
+const ProjectContext = createContext();
+const reducer = (state, action) => {
+  let newState;
+  switch (action.type) {
+    case "ADD":
+      newState = [...state, action.item];
+      break;
+    case "REMOVE":
+      newState = state.filter((i) => i.id !== action.id);
+      break;
+    case "CLEAR":
+      newState = [];
+      break;
+    default:
+      return state;
+  }
 
-export function AuthProvider({ children }) {
+  localStorage.setItem("cart", JSON.stringify(newState));
+  return newState;
+};
+const getInitialCart = () => {
+  const localData = localStorage.getItem("cart");
+  return localData ? JSON.parse(localData) : [];
+};
+export function ContextProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loggedIn, setLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
-
+  const [cart, dispatch] = useReducer(reducer, [], getInitialCart);
   useEffect(() => {
     let isMounted = true; // ✅ prevent state update on unmounted component
 
@@ -34,12 +62,14 @@ export function AuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loggedIn, loading }}>
+    <ProjectContext.Provider
+      value={{ user, loggedIn, loading, cart, dispatch }}
+    >
       {children}
-    </AuthContext.Provider>
+    </ProjectContext.Provider>
   );
 }
 
-export function useAuth() {
-  return useContext(AuthContext);
+export function useProjectContext() {
+  return useContext(ProjectContext);
 }

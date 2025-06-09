@@ -47,7 +47,7 @@ router.get(
   "/google/callback",
   passport.authenticate("google", { failureRedirect: "/" }),
   (req, res) => {
-    res.redirect("http://localhost:3000");
+    res.redirect(process.env.FRONTEND_URL);
   }
 );
 
@@ -64,14 +64,10 @@ router.post("/logout", (req, res) => {
   });
 });
 router.get("/me", (req, res) => {
-  if (req.isAuthenticated()) {
+  if (req.isAuthenticated && req.isAuthenticated()) {
+    const { name, email, pfp, _id, paidItems } = req.user;
     res.json({
-      user: {
-        name: req.user.name,
-        email: req.user.email,
-        pfp: req.user.pfp,
-        _id: req.user._id,
-      },
+      user: { name, email, pfp, _id, paidItems },
     });
   } else {
     res.status(401).json({ message: "Not authenticated" });

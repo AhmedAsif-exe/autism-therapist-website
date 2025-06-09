@@ -7,11 +7,11 @@ import {
 import { logout } from "../axiosInstance";
 import { Avatar, Box, Button } from "@mui/material";
 import { toast } from "react-toastify";
-import { useAuth } from "Utils/Context";
+import { useProjectContext } from "Utils/Context";
 // import SitemarkIcon from "./SitemarkIcon";
 export default function Header() {
-  const { user, loggedIn, loading } = useAuth();
-  console.log(user);
+  const { user, loggedIn, loading } = useProjectContext();
+  
   return (
     <header
       className="p-4 border-b border-orange-500 flex justify-between items-center flex-wrap sticky top-0 z-[1000]"

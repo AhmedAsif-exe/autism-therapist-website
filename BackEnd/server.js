@@ -9,6 +9,7 @@ const MongoStore = require("connect-mongo");
 require("./Config/passport")(passport);
 const authRoutes = require("./Routes/auth");
 const commentRoutes = require("./Routes/comments");
+const paymentRoutes = require("./Routes/gateway")
 const app = express();
 
 mongoose
@@ -16,11 +17,16 @@ mongoose
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
-  .then(() => console.log("WORKS IG"));
+  .then(() => console.log("Mongo DB connected successfully"));
 
-app.use(cors({ origin: "http://localhost:3000", credentials: true }));
-app.use(express.json());
+app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
+app.use(
+  "/gateway/webhook",
+  express.raw({ type: "application/json" }),
+  paymentRoutes.webhookRouter
+);
 
+app.use(express.json()); // Now safe
 app.use(
   session({
     secret: process.env.MONGODB_SESSION_SECRET,
@@ -37,8 +43,9 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // Use routes
+// All other normal JSON routes
 app.use("/auth", authRoutes);
 app.use("/comments", commentRoutes);
-
+app.use("/gateway", paymentRoutes.normalRouter);
 const PORT = 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

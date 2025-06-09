@@ -13,6 +13,8 @@ const PageTemplate = ({ children, title, subtitle, src }) => {
           flexDirection: "column",
           gap: 4,
           maxWidth: "100%",
+          Height: "100vh",
+        
         }}
       >
         <Box

@@ -34,7 +34,7 @@
 }
 .cover {
   /* all: unset; */
-  background: rgba(0, 255, 123, 0.1);
+  background: #265c7e;
 }
 .title-cta {
   display: flex;

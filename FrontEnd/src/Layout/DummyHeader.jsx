@@ -13,10 +13,14 @@ import {
   Typography,
   Avatar,
 } from "@mui/material";
+import { logout } from "axiosInstance";
+import { toast } from "react-toastify";
+import { useProjectContext } from "Utils/Context";
 import logo from "Assets/Images/logo-removebg-preview.png";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import { useNavigate } from "react-router-dom";
+import { ShoppingCart } from "@mui/icons-material";
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   display: "flex",
   alignItems: "center",
@@ -36,7 +40,7 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
 
 export default function AppAppBar() {
   const [open, setOpen] = React.useState(false);
-
+  const { user, loggedIn, loading } = useProjectContext();
   const toggleDrawer = (newOpen) => () => {
     setOpen(newOpen);
   };
@@ -73,9 +77,9 @@ export default function AppAppBar() {
             >
               <Avatar src={logo} />
               <Typography px={"10px"} fontWeight="bold" color="#FFFFFF">
-                ABA
+                aba
                 <Box component="span" sx={{ color: "#f97544" }}>
-                  .Virtual
+                  .virtual
                 </Box>
               </Typography>
             </Box>
@@ -85,7 +89,7 @@ export default function AppAppBar() {
                 variant="text"
                 color="info"
                 size="small"
-                sx={{ minWidth: 0, color: "#ffffff" }}
+                sx={{ minWidth: 0, color: "#ffffff", mx: 1 }}
                 onClick={navigate.bind(this, "/")}
               >
                 Home
@@ -94,7 +98,7 @@ export default function AppAppBar() {
                 variant="text"
                 color="info"
                 size="small"
-                sx={{ minWidth: 0, color: "#ffffff" }}
+                sx={{ minWidth: 0, color: "#ffffff", mx: 1 }}
                 onClick={navigate.bind(this, "/about")}
               >
                 About
@@ -103,7 +107,7 @@ export default function AppAppBar() {
                 variant="text"
                 color="info"
                 size="small"
-                sx={{ minWidth: 0, color: "#ffffff" }}
+                sx={{ minWidth: 0, color: "#ffffff", mx: 1 }}
                 onClick={navigate.bind(this, "/testimonials")}
               >
                 Testimonials
@@ -112,7 +116,7 @@ export default function AppAppBar() {
                 variant="text"
                 color="info"
                 size="small"
-                sx={{ minWidth: 0, color: "#ffffff" }}
+                sx={{ minWidth: 0, color: "#ffffff", mx: 1 }}
                 onClick={navigate.bind(this, "/blogs")}
               >
                 Blog
@@ -121,7 +125,7 @@ export default function AppAppBar() {
                 variant="text"
                 color="info"
                 size="small"
-                sx={{ minWidth: 0, color: "#ffffff" }}
+                sx={{ minWidth: 0, color: "#ffffff", mx: 1 }}
                 onClick={navigate.bind(this, "/resources")}
               >
                 Resources
@@ -131,7 +135,7 @@ export default function AppAppBar() {
                 color="info"
                 size="small"
                 onClick={navigate.bind(this, "/games")}
-                sx={{ minWidth: 0, color: "#ffffff" }}
+                sx={{ minWidth: 0, color: "#ffffff", mx: 1 }}
               >
                 Games
               </Button>
@@ -139,35 +143,59 @@ export default function AppAppBar() {
                 variant="text"
                 size="small"
                 onClick={navigate.bind(this, "/contact")}
-                sx={{ minWidth: 0, color: "#ffffff" }}
+                sx={{ minWidth: 0, color: "#ffffff", mx: 1 }}
               >
                 Contact
               </Button>
             </Box>
-            <Box
-              sx={{
-                display: { xs: "none", md: "flex" },
-                gap: 1,
-                alignItems: "center",
-              }}
-            >
-              <Button
-                color="#f97544"
-                variant="text"
-                size="small"
-                onClick={navigate.bind(this, "/login")}
+
+            {loggedIn ? (
+              <Box
+                sx={{
+                  display: { xs: "none", md: "flex" },
+                  gap: 1,
+                  alignItems: "center",
+                }}
               >
-                Sign in
-              </Button>
-              <Button
-                sx={{ backgroundColor: "#f97544" }}
-                variant="contained"
-                size="small"
-                onClick={navigate.bind(this, "/signup")}
+                <Button sx={{ padding: 0, maxWidth: "fit-content" }}>
+                  <ShoppingCart sx={{ color: "#ffffff" }} />
+                </Button>
+                <Button
+                  sx={{ padding: 0 }}
+                  onClick={async () => {
+                    await logout();
+                    toast.success("Logged Out Successfully");
+                  }}
+                >
+                  {<Avatar src={user.pfp} />}
+                </Button>
+              </Box>
+            ) : (
+              <Box
+                sx={{
+                  display: { xs: "none", md: "flex" },
+                  gap: 1,
+                  alignItems: "center",
+                }}
               >
-                Sign up
-              </Button>
-            </Box>
+                <Button
+                  color="#f97544"
+                  variant="text"
+                  size="small"
+                  onClick={navigate.bind(this, "/login")}
+                >
+                  Sign in
+                </Button>
+                <Button
+                  sx={{ backgroundColor: "#f97544" }}
+                  variant="contained"
+                  size="small"
+                  onClick={navigate.bind(this, "/signup")}
+                >
+                  Sign up
+                </Button>
+              </Box>
+            )}
           </Box>
           <Box sx={{ display: { xs: "flex", md: "none" }, gap: 1 }}>
             <IconButton aria-label="Menu button" onClick={toggleDrawer(true)}>

@@ -15,7 +15,7 @@ export default function Card({
   return (
     <div
       className={`${style["card"]} p-6 pb-8 flex flex-col gap-3 font-Outfit aos-init aos-animate ${className}`}
-      id="card"
+      id={`card-${stepNumber}`}
     >
       {/* <div className={style["card-header"]}>
         <div className={style["icon-title"]}>

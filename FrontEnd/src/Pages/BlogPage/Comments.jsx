@@ -9,9 +9,9 @@ import {
   editComment,
   deleteComment,
 } from "Utils/Queries/Comments";
-import { useAuth } from "Utils/Context";
+import { useProjectContext } from "Utils/Context";
 const Comments = ({ blogId }) => {
-  const { user, loggedIn, loading } = useAuth();
+  const { user, loggedIn, loading } = useProjectContext();
   const [data, setData] = useState([]);
 
   useEffect(() => {
