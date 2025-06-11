@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { BLOGS, fetchAllBlogs } from "../../Utils/Queries/Blog";
+import { BLOGS } from "Utils/Queries/Blog";
 import PortableBlockRenderer from "./PortableBlockRenderer";
 import { Container, Typography, Box, Chip, Divider } from "@mui/material";
-import { CommentSection } from "react-comments-section";
-import { checkAuthStatus } from "axiosInstance";
-import Comments from "./Comments";
+
+import Comments from "Utils/Comments";
 import { useQuery } from "@apollo/client";
 import { useParams } from "react-router-dom";
 export default function BlogPage() {

@@ -12,6 +12,7 @@ import {
   Drawer,
   Typography,
   Avatar,
+  Badge,
 } from "@mui/material";
 import { logout } from "axiosInstance";
 import { toast } from "react-toastify";
@@ -40,7 +41,7 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
 
 export default function AppAppBar() {
   const [open, setOpen] = React.useState(false);
-  const { user, loggedIn, loading } = useProjectContext();
+  const { user, loggedIn, loading, cart } = useProjectContext();
   const toggleDrawer = (newOpen) => () => {
     setOpen(newOpen);
   };
@@ -157,9 +158,11 @@ export default function AppAppBar() {
                   alignItems: "center",
                 }}
               >
-                <Button sx={{ padding: 0, maxWidth: "fit-content" }}>
-                  <ShoppingCart sx={{ color: "#ffffff" }} />
-                </Button>
+                <IconButton aria-label="cart">
+                  <Badge badgeContent={cart?.length} max={10} color="info">
+                    <ShoppingCart sx={{ color: "#ffffff" }} />
+                  </Badge>
+                </IconButton>
                 <Button
                   sx={{ padding: 0 }}
                   onClick={async () => {

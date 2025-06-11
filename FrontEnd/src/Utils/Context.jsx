@@ -55,7 +55,6 @@ export function ContextProvider({ children }) {
           setLoading(false);
         }
       });
-
     return () => {
       isMounted = false;
     };

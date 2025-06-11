@@ -19,6 +19,7 @@ import Testimonial from "Pages/Testimonial/Testimonial";
 import Resources from "Pages/Resources/Resources";
 import SuccessPayment from "Utils/SuccessPayment";
 import ErrorPayment from "Utils/ErrorPayment";
+import VideoPlayer from "Pages/VideoPlayer/VideoPlayer";
 function App() {
   return (
     <div className="App">
@@ -59,6 +60,7 @@ function App() {
               }
             />
             <Route path="/resources" element={<Resources />} />
+            <Route path="/resources/:id" element={<VideoPlayer/>}/>
             <Route path="/success" element={<SuccessPayment />} />
             <Route path="/error" element={<ErrorPayment />} />
           </Routes>

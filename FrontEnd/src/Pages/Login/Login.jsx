@@ -134,6 +134,7 @@ export default function Login(props) {
     try {
       const endpoint = isLogin ? "/auth/login" : "/auth/register";
       const response = await api.post(endpoint, formData);
+      navigate("/");
       toast.success(isLogin ? "Login successful!" : "Registration successful!");
     } catch (error) {
       const message = error.response?.data?.message || "An error occurred";
