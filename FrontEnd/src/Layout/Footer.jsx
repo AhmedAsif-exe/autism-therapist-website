@@ -160,9 +160,6 @@ export default function Footer() {
           <Link color="#ffffff" variant="body2" href="#">
             Blogs
           </Link>
-          <Link color="#ffffff" variant="body2" href="#">
-            Research
-          </Link>
         </Box>
         <Box
           sx={{

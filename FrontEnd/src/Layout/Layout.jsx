@@ -4,14 +4,12 @@ import { ToastContainer } from "react-toastify";
 import { ContextProvider } from "Utils/Context";
 import { ApolloProvider } from "@apollo/client";
 import { sanityGraphQLClient } from "sanityclient";
-import DummyHeader from "./DummyHeader";
 const Layout = (props) => {
   return (
     <>
       <ApolloProvider client={sanityGraphQLClient}>
         <ContextProvider>
-          {/* <Header /> */}
-          <DummyHeader />
+          <Header />
           <ToastContainer />
           {props.children}
           <Footer />

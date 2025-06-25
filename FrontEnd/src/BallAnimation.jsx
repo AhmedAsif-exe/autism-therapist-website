@@ -12,7 +12,6 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { MotionPathPlugin } from "gsap/MotionPathPlugin";
 import style from "./BallAnimation.module.css";
 import Card from "Utils/Card/Card";
-gsap.registerPlugin(ScrollTrigger, MotionPathPlugin);
 //   VerticalTimeline,
 //   VerticalTimelineElement,
 // } from "react-vertical-timeline-component";
@@ -69,7 +68,6 @@ const BallAnimation = () => {
         scroller: "body",
         // anticipatePin:1,
         scrub: 2,
-        markers: true,
         pin: true,
       },
     });

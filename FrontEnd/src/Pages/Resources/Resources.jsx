@@ -3,9 +3,6 @@ import resources from "Assets/Images/resources.jpg";
 import { useState } from "react";
 import ResourceList from "./ResourceList";
 import CartDrawer from "./CartDrawer";
-import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
-import RssFeedRoundedIcon from "@mui/icons-material/RssFeedRounded";
-import { Box, InputAdornment, OutlinedInput, Chip,IconButton, FormControl } from "@mui/material";
 import Filter from "Utils/Filter";
 const sampleResources = [
   {
@@ -110,7 +107,7 @@ const Resources = (props) => {
       }
       src={resources}
     >
-      <div className="p-6">
+      <div className="ml:p-6">
         <Filter handleClick={handleClick} tags={["My-Learning", "Training", "Downloadable"]}/>
         <ResourceList
           resources={sampleResources}

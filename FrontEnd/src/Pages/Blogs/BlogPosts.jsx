@@ -59,7 +59,6 @@ const StyledTypography = styled(Typography)({
   WebkitBoxOrient: "vertical",
   WebkitLineClamp: 3,
   overflow: "hidden",
-
   textOverflow: "ellipsis",
   textAlign: "left",
 });
@@ -69,7 +68,7 @@ function formatDate(isoString) {
   return date.toLocaleDateString("en-US", options);
 }
 function Author({ authors, _id }) {
-  const navigate = useNavigate();
+  
   return (
     <Box
       sx={{
@@ -104,7 +103,7 @@ function Author({ authors, _id }) {
         <Typography variant="caption">{authors.join(", ")}</Typography>
       </Box>
 
-      <Button
+      <Link
         variant="contained"
         sx={{
           borderRadius: "9999px", // oval shape
@@ -113,13 +112,16 @@ function Author({ authors, _id }) {
           paddingY: 1, // vertical padding
           backgroundColor: "#10B981", // emerald green
           "&:hover": {
-            backgroundColor: "#059669", // darker emerald on hover
+            backgroundColor: "#059669", // darker emerald on hove
+            
           },
+          color:"white",
+          fontStyle:"normal"
         }}
-        onClick={() => navigate(`/blogs/${_id}`)}
+        href={`/blogs/${_id}`}
       >
         Read More
-      </Button>
+      </Link>
     </Box>
   );
 }

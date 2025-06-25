@@ -1,103 +1,332 @@
-import { useEffect, useState } from "react";
+import * as React from "react";
+import { styled } from "@mui/material/styles";
 import {
-  AccountCircle,
-  ShoppingCart,
-  ArrowDropDownTwoTone,
-} from "@mui/icons-material";
-import { logout } from "../axiosInstance";
-import { Avatar, Box, Button } from "@mui/material";
+  Box,
+  AppBar,
+  Toolbar,
+  Button,
+  IconButton,
+  Container,
+  Divider,
+  MenuItem,
+  Drawer,
+  Typography,
+  Avatar,
+  Badge,
+} from "@mui/material";
+import { logout } from "axiosInstance";
 import { toast } from "react-toastify";
 import { useProjectContext } from "Utils/Context";
-// import SitemarkIcon from "./SitemarkIcon";
-export default function Header() {
-  const { user, loggedIn, loading } = useProjectContext();
-  
+import logo from "Assets/Images/logo-removebg-preview.png";
+import MenuIcon from "@mui/icons-material/Menu";
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import { useNavigate } from "react-router-dom";
+const StyledToolbar = styled(Toolbar)(({ theme }) => ({
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  flexShrink: 0,
+  borderRadius: `calc(${theme.shape.borderRadius}px + 8px)`,
+  backdropFilter: "blur(24px)",
+  border: "1px solid",
+  borderColor: (theme.vars || theme).palette.divider,
+  //   backgroundColor: theme.vars
+  //     ? `rgba(${theme.vars.palette.background.defaultChannel} / 0.4)`
+  //     : alpha(theme.palette.background.default, 0.4),
+  backgroundColor: "rgba(4, 37, 57, 0.8)",
+  boxShadow: (theme.vars || theme).shadows[1],
+  padding: "8px 12px",
+}));
+
+export default function AppAppBar() {
+  const [open, setOpen] = React.useState(false);
+  const { user, loggedIn, loading, cart } = useProjectContext();
+  const toggleDrawer = (newOpen) => () => {
+    setOpen(newOpen);
+  };
+
+  const navigate = useNavigate();
   return (
-    <header
-      className="p-4 border-b border-orange-500 flex justify-between items-center flex-wrap sticky top-0 z-[1000]"
-      style={{
-        backgroundColor: "white",
-        paddingLeft: "40px",
-        paddingRight: "40px",
+    <AppBar
+      position="fixed"
+      enableColorOnDark
+      sx={{
+        boxShadow: 0,
+        bgcolor: "transparent",
+        backgroundImage: "none",
+        mt: "calc(var(--template-frame-height, 0px) + 28px)",
       }}
     >
-      <h1 className="text-xl font-bold " style={{ color: "#265C7E" }}>
-        ABA<span style={{ color: "#f97544" }}>.Virtual</span>
-      </h1>
-      <nav className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4">
-        <a href="/" className="hover:text-orange-500">
-          Home
-        </a>
-        <a href="#about" className="hover:text-orange-500">
-          About
-        </a>
-        <a href="#testimonials" className="hover:text-orange-500">
-          Testimonials
-        </a>
-        <a href="blogs" className="block hover:orange-600 ">
-          Blogs
-        </a>
-
-        <div className="relative group">
-          <a href="#e-commerce" className="hover:text-orange-500">
-            E-Commerce
-            <ArrowDropDownTwoTone />
-          </a>
-          <div className="absolute hidden group-hover:block bg-white p-2 rounded mt-2">
-            <a
-              href="#resources"
-              className="block hover:orange-600 p-1 text-left"
-            >
-              Resources
-            </a>
-            <a href="#games" className="block hover:orange-600 p-1 text-left">
-              Games
-            </a>
-          </div>
-        </div>
-        <a href="#contact" className="block hover:orange-600 p-1 text-left">
-          Contact
-        </a>
-      </nav>
-      {loading ? null : !loggedIn ? (
-        <button className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded md:ml-4">
-          Login
-        </button>
-      ) : (
-        <Box display="flex" justifyContent={"space-between"} width={"200px"}>
-          <ShoppingCart
-            sx={{ color: "#265c7e", height: "30px", width: "30px" }}
-          />
-
-          <Button
+      <Container maxWidth="lg">
+        <StyledToolbar variant="dense" disableGutters>
+          <Box
             sx={{
-              backgroundColor: "#f97316", // Tailwind's orange-500
-              color: "white",
-              borderRadius: 1,
-              ml: { md: 4 },
-              "&:hover": {
-                backgroundColor: "#ea580c", // Tailwind's orange-600
-              },
-            }}
-            endIcon={
-              !user?.pfp ? (
-                <AccountCircle sx={{ height: "30px", width: "30px" }} />
-              ) : (
-                <Avatar
-                  src={console.log(user?.pfp) || user?.pfp}
-                  sx={{ height: "30px", width: "30px" }}
-                />
-              )
-            }
-            onClick={async () => {
-              await logout();
-              toast.success("Logged Out Successfully");
+              flexGrow: 1,
+              display: "flex",
+              alignItems: "center",
+              px: 0,
+              justifyContent: "space-between",
             }}
           >
-            {user.name}
-          </Button>
-        </Box>
-      )}
-    </header>
+            <Box
+              display={"flex"}
+              alignItems={"center"}
+              flexDirection={"row"}
+              justifyContent={"space-between"}
+              onClick={navigate.bind(this, "/")}
+            >
+              <Avatar src={logo} />
+              <Typography px={"10px"} fontWeight="bold" color="#FFFFFF">
+                aba
+                <Box component="span" sx={{ color: "#f97544" }}>
+                  .virtual
+                </Box>
+              </Typography>
+            </Box>
+
+            <Box sx={{ display: { xs: "none", md: "flex" } }}>
+              <Button
+                variant="text"
+                color="info"
+                size="small"
+                sx={{ minWidth: 0, color: "#ffffff", mx: 1 }}
+                onClick={navigate.bind(this, "/")}
+              >
+                Home
+              </Button>
+              <Button
+                variant="text"
+                color="info"
+                size="small"
+                sx={{ minWidth: 0, color: "#ffffff", mx: 1 }}
+                onClick={navigate.bind(this, "/about")}
+              >
+                About
+              </Button>
+
+              <Button
+                variant="text"
+                color="info"
+                size="small"
+                sx={{ minWidth: 0, color: "#ffffff", mx: 1 }}
+                onClick={navigate.bind(this, "/blogs")}
+              >
+                Blog
+              </Button>
+              <Button
+                variant="text"
+                color="info"
+                size="small"
+                sx={{ minWidth: 0, color: "#ffffff", mx: 1 }}
+                onClick={navigate.bind(this, "/resources")}
+              >
+                Resources
+              </Button>
+              <Button
+                variant="text"
+                color="info"
+                size="small"
+                onClick={navigate.bind(this, "/games")}
+                sx={{ minWidth: 0, color: "#ffffff", mx: 1 }}
+              >
+                Games
+              </Button>
+              <Button
+                variant="text"
+                size="small"
+                onClick={navigate.bind(this, "/contact")}
+                sx={{ minWidth: 0, color: "#ffffff", mx: 1 }}
+              >
+                Contact
+              </Button>
+            </Box>
+
+            {loggedIn ? (
+              <Box
+                sx={{
+                  display: { xs: "none", md: "flex" },
+                  gap: 1,
+                  alignItems: "center",
+                }}
+              >
+                
+                <Button
+                  sx={{ padding: 0 }}
+                  onClick={async () => {
+                    await logout();
+                    toast.success("Logged Out Successfully");
+                  }}
+                >
+                  {<Avatar src={user.pfp} />}
+                </Button>
+              </Box>
+            ) : (
+              <Box
+                sx={{
+                  display: { xs: "none", md: "flex" },
+                  gap: 1,
+                  alignItems: "center",
+                }}
+              >
+                <Button
+                  color="#f97544"
+                  variant="text"
+                  size="small"
+                  onClick={navigate.bind(this, "/login")}
+                >
+                  Sign in
+                </Button>
+                <Button
+                  sx={{ backgroundColor: "#f97544" }}
+                  variant="contained"
+                  size="small"
+                  onClick={navigate.bind(this, "/signup")}
+                >
+                  Sign up
+                </Button>
+              </Box>
+            )}
+          </Box>
+          <Box sx={{ display: { xs: "flex", md: "none" }, gap: 1 }}>
+            <IconButton aria-label="Menu button" onClick={toggleDrawer(true)}>
+              <MenuIcon sx={{ color: "white" }} />
+            </IconButton>
+            <Drawer
+              anchor="top"
+              open={open}
+              onClose={toggleDrawer(false)}
+              PaperProps={{
+                sx: {
+                  top: "var(--template-frame-height, 0px)",
+                },
+              }}
+            >
+              <Box
+                sx={{
+                  p: 2,
+                  backgroundColor: "rgba(4, 37, 57, 0.8)",
+                  backdropFilter: "blur(24px)",
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "flex-end",
+                  }}
+                >
+                  <IconButton onClick={toggleDrawer(false)}>
+                    <CloseRoundedIcon sx={{ color: "white" }} />
+                  </IconButton>
+                </Box>{" "}
+                <MenuItem>
+                  <Button
+                    variant="text"
+                    color="info"
+                    size="small"
+                    sx={{ minWidth: 0, color: "#ffffff" }}
+                    onClick={navigate.bind(this, "/")}
+                  >
+                    Home
+                  </Button>
+                </MenuItem>
+                <MenuItem>
+                  <Button
+                    variant="text"
+                    color="info"
+                    size="small"
+                    sx={{ minWidth: 0, color: "#ffffff" }}
+                    onClick={navigate.bind(this, "/about")}
+                  >
+                    About
+                  </Button>
+                </MenuItem>
+                <MenuItem>
+                  {" "}
+                  <Button
+                    variant="text"
+                    color="info"
+                    size="small"
+                    sx={{ minWidth: 0, color: "#ffffff" }}
+                    onClick={navigate.bind(this, "/testimonials")}
+                  >
+                    Testimonials
+                  </Button>
+                </MenuItem>
+                <MenuItem>
+                  <Button
+                    variant="text"
+                    color="info"
+                    size="small"
+                    sx={{ minWidth: 0, color: "#ffffff" }}
+                    onClick={navigate.bind(this, "/blogs")}
+                  >
+                    Blog
+                  </Button>
+                </MenuItem>
+                <MenuItem>
+                  {" "}
+                  <Button
+                    variant="text"
+                    color="info"
+                    size="small"
+                    sx={{ minWidth: 0, color: "#ffffff" }}
+                    onClick={navigate.bind(this, "/resources")}
+                  >
+                    Resources
+                  </Button>
+                </MenuItem>
+                <MenuItem>
+                  {" "}
+                  <Button
+                    variant="text"
+                    color="info"
+                    size="small"
+                    onClick={navigate.bind(this, "/games")}
+                    sx={{ minWidth: 0, color: "#ffffff" }}
+                  >
+                    Games
+                  </Button>
+                </MenuItem>
+                <MenuItem>
+                  {" "}
+                  <Button
+                    variant="text"
+                    size="small"
+                    onClick={navigate.bind(this, "/contact")}
+                    sx={{ minWidth: 0, color: "#ffffff" }}
+                  >
+                    Contact
+                  </Button>
+                </MenuItem>
+                <Divider sx={{ my: 3 }} />
+                <MenuItem>
+                  <Button
+                    color="#f97544"
+                    variant="text"
+                    size="small"
+                    fullWidth
+                    sx={{ color: "white" }}
+                    onClick={navigate.bind(this, "/login")}
+                  >
+                    Sign in
+                  </Button>
+                </MenuItem>
+                <MenuItem>
+                  <Button
+                    sx={{ backgroundColor: "#f97544" }}
+                    variant="contained"
+                    size="small"
+                    fullWidth
+                    onClick={navigate.bind(this, "/signup")}
+                  >
+                    Sign up
+                  </Button>
+                </MenuItem>
+              </Box>
+            </Drawer>
+          </Box>
+        </StyledToolbar>
+      </Container>
+    </AppBar>
   );
 }

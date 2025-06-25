@@ -1,5 +1,4 @@
 .about-us-section {
-  
   background-image: url("../../../Assets/Images/About-Us-bg.png");
   background-size: cover;
   background-position: bottom;
@@ -7,11 +6,9 @@
   /* min-height: 500px; */
   padding: 40px 0;
   position: relative;
-    display: flex;
-    max-width: fit-content;
-    
-  }
-
+  display: flex;
+  max-width: fit-content;
+}
 
 .about-us-section::after {
   content: "";
@@ -26,15 +23,14 @@
   /* Ensures it's on top of the background image */
 }
 
-
 .see-more {
   align-self: flex-end;
   font-weight: 500;
   max-width: fit-content;
   display: inline-flex;
   align-items: center;
-  text-decoration: underline;
-color: white;
+  cursor: pointer;
+  color: white;
   transition: color 0.3s ease, transform 0.3s ease;
 }
 .image {
@@ -43,19 +39,18 @@ color: white;
   height: 300px;
   z-index: 10;
   border: 2px solid white;
-  padding:5px;
+  padding: 5px;
   align-self: center;
-
 }
 .title-cta {
   width: 70%;
-z-index: 10;
+  z-index: 10;
   display: flex;
   align-self: center;
   flex-direction: column;
   align-items: flex-start;
   font-family: "Raleway", serif;
-  padding:  30px;
+  padding: 30px;
   margin: 0;
   color: white;
 }
@@ -66,7 +61,6 @@ z-index: 10;
   font-family: "Raleway", serif;
   font-style: normal;
   margin: 0;
- ;
   margin-bottom: 10px;
   text-align: left;
 }
@@ -93,7 +87,7 @@ z-index: 10;
   font-size: 16px;
   font-weight: 500;
   color: white;
-  
+
   text-align: start;
   margin: 0;
   margin-bottom: 10px;

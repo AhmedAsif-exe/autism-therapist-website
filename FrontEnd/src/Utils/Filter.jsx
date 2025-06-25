@@ -1,7 +1,13 @@
-
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import RssFeedRoundedIcon from "@mui/icons-material/RssFeedRounded";
-import { Box, InputAdornment, OutlinedInput, Chip,IconButton, FormControl } from "@mui/material";
+import {
+  Box,
+  InputAdornment,
+  OutlinedInput,
+  Chip,
+  IconButton,
+  FormControl,
+} from "@mui/material";
 export function Search() {
   return (
     <FormControl sx={{ width: { xs: "100%", md: "25ch" } }} variant="outlined">
@@ -48,16 +54,17 @@ const Filter = ({ handleClick, tags }) => {
           justifyContent: "space-between",
           alignItems: { xs: "start", md: "center" },
           gap: 4,
-          overflow: "auto",
+          margin: "20px 0",
+          // overflow: "auto",
         }}
       >
         <Box
-          sx={{
-            display: "inline-flex",
-            flexDirection: "row",
-            gap: 3,
-            overflow: "auto",
-          }}
+         sx={{
+    display: "flex", // changed from "inline-flex"
+    flexDirection: "row",
+    flexWrap: "wrap", // allow wrapping
+    gap: { sm: 3, xs: 1 },
+  }}
         >
           <Chip
             onClick={handleClick.bind(null, "all")}

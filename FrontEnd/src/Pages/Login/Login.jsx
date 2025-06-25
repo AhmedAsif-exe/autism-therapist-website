@@ -1,10 +1,8 @@
 import * as React from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Checkbox from "@mui/material/Checkbox";
 import { useLocation, useNavigate } from "react-router-dom";
-import CssBaseline from "@mui/material/CssBaseline";
-import FormControlLabel from "@mui/material/FormControlLabel";
+
 import Divider from "@mui/material/Divider";
 import FormLabel from "@mui/material/FormLabel";
 import FormControl from "@mui/material/FormControl";
@@ -14,7 +12,6 @@ import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import MuiCard from "@mui/material/Card";
 import { styled } from "@mui/material/styles";
-import ForgotPassword from "./ForgotPassword";
 import { Google } from "@mui/icons-material";
 import api from "../../axiosInstance";
 import { toast } from "react-toastify";
@@ -39,11 +36,13 @@ const Card = styled(MuiCard)(({ theme }) => ({
 
 const SignInContainer = styled(Stack)(({ theme }) => ({
   //   height: "calc((1 - var(--template-frame-height, 0)) * 100dvh)",
+  marginTop:"100px",
   minHeight: "100%",
   padding: theme.spacing(2),
   [theme.breakpoints.up("sm")]: {
     padding: theme.spacing(4),
   },
+
   "&::before": {
     content: '""',
     display: "block",
@@ -71,16 +70,9 @@ export default function Login(props) {
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState("");
   const [nameError, setNameError] = React.useState(false);
   const [nameErrorMessage, setNameErrorMessage] = React.useState("");
-  const [open, setOpen] = React.useState(false);
+ 
   const navigate = useNavigate();
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-  };
-
+ 
   const validateInputs = () => {
     const email = document.getElementById("email");
     const password = document.getElementById("password");
@@ -218,10 +210,7 @@ export default function Login(props) {
               color={passwordError ? "error" : "primary"}
             />
           </FormControl>
-          <FormControlLabel
-            control={<Checkbox value="remember" color="primary" />}
-            label="Remember me"
-          />
+
           {/* {isLogin && (
             <Link
               component="button"
@@ -233,7 +222,6 @@ export default function Login(props) {
               Forgot your password?
             </Link>
           )} */}
-          <ForgotPassword open={open} handleClose={handleClose} />
           <Button type="submit" fullWidth variant="contained">
             {isLogin ? "Sign in" : "Sign up"}
           </Button>

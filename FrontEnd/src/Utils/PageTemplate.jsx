@@ -1,6 +1,5 @@
 import { Container, Box, Typography } from "@mui/material";
 const PageTemplate = ({ children, title, subtitle, src }) => {
-  console.log(src);
   return (
     <Container
       maxWidth="100%"
@@ -14,7 +13,6 @@ const PageTemplate = ({ children, title, subtitle, src }) => {
           gap: 4,
           maxWidth: "100%",
           Height: "100vh",
-        
         }}
       >
         <Box
@@ -41,18 +39,13 @@ const PageTemplate = ({ children, title, subtitle, src }) => {
 
           {/* Content on top */}
           <Box sx={{ position: "relative", zIndex: 2, textAlign: "center" }}>
-            <Typography
-              variant="h1"
-              gutterBottom
-              color="#f97544"
-              fontFamily={"Raleway, serif"}
-            >
+            <h1 className="ml:text-[70px] text-[40px] text-[#f97544] font-[raleway] mb-4">
               {title}
-            </Typography>
-            <Typography color="#ffffff" fontSize={"20px"}>
-              <span style={{ color: "#f97544" }}>//</span> {subtitle}{" "}
-              <span style={{ color: "#f97544" }}>//</span>
-            </Typography>
+            </h1>
+            <p className="text-white ml:text-[20px] text-[14px]">
+              <span className="text-[#f97544]">//</span> {subtitle}{" "}
+              <span className="text-[#f97544]">//</span>
+            </p>
           </Box>
         </Box>
 

@@ -36,32 +36,46 @@ export default function ResourceCard({ resource }) {
     if (user) setIsPaid(user.paidItems.find((item) => item === resource.id));
   }, [user]);
   return (
-    <div className="border rounded-xl shadow-md bg-white">
-      <CardMedia
-        component="img"
-        alt="green iguana"
-        image={resource.image}
-        sx={{
-          aspectRatio: "16 / 9",
-          borderBottom: "1px solid",
-          borderColor: "divider",
-        }}
-      />
-      <h2 className="text-lg font-semibold">{resource.title}</h2>
-      <p className="text-sm text-gray-500">
-        {resource.category} — {resource.type}
-      </p>{" "}
-      <StyledTypography
-        className="p-4"
-        variant="body2"
-        color="text.secondary"
-        gutterBottom
+    <div className="rounded-xl shadow-md bg-white flex flex-col justify-between">
+      <div
+ 
       >
-        {resource.description}{" "}
-      </StyledTypography>
-      <p className="font-bold my-1 " style={{ color: "#f97544", fontSize:"20px", margin:"10px", textAlign:"start" }}>
-        ${resource.price} ONLY
-      </p>
+        <CardMedia
+          component="img"
+          alt="green iguana"
+          image={resource.image}
+          sx={{
+            aspectRatio: "16 / 9",
+            borderBottom: "1px solid",
+            borderColor: "divider",
+          }}
+        />
+        <h2 className="text-lg font-semibold text-[#f97544] mt-2">
+          {resource.title}
+        </h2>
+        <p className="text-sm text-emerald-500">
+          {resource.category} — {resource.type}
+        </p>{" "}
+        <StyledTypography
+          className="p-4 pt-4"
+          variant="body2"
+          color="text.secondary"
+          gutterBottom
+        >
+          {resource.description}{" "}
+        </StyledTypography>
+        <p
+          className="font-bold my-1 "
+          style={{
+            color: "#f97544",
+            fontSize: "20px",
+            margin: "10px",
+            textAlign: "start",
+          }}
+        >
+          ${resource.price} ONLY
+        </p>
+      </div>
       {!isPaid ? (
         <Button
           onClick={() => dispatch({ type: "ADD", item: resource })}
@@ -72,7 +86,6 @@ export default function ResourceCard({ resource }) {
             color: "white",
             fontWeight: "700",
           }}
-          
         >
           Add to Cart
         </Button>

@@ -8,7 +8,7 @@ export default function ResourceList({ resources, category, type }) {
   );
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 ml:grid-cols-2 t:grid-cols-3 gap-4">
       {filtered.map((res) => (
         <ResourceCard key={res.id} resource={res} />
       ))}

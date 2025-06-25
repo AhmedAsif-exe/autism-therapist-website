@@ -1,11 +1,55 @@
 import style from "./AboutMeSection.module.css";
 import faiza from "../../../Assets/Images/faiza.jpeg";
 import arrow from "../../../Assets/Icons/arrow.svg";
+import { useEffect } from "react";
+import gsap from "gsap";
 export default function WhatIDoSection() {
+  useEffect(() => {
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        start: "top center",
+        trigger: "#about-section",
+        once: true,
+      },
+    });
+
+    tl.fromTo(
+      "#about-section",
+      {
+        clipPath: "inset(0% 0% 100% 0%)",
+        maxHeight: 0,
+        overflow: "hidden",
+      },
+      {
+        clipPath: "inset(0% 0% 0% 0%)",
+        maxHeight: 1000,
+        duration: 3,
+        ease: "power2.out",
+      }
+    );
+    tl.fromTo(
+      "#about-heading",
+      {
+        text: {
+          value: "",
+          delimiter: "",
+        },
+      },
+      {
+        text: {
+          value: "About Me",
+          delimiter: "",
+        },
+        duration: 1.5,
+        ease: "none",
+      },
+      "<"
+    );
+  }, []);
   return (
-    <div className={style["about-us-section"]}>
+    <div className={style["about-us-section"]} id="about-section">
       <div className={style["title-cta"]}>
-        <h2>About Me</h2>
+        <h2 id="about-heading">About Me</h2>
         <p className={style["content"]}>
           Hello! My name is Faiza Faizan and I am a Qualified Autism Service
           Practitioner and Supervisor (QASP-S) from a reputable credentialing
@@ -19,8 +63,8 @@ export default function WhatIDoSection() {
           communication, social, and daily living skills, ultimately enhancing
           their independence and quality of life.
         </p>{" "}
-        <a className={style["see-more"]}>
-          See More <span>&rarr;</span>
+        <a className={`${style["see-more"]} hover:underline`} href="/about">
+          See More <span> &rarr;</span>
         </a>
       </div>
 

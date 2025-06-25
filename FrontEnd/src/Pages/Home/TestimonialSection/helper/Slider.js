@@ -1,67 +1,115 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faChevronRight,
   faChevronLeft,
 } from "@fortawesome/free-solid-svg-icons";
 import style from "./Slider.module.css";
-
-export default (props) => {
+import gsap from "gsap";
+import { display } from "@mui/system";
+const Slider = (props) => {
   const [activeSlide, setactiveSlide] = useState(props.activeSlide);
-
+  const [dim, setDim] = useState({ x: 240, z: 400 });
   const next = () =>
     setactiveSlide(Math.min(activeSlide + 1, props.data.length - 1));
 
   const prev = () => setactiveSlide(Math.max(activeSlide - 1, 0));
+  useEffect(() => {
+    const handlechange = () => {
+      // Get screen width once when rendering
+      const screenWidth = window.innerWidth;
 
+      // Adjust base offset and depth depending on screen size
+
+      if (screenWidth <= 768) setDim({ x: 60, z: 100 });
+      else if (screenWidth <= 1024) setDim({ x: 180, z: 300 });
+      else if (screenWidth <= 425) setDim({ x: 60, z: 100 });
+    };
+    window.addEventListener("resize", handlechange);
+  }, []);
   const getStyles = (index) => {
-    if (activeSlide === index)
+    const block = (dim.x === 60 && dim.z === 100)
+    if (activeSlide === index) {
       return {
         opacity: 1,
-        transform: "translateX(0px) translateZ(0px) rotateY(0deg)",
+        transform: `translateX(0px) translateZ(0px) rotateY(0deg)`,
         zIndex: 10,
       };
-    else if (activeSlide - 1 === index)
+    } else if (activeSlide - 1 === index) {
       return {
         opacity: 1,
-        transform: "translateX(-240px) translateZ(-400px) rotateY(35deg)",
+        transform: `translateX(-${dim.x}px) translateZ(-${dim.z}px) rotateY(35deg)`,
         zIndex: 9,
       };
-    else if (activeSlide + 1 === index)
+    } else if (activeSlide + 1 === index) {
       return {
         opacity: 1,
-        transform: "translateX(240px) translateZ(-400px) rotateY(-35deg)",
+        transform: `translateX(${dim.x}px) translateZ(-${dim.z}px) rotateY(-35deg)`,
         zIndex: 9,
       };
-    else if (activeSlide - 2 === index)
+    } else if (activeSlide - 2 === index) {
       return {
+        display: block && "none",
         opacity: 1,
-        transform: "translateX(-480px) translateZ(-500px) rotateY(35deg)",
+        transform: `translateX(-${dim.x * 2}px) translateZ(-${
+          dim.z + 100
+        }px) rotateY(35deg)`,
         zIndex: 8,
       };
-    else if (activeSlide + 2 === index)
+    } else if (activeSlide + 2 === index) {
       return {
+           display: block && "none",
         opacity: 1,
-        transform: "translateX(480px) translateZ(-500px) rotateY(-35deg)",
+        transform: `translateX(${dim.x * 2}px) translateZ(-${
+          dim.z + 100
+        }px) rotateY(-35deg)`,
         zIndex: 8,
       };
-    else if (index < activeSlide - 2)
+    } else if (index < activeSlide - 2) {
       return {
         opacity: 0,
-        transform: "translateX(-480px) translateZ(-500px) rotateY(35deg)",
+        transform: `translateX(-${dim.x * 2}px) translateZ(-${
+          dim.z + 100
+        }px) rotateY(35deg)`,
         zIndex: 7,
       };
-    else if (index > activeSlide + 2)
+    } else if (index > activeSlide + 2) {
       return {
         opacity: 0,
-        transform: "translateX(480px) translateZ(-500px) rotateY(-35deg)",
+        transform: `translateX(${dim.x * 2}px) translateZ(-${
+          dim.z + 100
+        }px) rotateY(-35deg)`,
         zIndex: 7,
       };
+    }
   };
+
+  useEffect(() => {
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: "#testimonial-container",
+        start: "top center",
+        once: true,
+      },
+    });
+    for (let idx = 0; idx < props.data.length; idx++) {
+      tl.fromTo(
+        `#testimonial-card-${idx}`,
+        { opacity: 0 },
+        { opacity: 1, duration: 0.3 }
+      );
+      tl.fromTo(
+        `#testimonial-card-reflection-${idx}`,
+        { opacity: 0 },
+        { opacity: 1, duration: 0.3 },
+        "<"
+      );
+    }
+  }, []);
   return (
     <>
       {/* carousel */}
-      <div className={style["slideC"]}>
+      <div className={style["slideC"]} id="testimonial-container">
         {props.data.map((item, i) => (
           <React.Fragment key={item.id}>
             <div
@@ -72,10 +120,11 @@ export default (props) => {
                 ...getStyles(i),
               }}
             >
-              <SliderContent {...item} />
+              <SliderContent {...item} index={i} />
             </div>
             <div
               className={style["reflection"]}
+              id={`testimonial-card-reflection-${i}`}
               style={{
                 backgroundImage: `linear-gradient(to bottom, rgba(255, 255, 255, 0.90) 50%, white 100%), url(${item.flag})`,
                 backgroundSize: "cover",
@@ -124,12 +173,15 @@ export default (props) => {
     </>
   );
 };
-
+export default Slider;
 const SliderContent = (props) => {
   return (
-    <div className={style["sliderContent"]}>
+    <div
+      className={style["sliderContent"]}
+      id={`testimonial-card-${props.index}`}
+    >
       <p>&ldquo;{props.message}&rdquo;</p>
-      <p> by {props.name}</p>
+      <p>by {props.name}</p>
       <p>{props.title}</p>
     </div>
   );
