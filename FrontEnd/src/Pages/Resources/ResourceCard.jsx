@@ -37,9 +37,7 @@ export default function ResourceCard({ resource }) {
   }, [user]);
   return (
     <div className="rounded-xl shadow-md bg-white flex flex-col justify-between">
-      <div
- 
-      >
+      <div>
         <CardMedia
           component="img"
           alt="green iguana"

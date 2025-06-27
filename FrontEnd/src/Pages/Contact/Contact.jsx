@@ -62,7 +62,7 @@ export const ContactInfoSection = () => {
   }, []);
 
   return (
-    <div className="ml:p-14 py-14" >
+    <div className="ml:px-14 " >
       <div className="flex flex-col items-center justify-center text-center mb-8 mt-10">
         <h1 className="font-bold text-[40px] font-['Poppins',Helvetica] text-[#F97544]">
           Contact Us

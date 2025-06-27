@@ -39,7 +39,7 @@ const PerksSection = () => {
     );
   }, []);
   return (
-    <div className="l:px-[5%] flex flex-col l:my-[60px]" id="expertise">
+    <div className="l:px-[5%] flex flex-col l:my-[60px] my-[40px]" id="expertise">
       <h2
         className="l:text-[70px] text-[50px] font-[raleway] italic-not text-[#f97544] mb-[30px] text-center m-0"
         id="expertise-heading"

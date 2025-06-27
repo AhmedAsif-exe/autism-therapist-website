@@ -21,14 +21,17 @@ const Slider = (props) => {
 
       // Adjust base offset and depth depending on screen size
 
-      if (screenWidth <= 768) setDim({ x: 60, z: 100 });
+      if (screenWidth <= 769) setDim({ x: 120, z: 200 });
       else if (screenWidth <= 1024) setDim({ x: 180, z: 300 });
-      else if (screenWidth <= 425) setDim({ x: 60, z: 100 });
+      else if (screenWidth <= 426) setDim({ x: 60, z: 100 });
+      else if (screenWidth <= 376) setDim({ x: 0, z: 0 });
     };
     window.addEventListener("resize", handlechange);
   }, []);
   const getStyles = (index) => {
-    const block = (dim.x === 60 && dim.z === 100)
+    const ll = dim.x === 60 && dim.z === 100;
+
+    const ml = dim.x === 0 && dim.z === 0;
     if (activeSlide === index) {
       return {
         opacity: 1,
@@ -49,7 +52,7 @@ const Slider = (props) => {
       };
     } else if (activeSlide - 2 === index) {
       return {
-        display: block && "none",
+        display: ll && "none",
         opacity: 1,
         transform: `translateX(-${dim.x * 2}px) translateZ(-${
           dim.z + 100
@@ -58,7 +61,7 @@ const Slider = (props) => {
       };
     } else if (activeSlide + 2 === index) {
       return {
-           display: block && "none",
+        display: ll && "none",
         opacity: 1,
         transform: `translateX(${dim.x * 2}px) translateZ(-${
           dim.z + 100
@@ -181,6 +184,7 @@ const SliderContent = (props) => {
       id={`testimonial-card-${props.index}`}
     >
       <p>&ldquo;{props.message}&rdquo;</p>
+
       <p>by {props.name}</p>
       <p>{props.title}</p>
     </div>

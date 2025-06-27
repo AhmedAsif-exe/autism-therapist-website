@@ -2,14 +2,19 @@
   position: relative;
   perspective: 1000px;
   transform-style: preserve-3d;
-  width: 362px;
-  height: 250px;
+  max-width: 362px;
+  width: 80vw;
+  min-height: 250px;
+  height: fit-content;
   margin: 0 auto;
 }
 
 .slide {
-  width: 362px;
-  height: 250px;
+  max-width: 362px;
+  width: 80vw;
+  
+  min-height: 250px;
+  height: fit-content;
   transition: transform 500ms ease 0s, opacity 500ms ease 0s,
     visibility 500ms ease 0s;
   position: absolute;
@@ -80,5 +85,10 @@
 .btns .btn:last-child {
   margin-left: 40px;
 }
-
-/* normal css  */
+@media (max-width: 321px) {
+  .sliderContent {
+    padding: 10px;
+    text-align: justify;
+    font-size: 14px;
+  }
+}

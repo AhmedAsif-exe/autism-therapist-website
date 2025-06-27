@@ -61,7 +61,7 @@ const ResourcesPreview = () => {
       },
       {
         clipPath: "inset(0% 0% 0% 0%)",
-        maxHeight: 1000,
+        maxHeight: 2000,
         duration: 3,
         ease: "power2.out",
       }
@@ -74,15 +74,15 @@ const ResourcesPreview = () => {
       id="resource-section"
     >
       <div className=" relative z-10 p-4 px-10 text-white">
-        <h2 className="text-[70px] text-[#f97544] mt-2 font-[raleway]">
+        <h2 className="ms:text-[70px] text-[40px] text-[#f97544] mt-2 font-[raleway]">
           Resources
         </h2>
-        <p className="text-sm mt-2">
+        <p className="ms:text-sm text-xs mt-2">
           <span className="text-[#f97544]">//</span> Explore curated resources
           designed to support growth, learning, and therapy progress.{" "}
           <span className="text-[#f97544]">//</span>
         </p>
-        <div className="grid grid-cols-1 my-16 t:grid-cols-2 l:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 my-16 ml:grid-cols-2 t:grid-cols-3 gap-8">
           {sampleResources.map((r) => (
             <ResourceCard resource={r} />
           ))}

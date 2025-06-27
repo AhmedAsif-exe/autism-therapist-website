@@ -1,8 +1,8 @@
-import ind from "../../../../Assets/Images/Flag/in.png";
-import pak from "../../../../Assets/Images/Flag/pak.png";
-import us from "../../../../Assets/Images/Flag/us.png";
-import uk from "../../../../Assets/Images/Flag/uk.png";
-import cn from "../../../../Assets/Images/Flag/cn.png";
+import ind from "Assets/Images/Flag/in.png";
+import pak from "Assets/Images/Flag/pak.png";
+import us from "Assets/Images/Flag/us.png";
+import uk from "Assets/Images/Flag/uk.png";
+import cn from "Assets/Images/Flag/cn.png";
 const testimonials = [
   {
     name: "Sarah Khan",

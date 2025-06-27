@@ -101,14 +101,14 @@ const BlogPreview = () => {
       id="blog-section"
     >
       <div className=" relative z-10 p-4 px-10 text-white">
-        <h2 className="text-[70px] text-[#f97544] mt-2 font-[raleway]">
+        <h2 className="ms:text-[70px] text-[40px] text-[#f97544] mt-2 font-[raleway]">
           Blogs
         </h2>
-        <p className="text-sm mt-2">
+        <p className="ms:text-sm text-xs mt-2">
           <span className="text-[#f97544]">//</span> Stay in the loop with the
           latest about our products <span className="text-[#f97544]">//</span>
         </p>
-        <div className="grid grid-cols-2 mx-12 my-14 gap-10">
+        <div className="grid t:grid-cols-2 grid-cols-1 ml:mx-12 my-14 gap-10">
           {blogsData.map((blog) => (
             <div className="flex flex-col h-full p-0 hover:cursor-pointer bg-white/10 backdrop-blur-md rounded-md">
               <div className="flex flex-col gap-1 p-4 grow pb-4">

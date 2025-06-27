@@ -59,12 +59,12 @@ const Filter = ({ handleClick, tags }) => {
         }}
       >
         <Box
-         sx={{
-    display: "flex", // changed from "inline-flex"
-    flexDirection: "row",
-    flexWrap: "wrap", // allow wrapping
-    gap: { sm: 3, xs: 1 },
-  }}
+          sx={{
+            display: "flex", // changed from "inline-flex"
+            flexDirection: "row",
+            flexWrap: "wrap", // allow wrapping
+            gap: { sm: 3, xs: 1 },
+          }}
         >
           <Chip
             onClick={handleClick.bind(null, "all")}

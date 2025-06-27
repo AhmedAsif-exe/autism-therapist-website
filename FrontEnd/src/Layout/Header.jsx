@@ -240,18 +240,7 @@ export default function AppAppBar() {
                     About
                   </Button>
                 </MenuItem>
-                <MenuItem>
-                  {" "}
-                  <Button
-                    variant="text"
-                    color="info"
-                    size="small"
-                    sx={{ minWidth: 0, color: "#ffffff" }}
-                    onClick={navigate.bind(this, "/testimonials")}
-                  >
-                    Testimonials
-                  </Button>
-                </MenuItem>
+               
                 <MenuItem>
                   <Button
                     variant="text"

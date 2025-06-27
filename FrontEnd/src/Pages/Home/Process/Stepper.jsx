@@ -7,12 +7,12 @@ import gsap from "gsap";
 import StepConnector, {
   stepConnectorClasses,
 } from "@mui/material/StepConnector";
-import session from "../../Assets/Icons/session-meeting.png";
-import assessment from "../../Assets/Icons/assesment-phase.png";
-import supervisor from "../../Assets/Icons/supervisor-review.png";
-import rapport from "../../Assets/Icons/rapport-building.png";
-import parentCommitments from "../../Assets/Icons/parent-commitment.png";
-import therapyPlanning from "../../Assets/Icons/planning.png";
+import session from "Assets/Icons/session-meeting.png";
+import assessment from "Assets/Icons/assesment-phase.png";
+import supervisor from "Assets/Icons/supervisor-review.png";
+import rapport from "Assets/Icons/rapport-building.png";
+import parentCommitments from "Assets/Icons/parent-commitment.png";
+import therapyPlanning from "Assets/Icons/planning.png";
 import { Avatar } from "@mui/material";
 
 import { useEffect } from "react";
@@ -28,7 +28,8 @@ const steps = [
 const therapyStepsData = [
   {
     title: "Gather Background",
-    description: "Collect medical, educational, and behavior history from caregivers.",
+    description:
+      "Collect medical, educational, and behavior history from caregivers.",
     icon: session,
   },
   {
@@ -43,7 +44,8 @@ const therapyStepsData = [
   },
   {
     title: "Build Rapport",
-    description: "Engage in preferred online activities to build student trust.",
+    description:
+      "Engage in preferred online activities to build student trust.",
     icon: rapport,
   },
   {
@@ -106,6 +108,8 @@ const ColorlibStepIconRoot = styled("div")(({ theme }) => ({
     backgroundColor: theme.palette.grey[700],
   }),
   transition: "all 0.3s ease-in-out",
+  fontSize: "12px",
+
   variants: [
     {
       props: ({ ownerState }) => ownerState.active,
@@ -167,28 +171,59 @@ export default function CustomizedSteppers({ activeStep, setActiveStep }) {
         ease: "power2.out",
       }
     );
+
+    gsap.fromTo(
+      "#flip-card",
+      { rotateY: 90, opacity: 0 },
+      {
+        rotateY: 0,
+        opacity: 1,
+        duration: 0.6,
+        ease: "power2.out",
+        transformOrigin: "center",
+      }
+    );
   }, [activeStep]);
 
   return (
     <>
-      <Stepper
-        orientation="horizontal"
-        activeStep={activeStep}
-        connector={<ColorlibConnector />}
-      >
-        {steps.map((label, index) => (
-          <Step key={label} onClick={() => setActiveStep(index)}>
-            <StepLabel StepIconComponent={ColorlibStepIcon}>{label}</StepLabel>
-          </Step>
-        ))}
-      </Stepper>
-      <div className="grid grid-cols-3 w-full gap-4 mt-6">
+      <div className="hidden t:block w-full">
+        <Stepper
+          orientation="horizontal"
+          activeStep={activeStep}
+          connector={<ColorlibConnector />}
+        >
+          {steps.map((label, index) => (
+            <Step
+              key={label}
+              onClick={() => setActiveStep(index)}
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+              }}
+            >
+              <StepLabel StepIconComponent={ColorlibStepIcon} />
+              <div
+                className={`mt-2 text-sm text-center text-gray-700 ${
+                  activeStep >= index
+                    ? "ml:text-[16px] text-[10px]"
+                    : "ml:text-[14px] text-[8px]"
+                }`}
+              >
+                {label}
+              </div>
+            </Step>
+          ))}
+        </Stepper>
+      </div>
+      <div className="t:grid grid-cols-3 w-full gap-4 hidden mt-6">
         {therapyStepsData.map((t, idx) => {
           if (idx < activeStep)
             return (
               <div
                 key={idx}
-                className="text-center flex flex-col items-center mt-3 border border-[#28a5a8]  p-4 rounded-lg shadow-xl border-2 text-[17px] transition-opacity duration-500 opacity-100"
+                className="text-center flex flex-col items-center t:mt-3 mt-1 border border-[#28a5a8]  p-4 rounded-lg shadow-xl border-2 text-[17px] transition-opacity duration-500 opacity-100"
               >
                 {" "}
                 <Avatar
@@ -203,16 +238,33 @@ export default function CustomizedSteppers({ activeStep, setActiveStep }) {
                 <h2 className="font-semibold mt-1  text-[#f97544] text-xl">
                   {steps[idx]}
                 </h2>
-                <p className="mt-1">
-                  {t.description}
-                </p>
+                <p className="mt-1">{t.description}</p>
               </div>
             );
         })}
         <div
           key={activeStep}
           id="current-card"
-          className="text-center flex flex-col items-center border mt-3 border-[#28a5a8] p-4 rounded-lg shadow-xl border-2 text-[17px] transition-opacity duration-500 opacity-100"
+          className="text-center flex flex-col items-center border t:mt-3 mt-1 border-[#28a5a8] p-4 rounded-lg shadow-xl border-2 text-[17px] transition-opacity duration-500 opacity-100"
+        >
+          <Avatar
+            src={therapyStepsData[activeStep].icon}
+            sx={{ backgroundColor: "#28a5a8", p: 2, height: 60, width: 60 }}
+          />
+          <h2 className="font-semibold mt-1  text-[#f97544] text-xl">
+            {steps[activeStep]}
+          </h2>
+          <p className="mt-1">{therapyStepsData[activeStep].description}</p>
+        </div>
+      </div>
+      <div className="t:hidden block ">
+        <p className="text-[40px] text-[#57c785] font-[raleway]">
+          0{activeStep + 1}
+        </p>
+        <div
+          key={activeStep}
+          id="flip-card"
+          className="text-center flex flex-col w-[300px] items-center border mt-[50px] border-[#28a5a8] p-4 rounded-lg shadow-xl border-2 text-[17px] transition-opacity duration-500 opacity-100"
         >
           <Avatar
             src={therapyStepsData[activeStep].icon}

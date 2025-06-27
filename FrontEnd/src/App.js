@@ -1,7 +1,7 @@
 import "./App.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import BannerSection from "./Pages/Home/BannerSection";
-import AboutMeSection from "./Pages/Home/AboutMeSection/AboutMeSection";
+import AboutMeSection from "./Pages/Home/AboutMeSection";
 import TestimonialSection from "Pages/Home/TestimonialSection/TestimonialSection";
 // import "react-responsive-3d-carousel/dist/styles.css";
 import Layout from "Layout/Layout";
@@ -13,11 +13,11 @@ import Resources from "Pages/Resources/Resources";
 import SuccessPayment from "Utils/SuccessPayment";
 import ErrorPayment from "Utils/ErrorPayment";
 import VideoPlayer from "Pages/VideoPlayer/VideoPlayer";
-import Process from "Pages/Home/Process";
+import Process from "Pages/Home/Process/Process";
 import BlogPreview from "Pages/Home/BlogPreview";
 import Contact from "Pages/Contact/Contact";
 import ResourcesPreview from "Pages/Home/ResourcesPreview";
-import Expertise from "Pages/About/PerksSection"
+import Expertise from "Pages/About/PerksSection";
 function App() {
   return (
     <div className="App">
@@ -32,10 +32,10 @@ function App() {
                   <Process />
                   <AboutMeSection />
                   <TestimonialSection />
-                  <BlogPreview/>
-                  <Expertise/>
-                  <ResourcesPreview/>
-                  <Contact/>
+                  <BlogPreview />
+                  <Expertise />
+                  <ResourcesPreview />
+                  <Contact />
                 </>
               }
             />
@@ -47,7 +47,14 @@ function App() {
             <Route path="/about" element={<About />} />
             <Route path="/resources" element={<Resources />} />
             <Route path="/resources/:id" element={<VideoPlayer />} />
-            <Route path="/contact" element={<Contact/>}/>
+            <Route
+              path="/contact"
+              element={
+                <div className="py-14">
+                  <Contact />
+                </div>
+              }
+            />
             <Route path="/success" element={<SuccessPayment />} />
             <Route path="/error" element={<ErrorPayment />} />
           </Routes>

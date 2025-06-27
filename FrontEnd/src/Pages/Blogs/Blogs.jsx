@@ -16,7 +16,7 @@ import BlogPosts from "./BlogPosts";
 import PageTemplate from "Utils/PageTemplate";
 export function Search() {
   return (
-    <FormControl sx={{flexGrow:1}} variant="outlined">
+    <FormControl sx={{ flexGrow: 1 }} variant="outlined">
       <OutlinedInput
         size="small"
         id="search"
