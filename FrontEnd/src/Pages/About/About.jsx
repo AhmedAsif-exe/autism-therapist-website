@@ -1,34 +1,35 @@
 import about from "Assets/Images/about-banner.jpg";
-import faiza from "Assets/Images/faiza.jpeg";
+import faiza from "Assets/Images/faiza-pic.jpg";
 import location from "Assets/Images/location.jpg";
 import WhatIDoSection from "./WhatIDoSection";
 import OurProcessSection from "./OurProcessSection";
 import PerksSection from "./PerksSection";
 import { useEffect } from "react";
 import gsap from "gsap";
+import Faq from "./Faq";
 const meta = [
   {
-    heading: "Empowering Autism Support Through Expert Guidance",
+    heading: "Our Vision on aba.virtual",
     src: faiza,
-    remark: "Expert care. Real progress",
+    remark: "Focused work real progress",
     content:
-      "Hello! My name is Faiza Faizan and I am a Qualified Autism Service Practitioner and Supervisor (QASP-S) from a reputable credentialing board QABA. I have dedicated my work in coaching and supporting parents, therapists, and caregivers of individuals with Autism (mostly). My work revolves around training, formulating behavior and individualized educational plans, and tracking its progress. With a strong foundation in evidence-based practices, I strive to create meaningful change in the lives of those I support.",
+      "Hi! I’m Faiza Faizan the founder of aba.virtual &amp; a dedicated QASP who thrived as a coach and a remote ABA trainer. My journey in the filed of ABA started in 2018 back when I was RBT. I enjoyed being a home therapist, remedial therapist and also a clinician in the past. On the onset of COVID-19 I was trained to coach parents and other caregivers on the principles of Applied Behavior Analysis (ABA). Super reinforced by the outcomes my work became my passion. To this date I aspire to stretch my competencies to higher levels- in order to overcome challenges, for faster growth and extended learning for both caregivers and processionals. Aba.virtual is designed for caregivers, learners and therapists to promote independence on learning, having access to remote therapy and learning through engagement. ",
     reverse: false,
   },
   {
-    heading: "Personalized Autism Therapy for Meaningful Growth",
+    heading: "Why ABA virtual?",
     src: location,
-    remark: "Therapy that fits your needs",
+    remark: "A structure with flexibility and ease",
     content:
-      "I work closely with clients, families, and other professionals to ensure that therapy is tailored to each person’s unique needs. My goal in providing therapy is to empower individuals by helping them build communication, social, and daily living skills, ultimately enhancing their independence and quality of life. Each step of the journey is guided by compassion, evidence-based strategies, and a deep respect for every individual’s potential.",
+      "The vision is to apply ABA in different areas aiming to empower individuals & enhancing potentials to enhance their independence and quality of life. Our vision does not limit itself in providing therapy.The platform dedicates itself to provide easier support to learning individuals including caregivers, students and therapists based on evidence based strategies. The intention is to become a potent platform of accessibility in the areas that do not serve therapeutic services or have scarcity of resources. Aba.virtual extends its support and ambition in providing all services remotely while sitting at your convenient locations.",
     reverse: true,
   },
-]; 
+];
 
 const About = ({ children }) => {
   useEffect(() => {
     const tl = gsap.timeline();
-    
+
     tl.fromTo(
       "#about-line1",
       {
@@ -39,7 +40,7 @@ const About = ({ children }) => {
       },
       {
         text: {
-          value: "Know Everything... About Me",
+          value: "Know us better",
           delimiter: "",
         },
         duration: 1.5,
@@ -67,37 +68,43 @@ const About = ({ children }) => {
     );
   }, []);
   return (
-    <div className="mt-[120px] l:px-[100px] px-[25px]">
-      <div id="about-section" className="mt-12 text-center">
-        <h3
-          id="about-line1"
-          className="text-[#28a5a8] t:text-xl text-md my-1 font-semibold"
-        >
-          Know Everything... About Me
-        </h3>
+    <>
+      <div className="mt-[120px] l:px-[100px] px-[25px]">
+        <div id="about-section" className="mt-12 text-center">
+          <h3
+            id="about-line1"
+            className="text-[#28a5a8] t:text-xl text-md my-1 font-semibold"
+          >
+            Know us better
+          </h3>
 
-        <h1 id="about-line2" className="t:text-5xl font-bold my-1 text-2xl">
-          About
-          <span className="ml-3" style={{ color: "#265C7E" }}>
-            aba<span style={{ color: "#f97544" }}>.virtual</span>
-          </span>
-        </h1>
+          <h1 id="about-line2" className="t:text-5xl font-bold my-1 text-2xl">
+            About
+            <span className="ml-3" style={{ color: "#265C7E" }}>
+              aba<span style={{ color: "#f97544" }}>.virtual</span>
+            </span>
+          </h1>
 
-        <p id="about-line3" className="mt-3 text-sm">
-          Empowering growth through evidence-based autism therapy resources and
-          tools.
-        </p>
+          <p id="about-line3" className="mt-3 text-sm">
+            Making lives a bit simpler and easier at each step
+          </p>
 
-        <img id="about-image" src={about} alt="about" className="mb-8 mt-4 w-full" />
+          <img
+            id="about-image"
+            src={about}
+            alt="about"
+            className="mb-8 mt-4 w-full"
+          />
+        </div>
+
+        {meta.map((m, idx) => (
+          <WhatIDoSection {...m} key={idx} idx={idx} />
+        ))}
+        <PerksSection />
+        <OurProcessSection />
       </div>
-
-      {meta.map((m, idx) => (
-        <WhatIDoSection {...m} key={idx} idx={idx} />
-      ))}
-      <PerksSection />
-      <OurProcessSection />
-      {/* <ExpertiseSection /> */}
-    </div>
+      <Faq />
+    </>
   );
 };
 export default About;

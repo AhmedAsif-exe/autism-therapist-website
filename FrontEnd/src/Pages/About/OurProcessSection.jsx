@@ -16,37 +16,37 @@ const therapySteps = [
   {
     heading: "Initial Consultation",
     description:
-      "Meet with caregivers to gather a holistic history (medical, educational, behavioral) of the student. This step helps build a foundational understanding of the student's needs and sets the tone for a collaborative process moving forward.",
+      "The process is characterized by a holistic review of client’s journey through preceding years. This could include but not limited to medical, school, educational histories. This stage usually does not require presence of client rather is a one-on-one intake process with the caregivers.",
     src: session, // Add image source here
   },
   {
-    heading: "Assessment Phase",
+    heading: "Signing documents",
     description:
-      "Conduct indirect interviews and virtual assessments (3+ days) to evaluate skills and behaviors across domains. The data collected during this phase informs the development of targeted intervention strategies.",
+      "An exchange of documents mainly from the consultant to the caregivers. These documents could mainly include a contract and consent form. The caregivers review each document before signing and reverting it back to the consultant. The consultant could require documents from the caregivers depending on its need.",
     src: assessment, // Add image source here
   },
   {
-    heading: "Supervisor Review",
+    heading: "Assessment phase",
     description:
-      "Submit assessment findings and proposed interventions to the supervisor for approval and feedback. This ensures that clinical decisions are aligned with best practices and tailored to the student's individual goals.",
+      "The process of assessment is followed by the indirect interview (of parents/ caregivers) where the student is assessed on various domains and their skill levels (such as visual performance, social communication, academics, motor imitation etc). Simultaneous to it, all concerned behaviors are observed and assessed. The virtual assessment can last from as less as 5 days (or more).",
     src: supervisor, // Add image source here
   },
   {
-    heading: "Rapport Building",
+    heading: "Parent and therapist commitments",
     description:
-      "Begin engaging with the student through preferred online activities to build trust and familiarity. Establishing a positive therapeutic relationship is critical for successful intervention and long-term progress.",
+      "Before starting therapy, parents must sign a consent form based on ABA ethics, a Telehealth contract, and submit any required documents. The therapist is responsible for sharing all necessary information in advance and following the consent and code of conduct. This includes clarifying session details—such as format, facilitator, and caregiver requirements.",
     src: rapport, // Add image source here
   },
   {
-    heading: "Parent Commitments",
+    heading: "Assessment report and Intervention plans (IEPs or BIPs)",
     description:
-      "Parents must sign consent and Telehealth forms and provide necessary documents before therapy starts. Their active participation and cooperation are essential for reinforcing strategies at home and ensuring consistent progress.",
+      "A detailed report is provided that briefs student’s current level skills to their mastery levels. The report entails the domains that have been assessed and the criteria of the skill required to be taught. An Individualized Education Plan or a Behavior Intervention Plan is provided which contains goals to be worked on set on a mastery criteria, along with the required resources.",
     src: parentCommitments, // Add image source here
   },
   {
     heading: "Therapy Planning",
     description:
-      "Create and explain the IEP and BIP, ensuring caregivers are trained in their use and understand session expectations. This collaborative planning phase empowers families and promotes cohesive implementation across environments.",
+      "A mutually convenient time and days (i.e., for student and therapists) are scheduled monthly. A consultant or a supervisor initiates the therapy by developing rapport mastering skills required to perform goals effectively. The goals on the Intervention Plans are then run with the guidance of the therapist. With a consistent collaborative effort the instructor at the student’s end and the therapist run sessions in a consistent pattern.",
     src: therapyPlanning, // Add image source here
   },
 ];
@@ -81,10 +81,11 @@ export default function OurProcessSection() {
         duration: 1,
       },
       "-=0.5"
-    );  }, []);
+    );
+  }, []);
 
   return (
-   <div className="ml:px-[50px] pt-[20px] my-0 flex flex-col rounded-tl-[35%]">
+    <div className="ml:px-[50px] pt-[20px] my-0 flex flex-col rounded-tl-[35%]">
       <h2
         className="l:text-[70px] text-[50px] font-[raleway] italic-not text-[#f97544] text-center m-0 mb-[30px]"
         id="our-process-header"
@@ -92,7 +93,10 @@ export default function OurProcessSection() {
         {" "}
         Our Process
       </h2>
-      <p className="t:text-[20px] text-[16px] font-normal mx-auto mt-[10px] w-[60%] translate-y-[20px] opacity-0 t:leading-[40px] text-center text-black" id="our-process-sub-heading">
+      <p
+        className="t:text-[20px] text-[16px] font-normal mx-auto mt-[10px] w-[60%] translate-y-[20px] opacity-0 t:leading-[40px] text-center text-black"
+        id="our-process-sub-heading"
+      >
         The process of delivering therapy virtually is designed in a structured
         however, simple manner.
       </p>

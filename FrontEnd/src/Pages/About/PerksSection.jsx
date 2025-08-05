@@ -2,18 +2,17 @@ import { duration, List, ListItem, ListItemAvatar } from "@mui/material";
 import { CheckCircleOutline } from "@mui/icons-material";
 import { useEffect } from "react";
 import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import expertise from "Assets/Images/expertise.jpg";
-import { opacity } from "@cloudinary/url-gen/actions/adjust";
 const faizaExpertise = [
-  "I primarily work with children diagnosed with ASD, up to 10 years old.",
-  "I track skill development and behavior changes to guide interventions.",
-  "I have telehealth experience since the onset of COVID-19.",
-  "I coach parents, caregivers, and therapists virtually across settings.",
-  "I enjoy analyzing behavior data to track progress and regressions.",
-  "My QASP-S credential allows me to create IEPs, ICPs, and BIPs.",
-  "I design my own resources, based on research and individual needs.",
+  "Tracking skill development and behavioral changes for better interventions",
+  "Developing IEPs, BIPs & ICPs",
+  "Our expertise excels in catering Autistic individuals up to 10 years of age",
+  "Coaching therapists, remedial teachers, parents and other caregivers on the principles of Applied Behavior Analysis since onset of COVID-19 across various settings (e.g., schools, therapy institutes and home)",
+  "Supervising under level therapists (i.e., ABATs, shadow or remedial therapists) towards better implementation of provided planners",
+  "Designing our own resources based on research to cater individual needs",
+  "Taking and analyzing data to track progress or regress in skills and behaviors",
 ];
+
 const PerksSection = () => {
   useEffect(() => {
     const tl = gsap.timeline({
@@ -39,14 +38,17 @@ const PerksSection = () => {
     );
   }, []);
   return (
-    <div className="l:px-[5%] flex flex-col l:my-[60px] my-[40px]" id="expertise">
+    <div
+      className="l:px-[5%] flex flex-col l:my-[60px] my-[40px]"
+      id="expertise"
+    >
       <h2
         className="l:text-[70px] text-[50px] font-[raleway] italic-not text-[#f97544] mb-[30px] text-center m-0"
         id="expertise-heading"
       >
         Expertise
       </h2>
-      <div className="flex t:flex-row flex-col items-center gap-6 justify-around">
+      <div className="flex t:flex-row flex-col items-center gap-6 justify-around max-w-[1440px] mx-auto">
         {/* Image will match List's height via flex behavior */}
         <img
           src={expertise}

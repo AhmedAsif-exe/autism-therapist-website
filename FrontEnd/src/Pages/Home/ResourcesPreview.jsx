@@ -42,7 +42,6 @@ const sampleResources = [
 ];
 
 const ResourcesPreview = () => {
-  
   useEffect(() => {
     const tl = gsap.timeline({
       scrollTrigger: {
@@ -82,7 +81,7 @@ const ResourcesPreview = () => {
           designed to support growth, learning, and therapy progress.{" "}
           <span className="text-[#f97544]">//</span>
         </p>
-        <div className="grid grid-cols-1 my-16 ml:grid-cols-2 t:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 my-16 ml:grid-cols-2 t:grid-cols-3 gap-8 max-w-[1440px] mx-auto">
           {sampleResources.map((r) => (
             <ResourceCard resource={r} />
           ))}

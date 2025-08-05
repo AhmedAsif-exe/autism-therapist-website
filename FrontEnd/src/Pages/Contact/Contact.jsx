@@ -14,19 +14,23 @@ import {
   ListItemText,
 } from "@mui/material";
 import gsap from "gsap";
-import { Phone, PinDrop, Email } from "@mui/icons-material";
+import { Instagram, LinkedIn, Email } from "@mui/icons-material";
 
 export const ContactInfoSection = () => {
   const contactInfo = {
-    phone: "+1012 3456 789",
-    email: "demo@gmail.com",
-    address: "132 Dartmouth Street Boston, Massachusetts 02156 United States",
+    phone: "faiza.qasps",
+    email: "contact@aba.virtual",
+    address: "http://www.linkedin.com/in/faiza-faizan-b-s-qasp-s-509b03206",
   };
 
   const subjectOptions = [
-    { id: "general1", label: "General Inquiry", checked: true },
-    { id: "general3", label: "Product or Content Inquiry", checked: false },
-    { id: "general4", label: "Technical Support", checked: false },
+    { id: "general1", label: "Inquire about resource", checked: true },
+    {
+      id: "general3",
+      label: "Consult as a caregiver / professional",
+      checked: false,
+    },
+    { id: "general4", label: " Write a blog post for us ", checked: false },
   ];
   useEffect(() => {
     const t1 = gsap.timeline({
@@ -62,7 +66,7 @@ export const ContactInfoSection = () => {
   }, []);
 
   return (
-    <div className="ml:px-14 " >
+    <div className="ml:px-14 ">
       <div className="flex flex-col items-center justify-center text-center mb-8 mt-10">
         <h1 className="font-bold text-[40px] font-['Poppins',Helvetica] text-[#F97544]">
           Contact Us
@@ -72,7 +76,7 @@ export const ContactInfoSection = () => {
         </p>
       </div>
       <div
-        className="flex flex-col t:flex-row rounded-lg shadow-lg"
+        className="flex flex-col t:flex-row rounded-lg shadow-lg max-w-[1440px] mx-auto mb-6"
         id="contact"
       >
         <div
@@ -90,13 +94,13 @@ export const ContactInfoSection = () => {
               Contact Information
             </h3>
             <p className="text-start text-[#265C7E] text-[18px] font-semibold ">
-              Say something to start a live chat!
+              Get in touch with us here
             </p>
           </div>
           <List>
             <ListItem>
               <ListItemAvatar>
-                <Phone sx={{ color: "white" }} />
+                <Instagram sx={{ color: "white" }} />
               </ListItemAvatar>{" "}
               <ListItemText className="text-white">
                 {contactInfo.phone}
@@ -112,20 +116,18 @@ export const ContactInfoSection = () => {
             </ListItem>
             <ListItem>
               <ListItemAvatar sx={{ alignSelf: "start" }}>
-                <PinDrop sx={{ color: "white" }} />
+                <LinkedIn sx={{ color: "white" }} />
               </ListItemAvatar>
               <ListItemText className="text-white">
-                {contactInfo.address}
+                <a href="http://www.linkedin.com/in/faiza-faizan-b-s-qasp-s-509b03206">
+                  Faiza Faizan (B.S, QASP-S)
+                </a>
               </ListItemText>
             </ListItem>
           </List>
           <div className="flex gap-2">
-            <div className="w-[30px] h-[30px] bg-[#1a1a1a] rounded-full flex items-center justify-center">
-              <img
-                src="https://c.animaapp.com/mc6n3jxhPDSCCl/img/vector.svg"
-                alt="Twitter"
-                className="w-[15px] h-[12px]"
-              />
+            <div className="w-[30px] h-[30px] bg-white rounded-full flex items-center justify-center">
+              <LinkedIn sx={{ color: "black" }} />
             </div>
             <div className="relative">
               <div className="w-[30px] h-[30px] bg-white rounded-full flex items-center justify-center">
@@ -142,11 +144,7 @@ export const ContactInfoSection = () => {
               />
             </div>
             <div className="w-[30px] h-[30px] bg-[#1a1a1a] rounded-full flex items-center justify-center">
-              <img
-                src="https://c.animaapp.com/mc6n3jxhPDSCCl/img/vector-2.svg"
-                alt="Discord"
-                className="w-[15px] h-[10px]"
-              />
+              <Email sx={{ color: "white" }} />
             </div>
           </div>
         </div>

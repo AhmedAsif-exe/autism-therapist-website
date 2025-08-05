@@ -25,7 +25,6 @@ const blogsData = [
 ];
 // Dummy avatar import path assumes avatars are in /public/static/images/avatar/
 const BlogFooter = ({ authors = [], _id }) => {
-  
   return (
     <div className="flex flex-row items-center justify-between p-4 text-[#265c7e]">
       {/* Left: Avatars and names */}
@@ -69,7 +68,6 @@ function formatDate(isoString) {
   return date.toLocaleDateString("en-US", options);
 }
 const BlogPreview = () => {
-   
   useEffect(() => {
     const tl = gsap.timeline({
       scrollTrigger: {
@@ -108,7 +106,7 @@ const BlogPreview = () => {
           <span className="text-[#f97544]">//</span> Stay in the loop with the
           latest about our products <span className="text-[#f97544]">//</span>
         </p>
-        <div className="grid t:grid-cols-2 grid-cols-1 ml:mx-12 my-14 gap-10">
+        <div className="grid t:grid-cols-2 grid-cols-1  my-14 gap-10 max-w-[1440px] mx-auto">
           {blogsData.map((blog) => (
             <div className="flex flex-col h-full p-0 hover:cursor-pointer bg-white/10 backdrop-blur-md rounded-md">
               <div className="flex flex-col gap-1 p-4 grow pb-4">

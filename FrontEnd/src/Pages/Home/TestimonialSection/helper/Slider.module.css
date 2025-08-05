@@ -2,19 +2,18 @@
   position: relative;
   perspective: 1000px;
   transform-style: preserve-3d;
-  max-width: 362px;
+  max-width: 400px;
   width: 80vw;
-  min-height: 250px;
+  min-height: 300px;
   height: fit-content;
   margin: 0 auto;
 }
 
 .slide {
-  max-width: 362px;
+  max-width: 400px;
   width: 80vw;
-  
-  min-height: 250px;
-  height: fit-content;
+
+  height: 300px;
   transition: transform 500ms ease 0s, opacity 500ms ease 0s,
     visibility 500ms ease 0s;
   position: absolute;
@@ -25,7 +24,7 @@
 /* 3D reflection effect */
 .reflection {
   position: absolute;
-  width: 100%;
+  width: 400px;
   height: 60px;
   bottom: -60px;
   border-radius: 12px;
@@ -44,10 +43,12 @@
   flex-direction: column;
   background-color: white;
   color: rgba(0, 0, 0, 0.534);
+
   border: 2px solid #4bb7ba;
   border-radius: 10px;
-  padding: 15px 30px;
-  align-items: flex-start;
+  padding: 5px 10px;
+  justify-content: center;
+
   font-family: "Lucida Sans", "Lucida Sans Regular", "Lucida Grande",
     "Lucida Sans Unicode", Geneva, Verdana, sans-serif;
 }
