@@ -24,7 +24,8 @@
 /* 3D reflection effect */
 .reflection {
   position: absolute;
-  width: 400px;
+  max-width: 400px;
+  width: 80vw;
   height: 60px;
   bottom: -60px;
   border-radius: 12px;

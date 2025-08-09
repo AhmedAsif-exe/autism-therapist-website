@@ -33,7 +33,9 @@ function App() {
                   <AboutMeSection />
                   <TestimonialSection />
                   <BlogPreview />
-                  <Expertise />
+                  <div className="t:px-0 px-[25px]">
+                    <Expertise />
+                  </div>
                   <ResourcesPreview />
                   <Contact />
                 </>

@@ -16,10 +16,17 @@ export default function BlogPage() {
         <Box key={data.Blog._id} my={2} width={"100%"}>
           {data.Blog.mainImage?.asset && (
             <Box mb={3} sx={{ width: "100%" }} p={0}>
-              <img
-                src={data.Blog.mainImage?.asset.url}
-                style={{ borderRadius: "10px" }}
-              />
+              <div
+                className="mx-auto"
+                style={{
+                  backgroundImage: `url(${data.Blog.mainImage?.asset.url})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  borderRadius: "10px",
+                  width: "100%", // or fixed width like '500px'
+                  height: "450px", // adjust as needed
+                }}
+              ></div>
             </Box>
           )}
           <Typography
@@ -36,7 +43,7 @@ export default function BlogPage() {
           </Box>
 
           {data.Blog.sections.map((section, idx) => (
-            <Box key={idx} mb={4} px={"100px"}>
+            <Box key={idx} mb={4} className="t:px-[100px] px-[40px]">
               {section.subheading && (
                 <Typography
                   variant="h6"

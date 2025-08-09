@@ -25,7 +25,7 @@ export default function StepperScrollSection() {
   useEffect(() => {
     if (!lenis) return;
 
-    if (inView && !locked) {
+    if (inView && !locked && window.innerWidth > 430) {
       setLocked(true);
       lenis.stop();
       window.scrollTo({
@@ -46,7 +46,6 @@ export default function StepperScrollSection() {
           nextStep++;
         } else if (e.deltaY < 0 && prev > 0) {
           nextStep--;
-       
         }
 
         // 🔓 Unlock on scroll past bottom

@@ -68,7 +68,6 @@ function formatDate(isoString) {
   return date.toLocaleDateString("en-US", options);
 }
 function Author({ authors, _id }) {
-  
   return (
     <Box
       sx={{
@@ -113,10 +112,10 @@ function Author({ authors, _id }) {
           backgroundColor: "#10B981", // emerald green
           "&:hover": {
             backgroundColor: "#059669", // darker emerald on hove
-            
           },
-          color:"white",
-          fontStyle:"normal"
+          color: "white",
+          fontStyle: "normal",
+          textDecoration: "none",
         }}
         href={`/blogs/${_id}`}
       >

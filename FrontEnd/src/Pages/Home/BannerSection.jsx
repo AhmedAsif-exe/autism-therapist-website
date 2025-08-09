@@ -64,13 +64,12 @@ export default function BannerSection() {
 
   return (
     <div className="relative ">
-      <div className="flex flex-col items-center t:flex-row l:justify-around justify-between items-start md:items-center max-h-screen px-10  xl:px-20 pt-28 bg-white rounded-b-[50%] max-w-[1440px] mx-auto">
+      <div className="flex flex-col items-center t:flex-row l:justify-around justify-between items-start md:items-center min-h-screen px-10  xl:px-20 pt-28 bg-white rounded-b-[50%] max-w-[1440px] mx-auto">
         <div className="flex flex-col items-start max-w-full t:max-w-[45%] l:max-w-[50%] z-10 font-raleway">
           <p
             id="para1"
             className="text-[#f97544] opacity-0 text-[18px] font-semibold scale-90 m-0 font-inter"
           >
-            {" "}
             Empowering Growth Through Guided Learning
           </p>
           <h1
@@ -106,10 +105,10 @@ export default function BannerSection() {
         </div>
         <div
           id="title-image"
-          className={`opacity-0 l:mt-0 ml:mt-16 mt-5 l:[transform:perspective(1000px)_rotateY(-15deg)] min-h-[400px] l:min-w-[30%] self-center t:min-w-[40%] ml:min-w-[50%] min-w-full px-5 bg-cover bg-center bg-no-repeat shadow-[30px_40px_60px_rgba(0,0,0,0.3)]`}
+          className={`opacity-0 l:mt-0 ml:mt-16 mt-10 l:[transform:perspective(1000px)_rotateY(-15deg)] min-h-[400px] l:min-w-[30%] self-center t:min-w-[40%] ml:min-w-[50%] min-w-full px-5 bg-cover bg-center bg-no-repeat shadow-[30px_40px_60px_rgba(0,0,0,0.3)]`}
           style={{
             backgroundImage: `url(${bannerImage})`,
-            // transform: "perspective(1000px) rotateY(-15deg)",
+
             boxShadow: "8px -8px 0px 0px #f97544",
           }}
         />

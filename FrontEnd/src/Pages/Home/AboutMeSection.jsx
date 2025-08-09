@@ -1,4 +1,4 @@
-import faiza from "Assets/Images/faiza.jpeg";
+import faiza from "Assets/Images/faiza-pic.jpg";
 import aboutUs from "Assets/Images/About-Us-bg.png";
 import { useEffect } from "react";
 import gsap from "gsap";

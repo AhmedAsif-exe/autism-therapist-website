@@ -42,10 +42,7 @@ const PageTemplate = ({ children, title, subtitle, src }) => {
             <h1 className="ml:text-[70px] text-[40px] text-[#f97544] font-[raleway] mb-4">
               {title}
             </h1>
-            <p className="text-white ml:text-[20px] text-[14px]">
-              <span className="text-[#f97544]">//</span> {subtitle}{" "}
-              <span className="text-[#f97544]">//</span>
-            </p>
+            <p className="text-white ml:text-[20px] text-[14px]">{subtitle}</p>
           </Box>
         </Box>
 

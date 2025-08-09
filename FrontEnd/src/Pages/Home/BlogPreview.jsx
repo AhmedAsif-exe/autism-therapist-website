@@ -103,8 +103,7 @@ const BlogPreview = () => {
           Blogs
         </h2>
         <p className="ms:text-sm text-xs mt-2">
-          <span className="text-[#f97544]">//</span> Stay in the loop with the
-          latest about our products <span className="text-[#f97544]">//</span>
+          Stay in the loop with the latest about our products{" "}
         </p>
         <div className="grid t:grid-cols-2 grid-cols-1  my-14 gap-10 max-w-[1440px] mx-auto">
           {blogsData.map((blog) => (

@@ -255,23 +255,24 @@ export default function CustomizedSteppers({ activeStep, setActiveStep }) {
         </div>
       </div>
       <div className="t:hidden block ">
-        <p className="text-[40px] text-[#57c785] font-[raleway]">
+        {/* <p className="text-[40px] text-[#57c785] font-[raleway]">
           0{activeStep + 1}
-        </p>
-        <div
-          key={activeStep}
-          id="flip-card"
-          className="text-center flex flex-col w-[300px] items-center border mt-[50px] border-[#28a5a8] p-4 rounded-lg shadow-xl border-2 text-[17px] transition-opacity duration-500 opacity-100"
-        >
-          <Avatar
-            src={therapyStepsData[activeStep].icon}
-            sx={{ backgroundColor: "#28a5a8", p: 2, height: 60, width: 60 }}
-          />
-          <h2 className="font-semibold mt-1  text-[#f97544] text-xl">
-            {steps[activeStep]}
-          </h2>
-          <p className="mt-1">{therapyStepsData[activeStep].description}</p>
-        </div>
+        </p> */}
+        {therapyStepsData.map((s, index) => (
+          <div
+            key={index}
+            className="text-center flex my-3 flex-col w-[300px] items-center border border-[#28a5a8] p-4 rounded-lg shadow-xl border-2 text-[17px] transition-opacity duration-500 opacity-100"
+          >
+            <Avatar
+              src={s.icon}
+              sx={{ backgroundColor: "#28a5a8", p: 2, height: 60, width: 60 }}
+            />
+            <h2 className="font-semibold mt-1  text-[#f97544] text-xl">
+              {s.title}
+            </h2>
+            <p className="mt-1">{s.description}</p>
+          </div>
+        ))}
       </div>
     </>
   );

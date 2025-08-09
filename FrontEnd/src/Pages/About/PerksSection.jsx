@@ -49,11 +49,10 @@ const PerksSection = () => {
         Expertise
       </h2>
       <div className="flex t:flex-row flex-col items-center gap-6 justify-around max-w-[1440px] mx-auto">
-        {/* Image will match List's height via flex behavior */}
         <img
           src={expertise}
           alt="expertise"
-          className="h-full l:w-[30%] ml:w-[40%] w-full mt-10"
+          className="h-full l:w-[25%] ml:w-[40%] w-full mt-10"
         />
 
         <List className="flex flex-col justify-around l:w-[60%] t:w-[90%] w-full">

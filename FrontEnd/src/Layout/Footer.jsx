@@ -8,17 +8,17 @@ import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import FacebookIcon from "@mui/icons-material/Facebook";
+import { LinkedIn } from "@mui/icons-material";
 import InstagramIcon from "@mui/icons-material/Instagram";
-import TwitterIcon from "@mui/icons-material/X";
 // import SitemarkIcon from "./SitemarkIcon";
 
 function Copyright() {
   return (
     <Typography variant="body2" sx={{ color: "#ffffff", mt: 1 }}>
+      {" "}
       {"Copyright © "}
       <Link color="#ffffff" href="#">
-        Faiza.
+        aba.virtual
       </Link>
       &nbsp;
       {new Date().getFullYear()}
@@ -59,7 +59,6 @@ export default function Footer() {
           }}
         >
           <Box sx={{ width: { xs: "100%", sm: "60%" } }}>
-            {/* <SitemarkIcon /> */}
             <Typography
               variant="body2"
               gutterBottom
@@ -77,7 +76,7 @@ export default function Footer() {
               variant="body2"
               sx={{ color: "text.secondary", mb: 2, color: "white" }}
             >
-              Subscribe for weekly updates. No spams ever!
+              Subscribe for monthly update.
             </Typography>
             <InputLabel htmlFor="email-newsletter" sx={{ color: "white" }}>
               Email
@@ -131,17 +130,14 @@ export default function Footer() {
           >
             Portfolio
           </Typography>
-          <Link color="#ffffff" variant="body2" href="#">
+          <Link color="#ffffff" variant="body2" href="/">
             Home
           </Link>
-          <Link color="#ffffff" variant="body2" href="#">
+          <Link color="#ffffff" variant="body2" href="/about">
             About
           </Link>
-          <Link color="#ffffff" variant="body2" href="#">
+          <Link color="#ffffff" variant="body2" href="/testimonials">
             Testimonials
-          </Link>
-          <Link color="#ffffff" variant="body2" href="#">
-            Mentors
           </Link>
         </Box>
         <Box
@@ -157,7 +153,7 @@ export default function Footer() {
           >
             Content Writing
           </Typography>
-          <Link color="#ffffff" variant="body2" href="#">
+          <Link color="#ffffff" variant="body2" href="/blogs">
             Blogs
           </Link>
         </Box>
@@ -174,10 +170,10 @@ export default function Footer() {
           >
             E-Commerce
           </Typography>
-          <Link color="#ffffff" variant="body2" href="#">
+          <Link color="#ffffff" variant="body2" href="/resources">
             Resources
           </Link>
-          <Link color="#ffffff" variant="body2" href="#">
+          <Link color="#ffffff" variant="body2" href="/contact">
             Contact
           </Link>
         </Box>
@@ -205,18 +201,12 @@ export default function Footer() {
           <IconButton
             color="inherit"
             size="small"
-            aria-label="GitHub"
-            sx={{ alignSelf: "center" }}
-          >
-            <FacebookIcon />
-          </IconButton>
-          <IconButton
-            color="inherit"
-            size="small"
             aria-label="X"
             sx={{ alignSelf: "center" }}
           >
-            <TwitterIcon />
+            <a href="http://www.linkedin.com/in/faiza-faizan-b-s-qasp-s-509b03206">
+              <LinkedIn />
+            </a>
           </IconButton>
           <IconButton
             color="inherit"
@@ -224,7 +214,9 @@ export default function Footer() {
             aria-label="Instagram"
             sx={{ alignSelf: "center" }}
           >
-            <InstagramIcon />
+            <a href="https://www.instagram.com/faiza.qasps/">
+              <InstagramIcon />
+            </a>
           </IconButton>
         </Stack>
       </Box>

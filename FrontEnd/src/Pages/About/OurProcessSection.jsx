@@ -16,38 +16,38 @@ const therapySteps = [
   {
     heading: "Initial Consultation",
     description:
-      "The process is characterized by a holistic review of client’s journey through preceding years. This could include but not limited to medical, school, educational histories. This stage usually does not require presence of client rather is a one-on-one intake process with the caregivers.",
-    src: session, // Add image source here
+      "The process begins with a holistic review of the client’s journey over the preceding years. This may include, but is not limited to, medical, school, and educational histories. This stage usually does not require the presence of the client and is instead a one-on-one intake process with the caregivers.",
+    src: session,
   },
   {
-    heading: "Signing documents",
+    heading: "Signing Documents",
     description:
-      "An exchange of documents mainly from the consultant to the caregivers. These documents could mainly include a contract and consent form. The caregivers review each document before signing and reverting it back to the consultant. The consultant could require documents from the caregivers depending on its need.",
-    src: assessment, // Add image source here
+      "An exchange of documents takes place, mainly from the consultant to the caregivers. These documents typically include a contract and consent form. The caregivers review each document before signing and returning them to the consultant. The consultant may also request documents from the caregivers depending on the need.",
+    src: assessment,
   },
   {
-    heading: "Assessment phase",
+    heading: "Assessment Phase",
     description:
-      "The process of assessment is followed by the indirect interview (of parents/ caregivers) where the student is assessed on various domains and their skill levels (such as visual performance, social communication, academics, motor imitation etc). Simultaneous to it, all concerned behaviors are observed and assessed. The virtual assessment can last from as less as 5 days (or more).",
-    src: supervisor, // Add image source here
+      "The assessment process begins with an indirect interview of the parents or caregivers. The student is assessed across various domains and skill levels, such as visual performance, social communication, academics, and motor imitation. At the same time, all relevant behaviors are observed and evaluated. The virtual assessment can last as little as 5 days or longer.",
+    src: supervisor,
   },
   {
-    heading: "Parent and therapist commitments",
+    heading: "Parent and Therapist Commitments",
     description:
-      "Before starting therapy, parents must sign a consent form based on ABA ethics, a Telehealth contract, and submit any required documents. The therapist is responsible for sharing all necessary information in advance and following the consent and code of conduct. This includes clarifying session details—such as format, facilitator, and caregiver requirements.",
-    src: rapport, // Add image source here
+      "Before starting therapy, parents must sign a consent form based on ABA ethics, a Telehealth contract, and submit any required documents. The therapist is responsible for providing all necessary information in advance and adhering to the consent and code of conduct. This includes clarifying session details such as format, facilitator, and caregiver requirements.",
+    src: rapport,
   },
   {
-    heading: "Assessment report and Intervention plans (IEPs or BIPs)",
+    heading: "Assessment Report and Intervention Plans (IEPs or BIPs)",
     description:
-      "A detailed report is provided that briefs student’s current level skills to their mastery levels. The report entails the domains that have been assessed and the criteria of the skill required to be taught. An Individualized Education Plan or a Behavior Intervention Plan is provided which contains goals to be worked on set on a mastery criteria, along with the required resources.",
-    src: parentCommitments, // Add image source here
+      "A detailed report is provided that outlines the student’s current skill levels and mastery levels. The report includes the assessed domains and the criteria for the skills to be taught. An Individualized Education Plan (IEP) or a Behavior Intervention Plan (BIP) is included, which contains specific goals set with mastery criteria, along with the necessary resources.",
+    src: parentCommitments,
   },
   {
     heading: "Therapy Planning",
     description:
-      "A mutually convenient time and days (i.e., for student and therapists) are scheduled monthly. A consultant or a supervisor initiates the therapy by developing rapport mastering skills required to perform goals effectively. The goals on the Intervention Plans are then run with the guidance of the therapist. With a consistent collaborative effort the instructor at the student’s end and the therapist run sessions in a consistent pattern.",
-    src: therapyPlanning, // Add image source here
+      "A mutually convenient time and schedule (for both student and therapist) is arranged on a monthly basis. A consultant or supervisor initiates therapy by developing rapport and ensuring the foundational skills are mastered before working on specific goals. The goals outlined in the intervention plans are implemented with the guidance of the therapist. With consistent and collaborative effort, the instructor at the student’s end and the therapist conduct sessions in a structured and continuous manner.",
+    src: therapyPlanning,
   },
 ];
 

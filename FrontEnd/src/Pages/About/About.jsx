@@ -12,16 +12,44 @@ const meta = [
     heading: "Our Vision on aba.virtual",
     src: faiza,
     remark: "Focused work real progress",
-    content:
-      "Hi! I’m Faiza Faizan the founder of aba.virtual &amp; a dedicated QASP who thrived as a coach and a remote ABA trainer. My journey in the filed of ABA started in 2018 back when I was RBT. I enjoyed being a home therapist, remedial therapist and also a clinician in the past. On the onset of COVID-19 I was trained to coach parents and other caregivers on the principles of Applied Behavior Analysis (ABA). Super reinforced by the outcomes my work became my passion. To this date I aspire to stretch my competencies to higher levels- in order to overcome challenges, for faster growth and extended learning for both caregivers and processionals. Aba.virtual is designed for caregivers, learners and therapists to promote independence on learning, having access to remote therapy and learning through engagement. ",
+    content: (
+      <>
+        Hi! I’m Faiza Faizan the founder of aba.virtual & a dedicated QASP who
+        thrived as a coach and a remote ABA trainer. My journey in the filed of
+        ABA started in 2018 back when I was <i>RBT</i>. I enjoyed being a home
+        therapist, remedial therapist and also a clinician in the past. On the
+        onset of COVID-19 I was trained to coach parents and other caregivers on
+        the principles of <i>Applied Behavior Analysis</i> (ABA). Super
+        reinforced by the outcomes my work became my passion. To this date I
+        aspire to stretch my competencies to higher levels- in order to overcome
+        challenges, for faster growth and extended learning for both caregivers
+        and professionals.Aba.virtual is designed for caregivers, learners and
+        therapists to promote independence on learning, having access to remote
+        therapy and learning through engagement. The vision is to apply ABA in
+        different areas aiming to empower individuals & amplify potentials to
+        enhance independence and quality of life.
+      </>
+    ),
     reverse: false,
   },
   {
     heading: "Why ABA virtual?",
     src: location,
     remark: "A structure with flexibility and ease",
-    content:
-      "The vision is to apply ABA in different areas aiming to empower individuals & enhancing potentials to enhance their independence and quality of life. Our vision does not limit itself in providing therapy.The platform dedicates itself to provide easier support to learning individuals including caregivers, students and therapists based on evidence based strategies. The intention is to become a potent platform of accessibility in the areas that do not serve therapeutic services or have scarcity of resources. Aba.virtual extends its support and ambition in providing all services remotely while sitting at your convenient locations.",
+    content: (
+      <>
+        The vision is to apply ABA in different areas aiming to empower
+        individuals & enhancing potentials to enhance their independence and
+        quality of life. Our vision does not limit itself in providing
+        therapy.The platform dedicates itself to provide easier support to
+        learning individuals including caregivers, students and therapists based
+        on evidence based strategies. The intention is to become a potent
+        platform of accessibility in the areas that do not serve therapeutic
+        services or have scarcity of resources. Aba.virtual extends its support
+        and ambition in providing all services remotely while sitting at your
+        convenient locations.
+      </>
+    ),
     reverse: true,
   },
 ];

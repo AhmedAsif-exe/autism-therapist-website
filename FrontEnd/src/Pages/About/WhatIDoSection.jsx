@@ -52,7 +52,7 @@ export default function WhatIDoSection({
   return (
     <div id={`me-${idx}`} className="mt-10 mb-20">
       <h2
-        className={`l:text-[35px] t:text-[30px] ml:text-[25px] text-[20px] font-[Raleway] text-[#f97544] mb-4 ${
+        className={`l:text-[35px] t:text-[30px] text-[25px] font-[Raleway] text-[#f97544] mb-4 ${
           reverse ? "text-right" : "text-left"
         }`}
         id={`me-${idx}-heading`}
@@ -81,7 +81,7 @@ export default function WhatIDoSection({
           <h3 className="text-[#28a5a8] text-[18px]  text-start mt-2 t:mb-6">
             {remark}
           </h3>
-          <p className="text-[20px] text-justify mb-2">{content}</p>
+          <p className="text-[16px] text-justify mb-2">{content}</p>
         </div>
       </div>
     </div>
