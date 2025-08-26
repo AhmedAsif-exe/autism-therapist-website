@@ -4,6 +4,7 @@ import { ToastContainer } from "react-toastify";
 import { ContextProvider } from "Utils/Context";
 import { ApolloProvider } from "@apollo/client";
 import { sanityGraphQLClient } from "sanityclient";
+import CartDrawer from "Pages/Resources/CartDrawer";
 const Layout = (props) => {
   return (
     <>
@@ -12,6 +13,7 @@ const Layout = (props) => {
           <Header />
           <ToastContainer />
           {props.children}
+          <CartDrawer />
           <Footer />
         </ContextProvider>
       </ApolloProvider>
