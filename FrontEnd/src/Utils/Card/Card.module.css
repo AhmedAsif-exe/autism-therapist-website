@@ -78,3 +78,10 @@
     margin: 15px 0;
   }
 }
+
+.game-card-custom:hover {
+  border-color: #265c7e !important;
+  box-shadow: 0 8px 24px rgba(4,37,57,0.13), 0 2px 8px rgba(249,117,68,0.10);
+  transform: translateY(-6px) scale(1.04);
+  transition: box-shadow 0.2s, border-color 0.2s, transform 0.2s;
+}
