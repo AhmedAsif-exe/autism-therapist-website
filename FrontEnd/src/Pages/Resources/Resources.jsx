@@ -102,13 +102,14 @@ const Resources = (props) => {
   return (
     <PageTemplate
       title={"Resources"}
-      subtitle={
-        "Explore curated resources designed to support growth, learning, and therapy progress."
-      }
+      subtitle={"..support growth, promote learning & strengthen potentials."}
       src={resources}
     >
       <div className="ml:p-6">
-        <Filter handleClick={handleClick} tags={["My-Learning", "Training", "Downloadable"]}/>
+        <Filter
+          handleClick={handleClick}
+          tags={["My-Learning", "Training", "Downloadable"]}
+        />
         <ResourceList
           resources={sampleResources}
           category={category}

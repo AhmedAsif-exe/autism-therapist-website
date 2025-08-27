@@ -1,13 +1,20 @@
 // src/Utils/Queries/fetchAllBlogs.js
 import { gql } from "@apollo/client";
-
 export const ALL_BLOGS = gql`
   {
     allBlog {
       _id
       title
       categories
-      authors
+      authors {
+        name
+
+        image {
+          asset {
+            url
+          }
+        }
+      }
       description
       mainImage {
         asset {
@@ -30,6 +37,18 @@ export const BLOGS = gql`
           altText
           url
         }
+      }
+      authors {
+        name
+        description
+        image {
+          asset {
+            url
+          }
+        }
+        facebook
+        instagram
+        linkedIn
       }
       sections {
         subheading

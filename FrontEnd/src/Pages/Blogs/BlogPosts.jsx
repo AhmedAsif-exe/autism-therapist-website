@@ -68,6 +68,7 @@ function formatDate(isoString) {
   return date.toLocaleDateString("en-US", options);
 }
 function Author({ authors, _id }) {
+  console.log(authors);
   return (
     <Box
       sx={{
@@ -88,18 +89,14 @@ function Author({ authors, _id }) {
           alignItems: "center",
         }}
       >
-        <AvatarGroup max={3}>
-          {authors.map((authorName, index) => (
-            <Avatar
-              key={index}
-              alt={authorName}
-              src={`/static/images/avatar/${index + 1}.jpg`} // path relative to `public`
-              sx={{ width: 24, height: 24, backgroundColor: "#265c7e" }}
-            />
-          ))}
-        </AvatarGroup>
+        <Avatar
+          key={authors?.name}
+          alt={authors?.name}
+          src={authors?.image?.asset?.url || `/static/images/avatar/${1}.jpg`} // path relative to `public`
+          sx={{ width: 24, height: 24, backgroundColor: "#265c7e" }}
+        />
 
-        <Typography variant="caption">{authors.join(", ")}</Typography>
+        <Typography variant="caption"> {authors?.name}</Typography>
       </Box>
 
       <Link
@@ -167,7 +164,7 @@ const BlogPosts = ({ data }) => {
                 {blog.description}
               </StyledTypography>
             </SyledCardContent>
-            <Author authors={blog.authors} _id={blog._id} />
+            <Author authors={blog?.authors[0]} _id={blog._id} />
           </SyledCard>
         </Grid>
       ))}

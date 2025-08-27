@@ -98,7 +98,7 @@ export default function OurProcessSection() {
         id="our-process-sub-heading"
       >
         The process of delivering therapy virtually is designed in a structured
-        however, simple manner.
+        however, in a simple manner.
       </p>
       <div className="self-center ml:p-[10px] mt-[40px]" id="carousel">
         <VerticalTimeline lineColor="#265c7e">
