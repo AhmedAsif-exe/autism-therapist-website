@@ -24,14 +24,21 @@ export const ContactInfoSection = () => {
   };
 
   const subjectOptions = [
-    { id: "general1", label: "Inquire about resource", checked: true },
+    { id: "general1", label: "Inquire about resources", checked: true },
+    { id: "general2", label: "Consult the professional", checked: false },
+    { id: "general3", label: "Write a blog for us", checked: false },
     {
-      id: "general3",
-      label: "Consult as a caregiver / professional",
+      id: "general4",
+      label: "ABAT requires remote supervision",
       checked: false,
     },
-    { id: "general4", label: " Write a blog post for us ", checked: false },
+    {
+      id: "general5",
+      label: "Require ABAT competency assessment",
+      checked: false,
+    },
   ];
+
   useEffect(() => {
     const t1 = gsap.timeline({
       scrollTrigger: {

@@ -1,19 +1,26 @@
-import React, { useLayoutEffect, useRef } from 'react';
-import { Box, Paper } from '@mui/material';
-import { styled } from '@mui/material/styles';
-import { buildProgressGraph } from './ProgressGraph';
-import { buildSummaryUI } from './SummaryUI';
-import { getDimOverlayStyle } from './GameTheme';
+import React, { useLayoutEffect, useRef } from "react";
+import { Box, Paper } from "@mui/material";
+import { styled } from "@mui/material/styles";
+import { buildProgressGraph } from "./ProgressGraph";
+import { buildSummaryUI } from "./SummaryUI";
+import { getDimOverlayStyle } from "./GameTheme";
 
 // Remove bespoke Game2 mappings and use shared QuestionUtils to avoid overlaps
-import { pickItemsFromType, getAllIconKeys, getAllKeysForType, itemsFor } from './QuestionUtils';
-import { getAllAssets } from './AssetFunctionMapping';
+import {
+  pickItemsFromType,
+  getAllIconKeys,
+  getAllKeysForType,
+  itemsFor,
+} from "./QuestionUtils";
+import { getAllAssets } from "./AssetFunctionMapping";
 
 // Build a quick lookup for display names by imagePath
 const NAME_BY_IMAGE = (() => {
   try {
     const map = new Map();
-    getAllAssets().forEach(a => { if (a?.imagePath) map.set(a.imagePath, a.name || a.imagePath); });
+    getAllAssets().forEach((a) => {
+      if (a?.imagePath) map.set(a.imagePath, a.name || a.imagePath);
+    });
     return map;
   } catch {
     return new Map();
@@ -35,34 +42,34 @@ function buildPromptForFunction(fnKey) {
 }
 
 const GameContainer = styled(Box)(({ theme }) => ({
-  width: '100%',
-  minHeight: '70vh',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
+  width: "100%",
+  minHeight: "70vh",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
   padding: theme.spacing(4),
   background:
-    'linear-gradient(135deg, rgba(4, 37, 57, 0.1) 0%, rgba(87, 199, 133, 0.05) 50%, rgba(249, 117, 68, 0.05) 100%)',
+    "linear-gradient(135deg, rgba(4, 37, 57, 0.1) 0%, rgba(87, 199, 133, 0.05) 50%, rgba(249, 117, 68, 0.05) 100%)",
 }));
 
 const GameBoard = styled(Paper)(({ theme }) => ({
-  position: 'relative',
-  width: '100%',
-  maxWidth: '1000px',
-  minWidth: '280px',
-  aspectRatio: '4/3',
-  backgroundImage: 'url(/Games/backgrounds/park.jpg)', // updated background
-  backgroundSize: 'cover',
-  backgroundPosition: 'center',
-  borderRadius: '16px',
-  overflow: 'hidden',
-  boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
-  border: '1px solid rgba(255,255,255,0.2)',
-  backdropFilter: 'blur(10px)',
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'center',
-  alignItems: 'center',
+  position: "relative",
+  width: "100%",
+  maxWidth: "1000px",
+  minWidth: "280px",
+  aspectRatio: "4/3",
+  backgroundImage: "url(/Games/backgrounds/park.jpg)", // updated background
+  backgroundSize: "cover",
+  backgroundPosition: "center",
+  borderRadius: "16px",
+  overflow: "hidden",
+  boxShadow: "0 20px 40px rgba(0,0,0,0.2)",
+  border: "1px solid rgba(255,255,255,0.2)",
+  backdropFilter: "blur(10px)",
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "center",
+  alignItems: "center",
   ...getDimOverlayStyle(),
 }));
 
@@ -80,7 +87,7 @@ export function Game2() {
       return;
     }
 
-    import('phaser').then((PhaserLib) => {
+    import("phaser").then((PhaserLib) => {
       if (!mounted || !container) {
         return;
       }
@@ -92,7 +99,7 @@ export function Game2() {
       // Preloader scene with themed loading UI
       class PreloadScene extends PhaserGame.Scene {
         constructor() {
-          super({ key: 'PreloadScene' });
+          super({ key: "PreloadScene" });
         }
 
         preload() {
@@ -109,23 +116,35 @@ export function Game2() {
           const panelW = Math.min(W * 0.7, 560);
           const panelH = Math.min(H * 0.24, 180);
           panel.fillStyle(0xffffff, 0.12);
-          panel.fillRoundedRect((W - panelW) / 2, (H - panelH) / 2, panelW, panelH, 18);
+          panel.fillRoundedRect(
+            (W - panelW) / 2,
+            (H - panelH) / 2,
+            panelW,
+            panelH,
+            18
+          );
           panel.lineStyle(4, COLOR_DARK, 1);
-          panel.strokeRoundedRect((W - panelW) / 2, (H - panelH) / 2, panelW, panelH, 18);
+          panel.strokeRoundedRect(
+            (W - panelW) / 2,
+            (H - panelH) / 2,
+            panelW,
+            panelH,
+            18
+          );
 
           // Queue small logo early so it appears quickly
-          this.load.image('preload_logo', '/logo512.png');
+          this.load.image("preload_logo", "/logo512.png");
 
-          const title = this.add.text(W / 2, H / 2 - panelH * 0.28, 'Loading...', {
-            fontFamily: 'Fredoka One',
-            fontSize: `${Math.max(18, Math.min(36, H * 0.055))}px`,
-            color: '#ffffff',
-            stroke: '#1e607d',
-            strokeThickness: 3,
-            align: 'center',
-          }).setOrigin(0.5);
-
-          
+          const title = this.add
+            .text(W / 2, H / 2 - panelH * 0.28, "Loading...", {
+              fontFamily: "Fredoka One",
+              fontSize: `${Math.max(18, Math.min(36, H * 0.055))}px`,
+              color: "#ffffff",
+              stroke: "#1e607d",
+              strokeThickness: 3,
+              align: "center",
+            })
+            .setOrigin(0.5);
 
           // Loading bar track
           const barW = panelW * 0.78;
@@ -141,13 +160,15 @@ export function Game2() {
 
           const barFill = this.add.graphics();
 
-          const percentText = this.add.text(W / 2, barY + barH * 2, '0%', {
-            fontFamily: 'Fredoka One',
-            fontSize: `${Math.max(14, Math.min(22, H * 0.035))}px`,
-            color: '#ffffff',
-            stroke: '#1e607d',
-            strokeThickness: 2,
-          }).setOrigin(0.5);
+          const percentText = this.add
+            .text(W / 2, barY + barH * 2, "0%", {
+              fontFamily: "Fredoka One",
+              fontSize: `${Math.max(14, Math.min(22, H * 0.035))}px`,
+              color: "#ffffff",
+              stroke: "#1e607d",
+              strokeThickness: 2,
+            })
+            .setOrigin(0.5);
 
           // Helper to draw fill with sheen
           this.prog = { v: 0 };
@@ -173,12 +194,15 @@ export function Game2() {
               const cw = endX - startX;
 
               if (cw > 0) {
-                barFill.fillStyle(0xffffff, 0.20);
+                barFill.fillStyle(0xffffff, 0.2);
                 barFill.beginPath();
                 barFill.moveTo(startX, barY);
                 barFill.lineTo(startX + Math.min(16, cw * 0.25), barY);
                 barFill.lineTo(startX + cw, barY + barH);
-                barFill.lineTo(startX + Math.max(0, cw - Math.min(16, cw * 0.25)), barY + barH);
+                barFill.lineTo(
+                  startX + Math.max(0, cw - Math.min(16, cw * 0.25)),
+                  barY + barH
+                );
                 barFill.closePath();
                 barFill.fillPath();
 
@@ -204,8 +228,8 @@ export function Game2() {
 
           // Queue loads: webfont script + all icons used across all questions
           this.load.script(
-            'webfont',
-            'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js'
+            "webfont",
+            "https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"
           );
 
           // Preload all known icon keys from mappings so any question built at runtime has assets
@@ -215,7 +239,7 @@ export function Game2() {
           });
 
           // Smooth progress tweening
-          this.load.on('progress', (value) => {
+          this.load.on("progress", (value) => {
             if (this.progressTween) {
               this.progressTween.remove();
             }
@@ -225,7 +249,7 @@ export function Game2() {
               targets: this.prog,
               v: value,
               duration: Math.max(200, Math.min(700, 800 * dist)),
-              ease: 'Sine.easeOut',
+              ease: "Sine.easeOut",
               onUpdate: () => {
                 drawBar(this.prog.v);
                 percentText.setText(`${Math.round(this.prog.v * 100)}%`);
@@ -233,43 +257,49 @@ export function Game2() {
             });
           });
 
-          this.load.once('complete', () => {
+          this.load.once("complete", () => {
             const scene = this;
-            // Ensure WebFont is active before starting the game scene
-            // eslint-disable-next-line no-undef
-            WebFont.load({
-              google: { families: ['Fredoka One'] },
-              active: () => {
-                scene.sheenTick?.remove();
-                scene.scene.start('SelectAllScene');
-              },
-              inactive: () => {
-                // Start anyway if font fails; UI will fallback to default font
-                scene.sheenTick?.remove();
-                scene.scene.start('SelectAllScene');
-              },
-            });
+            const wf =
+              typeof window !== "undefined" ? window.WebFont : undefined;
+            if (wf && typeof wf.load === "function") {
+              wf.load({
+                google: { families: ["Fredoka One"] },
+                active: () => {
+                  scene.sheenTick?.remove();
+                  scene.scene.start("SelectAllScene");
+                },
+                inactive: () => {
+                  // Start anyway if font fails; UI will fallback to default font
+                  scene.sheenTick?.remove();
+                  scene.scene.start("SelectAllScene");
+                },
+              });
+            } else {
+              // Fallback if WebFont is unavailable
+              scene.sheenTick?.remove();
+              scene.scene.start("SelectAllScene");
+            }
           });
         }
       }
 
       class SelectAllScene extends PhaserGame.Scene {
         constructor() {
-          super({ key: 'SelectAllScene' });
+          super({ key: "SelectAllScene" });
         }
 
         // Build unique rounds (no repeated function key; each question distinct)
         buildUniqueRounds(limit = 20) {
           const rounds = [];
           const chosenKeys = new Set();
-          const allKeys = getAllKeysForType('function');
+          const allKeys = getAllKeysForType("function");
           const keysShuffled = shuffle(allKeys);
 
           for (const key of keysShuffled) {
             if (rounds.length >= limit) break;
             if (chosenKeys.has(key)) continue;
 
-            const correctPool = itemsFor('function', key) || [];
+            const correctPool = itemsFor("function", key) || [];
             const maxPossible = Math.min(correctPool.length, 4);
             if (maxPossible < 2) continue; // need at least 2 correct items
 
@@ -283,7 +313,7 @@ export function Game2() {
             const wrongSet = new Set();
             for (const other of allKeys) {
               if (other === key) continue;
-              const pool = itemsFor('function', other) || [];
+              const pool = itemsFor("function", other) || [];
               for (const img of pool) {
                 if (!keySet.has(img)) wrongSet.add(img);
               }
@@ -294,8 +324,14 @@ export function Game2() {
             if (wrongPool.length < needWrong) continue;
             const wrongImgs = shuffle(wrongPool).slice(0, needWrong);
 
-            const correct = correctImgs.map(img => ({ name: NAME_BY_IMAGE.get(img) || img, imagePath: img }));
-            const incorrect = wrongImgs.map(img => ({ name: NAME_BY_IMAGE.get(img) || img, imagePath: img }));
+            const correct = correctImgs.map((img) => ({
+              name: NAME_BY_IMAGE.get(img) || img,
+              imagePath: img,
+            }));
+            const incorrect = wrongImgs.map((img) => ({
+              name: NAME_BY_IMAGE.get(img) || img,
+              imagePath: img,
+            }));
 
             rounds.push({
               fn: key,
@@ -312,13 +348,28 @@ export function Game2() {
             while (rounds.length < limit && guard < 200) {
               guard++;
               const target = 2 + Math.floor(Math.random() * 3);
-              const pick = pickItemsFromType({ type: 'function', numCorrect: target, numWrong: Math.max(0, 8 - target) });
+              const pick = pickItemsFromType({
+                type: "function",
+                numCorrect: target,
+                numWrong: Math.max(0, 8 - target),
+              });
               if (!pick) continue;
               const { key, correctImgs, wrongImgs } = pick;
-              if (rounds.some(r => r.fn === key)) continue; // still avoid repeating same function
-              const correct = correctImgs.map(img => ({ name: NAME_BY_IMAGE.get(img) || img, imagePath: img }));
-              const incorrect = wrongImgs.map(img => ({ name: NAME_BY_IMAGE.get(img) || img, imagePath: img }));
-              rounds.push({ fn: key, correct, allOptions: shuffle([...correct, ...incorrect]), prompt: buildPromptForFunction(key) });
+              if (rounds.some((r) => r.fn === key)) continue; // still avoid repeating same function
+              const correct = correctImgs.map((img) => ({
+                name: NAME_BY_IMAGE.get(img) || img,
+                imagePath: img,
+              }));
+              const incorrect = wrongImgs.map((img) => ({
+                name: NAME_BY_IMAGE.get(img) || img,
+                imagePath: img,
+              }));
+              rounds.push({
+                fn: key,
+                correct,
+                allOptions: shuffle([...correct, ...incorrect]),
+                prompt: buildPromptForFunction(key),
+              });
             }
           }
 
@@ -327,7 +378,7 @@ export function Game2() {
 
         init() {
           const ROUND_LIMIT = 20; // Updated to 20 questions like Game 1
-          
+
           // Build rounds using QuestionUtils to ensure no overlaps and no repeated categories
           this.rounds = this.buildUniqueRounds(ROUND_LIMIT);
           this.roundIndex = 0;
@@ -341,14 +392,14 @@ export function Game2() {
           this.confirmBtn = null;
 
           this.correctAudioFiles = [
-            '/Games/audio/right1.mp3',
-            '/Games/audio/right2.mp3',
-            '/Games/audio/right3.mp3',
+            "/Games/audio/right1.mp3",
+            "/Games/audio/right2.mp3",
+            "/Games/audio/right3.mp3",
           ];
 
           this.wrongAudioFiles = [
-            '/Games/audio/wrong1.mp3',
-            '/Games/audio/wrong2.mp3',
+            "/Games/audio/wrong1.mp3",
+            "/Games/audio/wrong2.mp3",
           ];
         }
 
@@ -364,30 +415,40 @@ export function Game2() {
           const qFont = Math.max(18, Math.min(40, this.scale.height * 0.075));
 
           this.promptText = this.add
-            .text(this.scale.width / 2, Math.max(30, this.scale.height * 0.08), '', {
-              fontFamily: 'Fredoka One',
-              fontSize: `${qFont}px`,
-              color: '#ffffff',
-              stroke: '#1e607d',
-              strokeThickness: 4,
-              align: 'center',
-              wordWrap: { width: this.scale.width * 0.9 },
-            })
+            .text(
+              this.scale.width / 2,
+              Math.max(30, this.scale.height * 0.08),
+              "",
+              {
+                fontFamily: "Fredoka One",
+                fontSize: `${qFont}px`,
+                color: "#ffffff",
+                stroke: "#1e607d",
+                strokeThickness: 4,
+                align: "center",
+                wordWrap: { width: this.scale.width * 0.9 },
+              }
+            )
             .setOrigin(0.5)
-            .setShadow(2, 2, 'rgba(0,0,0,0.35)', 6);
+            .setShadow(2, 2, "rgba(0,0,0,0.35)", 6);
 
           const pFont = Math.max(14, Math.min(30, this.scale.height * 0.055));
 
           this.progressText = this.add
-            .text(this.scale.width / 12, Math.max(25, this.scale.height * 0.075), '', {
-              fontFamily: 'Fredoka One',
-              fontSize: `${pFont}px`,
-              color: '#ffffff',
-              stroke: '#1e607d',
-              strokeThickness: 3,
-            })
+            .text(
+              this.scale.width / 12,
+              Math.max(25, this.scale.height * 0.075),
+              "",
+              {
+                fontFamily: "Fredoka One",
+                fontSize: `${pFont}px`,
+                color: "#ffffff",
+                stroke: "#1e607d",
+                strokeThickness: 3,
+              }
+            )
             .setOrigin(0.5)
-            .setShadow(2, 2, 'rgba(0,0,0,0.35)', 6);
+            .setShadow(2, 2, "rgba(0,0,0,0.35)", 6);
 
           // Confirm button (single instance, reused each round)
           this.confirmBtn = this.buildConfirmButton();
@@ -399,10 +460,17 @@ export function Game2() {
 
           // Use stored refs so we can detach on shutdown/destroy
           this._onResizeConfirm = () => this.positionConfirmButton();
-          this.scale.on('resize', this._onResizeConfirm);
-          const offAll = () => { try { if (this._onResizeConfirm) { this.scale.off('resize', this._onResizeConfirm); this._onResizeConfirm = null; } } catch {} };
-          this.events.once('shutdown', offAll);
-          this.events.once('destroy', offAll);
+          this.scale.on("resize", this._onResizeConfirm);
+          const offAll = () => {
+            try {
+              if (this._onResizeConfirm) {
+                this.scale.off("resize", this._onResizeConfirm);
+                this._onResizeConfirm = null;
+              }
+            } catch {}
+          };
+          this.events.once("shutdown", offAll);
+          this.events.once("destroy", offAll);
         }
 
         positionConfirmButton() {
@@ -436,10 +504,10 @@ export function Game2() {
           draw(false);
 
           const label = this.add
-            .text(0, 0, 'Confirm', {
-              fontFamily: 'Fredoka One',
+            .text(0, 0, "Confirm", {
+              fontFamily: "Fredoka One",
               fontSize: `${Math.max(20, h * 0.42)}px`,
-              color: '#fff',
+              color: "#fff",
             })
             .setOrigin(0.5);
 
@@ -454,19 +522,19 @@ export function Game2() {
           ct.setSize(w, h);
           ct.setInteractive({ useHandCursor: true });
 
-          ct.on('pointerover', () => {
+          ct.on("pointerover", () => {
             if (ct.meta.enabled) {
               this.tweens.add({ targets: ct, scale: 1.05, duration: 160 });
             }
           });
 
-          ct.on('pointerout', () => {
+          ct.on("pointerout", () => {
             if (ct.meta.enabled) {
               this.tweens.add({ targets: ct, scale: 1.0, duration: 160 });
             }
           });
 
-          ct.on('pointerdown', () => {
+          ct.on("pointerdown", () => {
             if (ct.meta.enabled) {
               this.evaluateSelection();
             }
@@ -493,12 +561,17 @@ export function Game2() {
 
         createShuffleButton() {
           // Responsive font size for shuffle button
-          const sFontSize = Math.max(14, Math.min(24, this.scale.height * 0.045));
-          const text = this.add.text(0, 0, 'Shuffle', {
-            fontFamily: 'Fredoka One',
-            fontSize: `${sFontSize}px`,
-            color: '#042539',
-          }).setOrigin(0.5);
+          const sFontSize = Math.max(
+            14,
+            Math.min(24, this.scale.height * 0.045)
+          );
+          const text = this.add
+            .text(0, 0, "Shuffle", {
+              fontFamily: "Fredoka One",
+              fontSize: `${sFontSize}px`,
+              color: "#042539",
+            })
+            .setOrigin(0.5);
 
           const width = text.width + 32;
           const height = text.height + 16;
@@ -510,40 +583,43 @@ export function Game2() {
 
           // Responsive position for shuffle button
           const x = this.scale.width - 20 - width / 2;
-          const y = Math.max(10 + height / 2, this.scale.height * 0.04 + height / 2);
+          const y = Math.max(
+            10 + height / 2,
+            this.scale.height * 0.04 + height / 2
+          );
           const container = this.add.container(x, y, [bg, text]);
           container.setSize(width, height);
           container.setInteractive();
 
-          container.on('pointerover', () => {
+          container.on("pointerover", () => {
             this.tweens.add({ targets: container, scale: 1.05, duration: 200 });
             bg.clear();
-            bg.fillStyle(0x57C785, 0.8);
+            bg.fillStyle(0x57c785, 0.8);
             bg.fillRoundedRect(-width / 2, -height / 2, width, height, 12);
             bg.lineStyle(6, 0x042539, 1);
             bg.strokeRoundedRect(-width / 2, -height / 2, width, height, 12);
-            text.setColor('#ffffff');
+            text.setColor("#ffffff");
           });
 
-          container.on('pointerout', () => {
+          container.on("pointerout", () => {
             this.tweens.add({ targets: container, scale: 1, duration: 200 });
             bg.clear();
             bg.fillStyle(0xffffff, 0.6);
             bg.fillRoundedRect(-width / 2, -height / 2, width, height, 12);
             bg.lineStyle(4, 0x042539, 1);
             bg.strokeRoundedRect(-width / 2, -height / 2, width, height, 12);
-            text.setColor('#042539');
+            text.setColor("#042539");
           });
 
-          container.on('pointerdown', () => {
+          container.on("pointerdown", () => {
             this.tweens.add({
               targets: container,
               scale: 1.1,
               duration: 300,
-              ease: 'Circ.easeInOut',
+              ease: "Circ.easeInOut",
               onComplete: () => {
                 this.handleShuffle();
-              }
+              },
             });
           });
         }
@@ -552,11 +628,11 @@ export function Game2() {
           // Regenerate questions with new shuffled order using QuestionUtils, still unique per game
           const ROUND_LIMIT = 20;
           this.rounds = this.buildUniqueRounds(ROUND_LIMIT);
-          
+
           // Reset to first question
           this.roundIndex = 0;
           this.correctFirstTry = 0;
-          
+
           // Show the new first round
           this.showRound();
         }
@@ -583,16 +659,16 @@ export function Game2() {
             let h = [];
 
             try {
-              h = JSON.parse(localStorage.getItem('game2_history') || '[]');
+              h = JSON.parse(localStorage.getItem("game2_history") || "[]");
             } catch (e) {
               h = [];
             }
 
             h.push(this.correctFirstTry);
 
-            localStorage.setItem('game2_history', JSON.stringify(h.slice(-20)));
+            localStorage.setItem("game2_history", JSON.stringify(h.slice(-20)));
 
-            this.scene.start('SummaryScene', {
+            this.scene.start("SummaryScene", {
               correct: this.correctFirstTry,
               total: this.rounds.length,
             });
@@ -614,7 +690,9 @@ export function Game2() {
           const round = this.rounds[this.roundIndex];
 
           this.promptText.setText(round.prompt);
-          this.progressText.setText(`${this.roundIndex + 1} / ${this.rounds.length}`);
+          this.progressText.setText(
+            `${this.roundIndex + 1} / ${this.rounds.length}`
+          );
 
           // SHUFFLE OPTIONS EVERY TIME THEY'RE DISPLAYED
           const shuffledOptions = shuffle([...round.allOptions]);
@@ -667,14 +745,14 @@ export function Game2() {
 
             const label = this.add
               .text(0, imgSize / 2 - 0, opt.name, {
-                fontFamily: 'Fredoka One',
+                fontFamily: "Fredoka One",
                 fontSize: `${lblFont}px`,
-                color: '#ffffff',
-                align: 'center',
-                stroke: '#042539',
+                color: "#ffffff",
+                align: "center",
+                stroke: "#042539",
                 strokeThickness: 4,
               })
-              .setOrigin(0.5, 0)
+              .setOrigin(0.5, 0);
 
             container.add([ring, sprite, label]);
 
@@ -719,9 +797,9 @@ export function Game2() {
               }
             };
 
-            container.on('pointerover', hoverIn);
-            container.on('pointerout', hoverOut);
-            container.on('pointerdown', () => this.toggleSelect(container));
+            container.on("pointerover", hoverIn);
+            container.on("pointerout", hoverOut);
+            container.on("pointerdown", () => this.toggleSelect(container));
 
             this.optionContainers.push(container);
           });
@@ -757,7 +835,7 @@ export function Game2() {
             targets: container,
             scale: 1.12,
             duration: 200,
-            ease: 'Back.easeOut',
+            ease: "Back.easeOut",
           });
         }
 
@@ -784,7 +862,7 @@ export function Game2() {
           }
 
           const round = this.rounds[this.roundIndex];
-          const correctSet = new Set(round.correct.map(item => item.name)); // Updated to extract names from correct items
+          const correctSet = new Set(round.correct.map((item) => item.name)); // Updated to extract names from correct items
 
           let anyWrong = false;
           let anyMissing = false;
@@ -797,7 +875,8 @@ export function Game2() {
           });
 
           round.correct.forEach((correctItem) => {
-            if (!this.selected.has(correctItem.name)) { // Updated to use correctItem.name
+            if (!this.selected.has(correctItem.name)) {
+              // Updated to use correctItem.name
               anyMissing = true;
             }
           });
@@ -821,7 +900,7 @@ export function Game2() {
               if (!isCorrect) {
                 this.tweens.add({
                   targets: ct,
-                  x: '+=6',
+                  x: "+=6",
                   duration: 60,
                   yoyo: true,
                   repeat: 2,
@@ -903,7 +982,7 @@ export function Game2() {
 
       class SummaryScene extends PhaserGame.Scene {
         constructor() {
-          super({ key: 'SummaryScene' });
+          super({ key: "SummaryScene" });
         }
 
         init(data) {
@@ -911,7 +990,9 @@ export function Game2() {
           this.total = data.total || 0;
 
           try {
-            this.history = JSON.parse(localStorage.getItem('game2_history') || '[]');
+            this.history = JSON.parse(
+              localStorage.getItem("game2_history") || "[]"
+            );
           } catch (e) {
             this.history = [];
           }
@@ -921,16 +1002,23 @@ export function Game2() {
 
         preload() {
           this.load.script(
-            'webfont',
-            'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js'
+            "webfont",
+            "https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"
           );
         }
 
         create() {
-          WebFont.load({
-            google: { families: ['Fredoka One'] },
-            active: () => this.build(),
-          });
+          const wf = typeof window !== "undefined" ? window.WebFont : undefined;
+          if (wf && typeof wf.load === "function") {
+            wf.load({
+              google: { families: ["Fredoka One"] },
+              active: () => this.build(),
+              inactive: () => this.build(),
+            });
+          } else {
+            // Fallback if WebFont is unavailable
+            this.build();
+          }
         }
 
         build() {
@@ -942,17 +1030,17 @@ export function Game2() {
             correct: this.correct,
             total: this.total,
             history: this.localHistory,
-            onRestart: () => this.scene.start('SelectAllScene'),
+            onRestart: () => this.scene.start("SelectAllScene"),
             texts: {
               heading: `You got ${this.correct} correct on first try!`,
-              playAgain: 'Play Again',
+              playAgain: "Play Again",
             },
             graph: {
               x: W / 2,
               y: H / 2 + 150,
               width: 400,
               height: 250,
-              titleText: 'Progress Over Past 5 Attempts',
+              titleText: "Progress Over Past 5 Attempts",
               entrance: { fromYOffset: 300, delay: 200 },
             },
             renderHeading: true,
