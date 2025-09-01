@@ -5,6 +5,7 @@ import { buildSummaryUI } from './SummaryUI';
 // Use shared QuestionUtils to ensure robust separation and unified helpers
 import { getAllKeysForType, itemsFor, getAllIconKeys } from './QuestionUtils';
 import { getDimOverlayStyle } from './GameTheme';
+import { QUESTIONS_PER_RUN } from './GameConfig';
 
 // Game 5 — Classify the Item (MCQ)
 // Uses Class mapping for item -> class questions
@@ -207,8 +208,8 @@ export function Game5() {
           });
 
           this.load.once('complete', () => {
-            const scene = this; // eslint-disable-next-line no-undef
-            WebFont.load({ google: { families: ['Fredoka One'] }, active: () => { scene.sheenTick?.remove(); scene.scene.start('ClassifyScene'); }, inactive: () => { scene.sheenTick?.remove(); scene.scene.start('ClassifyScene'); } });
+            const scene = this; const WF = (typeof window !== 'undefined' && window.WebFont) ? window.WebFont : null;
+            if (WF && WF.load) { WF.load({ google: { families: ['Fredoka One'] }, active: () => { scene.sheenTick?.remove(); scene.scene.start('ClassifyScene'); }, inactive: () => { scene.sheenTick?.remove(); scene.scene.start('ClassifyScene'); } }); } else { scene.sheenTick?.remove(); scene.scene.start('ClassifyScene'); }
           });
         }
       }
@@ -217,7 +218,7 @@ export function Game5() {
         constructor() { super({ key: 'ClassifyScene' }); }
 
         init() {
-          this.rounds = buildRounds(20);
+          this.rounds = buildRounds(QUESTIONS_PER_RUN);
           this.roundIndex = 0;
 
           this.correctCount = 0;
@@ -236,6 +237,12 @@ export function Game5() {
 
           this.correctAudioFiles = [ '/Games/audio/right1.mp3', '/Games/audio/right2.mp3', '/Games/audio/right3.mp3' ];
           this.wrongAudioFiles = [ '/Games/audio/wrong1.mp3', '/Games/audio/wrong2.mp3' ];
+
+          // DPR helpers (CSS px -> device px)
+          this.dpr = (typeof window !== 'undefined' && window.devicePixelRatio) ? window.devicePixelRatio : 1;
+          this.px = (cssPx) => Math.round(cssPx * this.dpr);
+          this.cssW = () => this.scale.width / this.dpr;
+          this.cssH = () => this.scale.height / this.dpr;
         }
 
         preload() {}
@@ -246,41 +253,148 @@ export function Game5() {
         }
 
         setupUI() {
-          const qFont = Math.max(18, Math.min(40, this.scale.height * 0.075));
-          this.promptText = this.add.text(this.scale.width / 2, this.scale.height / 6, '', { fontFamily: 'Fredoka One', fontSize: `${qFont}px`, color: '#ffffff', stroke: '#042539', strokeThickness: 6, align: 'center', wordWrap: { width: this.scale.width * 0.9 } }).setOrigin(0.5).setShadow(2, 2, 'rgba(0,0,0,0.4)', 6);
-          const pFont = Math.max(14, Math.min(28, this.scale.height * 0.05));
-          this.progressText = this.add.text(this.scale.width / 12, Math.max(24, this.scale.height * 0.075), '', { fontFamily: 'Fredoka One', fontSize: `${pFont}px`, color: '#ffffff', stroke: '#042539', strokeThickness: 5 }).setOrigin(0.5).setShadow(2, 2, 'rgba(0,0,0,0.4)', 6);
+          // Build top-bar elements once
+          const cssH = this.cssH();
+
+          // Progress text (left)
+          const progCssSize = Math.max(14, Math.min(22, cssH * 0.035));
+          this.progressText = this.add.text(0, 0, '', {
+            fontFamily: 'Fredoka One',
+            fontSize: `${this.px(progCssSize)}px`,
+            color: '#ffffff', stroke: '#042539', strokeThickness: this.px(3),
+          }).setOrigin(0, 0.5).setResolution(this.dpr).setShadow(this.px(1), this.px(1), 'rgba(0,0,0,0.4)', this.px(3));
+
+          // Prompt text (centered below the top bar)
+          const qCssSize = Math.max(18, Math.min(34, cssH * 0.055));
+          this.promptText = this.add.text(0, 0, '', {
+            fontFamily: 'Fredoka One',
+            fontSize: `${this.px(qCssSize)}px`,
+            color: '#ffffff', stroke: '#042539', strokeThickness: this.px(5),
+            align: 'center', wordWrap: { width: this.px(this.cssW() * 0.9) },
+          }).setOrigin(0.5, 0.5).setResolution(this.dpr).setShadow(this.px(2), this.px(2), 'rgba(0,0,0,0.4)', this.px(6));
 
           // Shuffle button (no confirm button needed for single-tap MCQ)
           this.createShuffleButton();
-          this._onResizeShuffle = () => {
-            this.positionShuffleButton?.();
-            this.layoutOptionButtons?.();
-          };
-          this.scale.on('resize', this._onResizeShuffle);
+
+          // Resize handler
+          this._onResize = () => { this.dpr = (typeof window !== 'undefined' && window.devicePixelRatio) ? window.devicePixelRatio : 1; this.layoutEverything?.(); };
+          this.scale.on('resize', this._onResize);
 
           // Cleanup on shutdown/destroy
           const offAll = () => {
-            try { if (this._onResizeShuffle) { this.scale.off('resize', this._onResizeShuffle); this._onResizeShuffle = null; } } catch {}
+            try { if (this._onResize) { this.scale.off('resize', this._onResize); this._onResize = null; } } catch {}
           };
           this.events.once('shutdown', offAll);
           this.events.once('destroy', offAll);
+
+          // Initial layout
+          this.layoutEverything();
+        }
+
+        layoutEverything() {
+          const cssW = this.cssW(); const cssH = this.cssH();
+
+          // Top bar sizing
+          const marginX = 16; const topPad = Math.max(12, cssH * 0.03);
+
+          // Progress position (left)
+          this.progressText.setFontSize(this.px(Math.max(14, Math.min(22, cssH * 0.035))));
+          this.progressText.setPosition(this.px(marginX), this.px(topPad + 10));
+          this.progressText.setResolution(this.dpr);
+
+          // Shuffle position (right)
+          this.positionShuffleButton?.();
+
+          // Prompt below top bar (compute top bar height in CSS px)
+          const progHcss = this.progressText.height / this.dpr;
+          const shuffleHcss = (this.shuffleBtn?.meta?.heightPx || this.px(32)) / this.dpr;
+          const topBarHcss = Math.max(progHcss, shuffleHcss);
+          this.promptText.setFontSize(this.px(Math.max(18, Math.min(34, cssH * 0.055))));
+          this.promptText.setWordWrapWidth(this.px(cssW * 0.9));
+          this.promptText.setPosition(this.px(cssW / 2), this.px(topPad + topBarHcss + 20));
+          this.promptText.setResolution(this.dpr);
+
+          // Item image (center-ish)
+          const imgSizeCss = Math.max(80, Math.min(220, Math.min(cssW, cssH) * 0.25));
+          const imgYcss = Math.max(cssH * 0.42, (this.promptText.y / this.dpr) + imgSizeCss * 0.6);
+          if (this.itemSprite) {
+            this.itemSprite.setDisplaySize(this.px(imgSizeCss), this.px(imgSizeCss));
+            this.itemSprite.setPosition(this.px(cssW / 2), this.px(imgYcss));
+          }
+
+          // Options layout
+          this.layoutOptionButtons?.();
         }
 
         createShuffleButton() {
-          const sFontSize = Math.max(14, Math.min(24, this.scale.height * 0.045));
-          const text = this.add.text(0, 0, 'Shuffle', { fontFamily: 'Fredoka One', fontSize: `${sFontSize}px`, color: '#042539' }).setOrigin(0.5);
-          const width = text.width + 32; const height = text.height + 16;
-          const bg = this.add.graphics(); bg.fillStyle(0xffffff, 0.6); bg.fillRoundedRect(-width / 2, -height / 2, width, height, 12); bg.lineStyle(4, 0x042539, 1); bg.strokeRoundedRect(-width / 2, -height / 2, width, height, 12);
-          const x = this.scale.width - 20 - width / 2; const y = Math.max(10 + height / 2, this.scale.height * 0.04 + height / 2);
-          const container = this.add.container(x, y, [bg, text]); container.setSize(width, height); container.setInteractive({ useHandCursor: true });
-          container.on('pointerover', () => { this.tweens.add({ targets: container, scale: 1.05, duration: 200 }); bg.clear(); bg.fillStyle(0x57C785, 0.8); bg.fillRoundedRect(-width / 2, -height / 2, width, height, 12); bg.lineStyle(6, 0x042539, 1); bg.strokeRoundedRect(-width / 2, -height / 2, width, height, 12); text.setColor('#ffffff'); });
-          container.on('pointerout', () => { this.tweens.add({ targets: container, scale: 1, duration: 200 }); bg.clear(); bg.fillStyle(0xffffff, 0.6); bg.fillRoundedRect(-width / 2, -height / 2, width, height, 12); bg.lineStyle(4, 0x042539, 1); bg.strokeRoundedRect(-width / 2, -height / 2, width, height, 12); text.setColor('#042539'); });
+          const cssH = this.cssH();
+          const sFontCss = Math.max(14, Math.min(20, cssH * 0.032));
+          const text = this.add.text(0, 0, 'Shuffle', { fontFamily: 'Fredoka One', fontSize: `${this.px(sFontCss)}px`, color: '#042539' }).setOrigin(0.5).setResolution(this.dpr);
+          // size in CSS px
+          const widthCss = (text.width / this.dpr) + 32; const heightCss = (text.height / this.dpr) + 16;
+          const width = this.px(widthCss); const height = this.px(heightCss);
+          const bg = this.add.graphics(); bg.fillStyle(0xffffff, 0.6); bg.fillRoundedRect(-width / 2, -height / 2, width, height, this.px(12)); bg.lineStyle(this.px(3), 0x042539, 1); bg.strokeRoundedRect(-width / 2, -height / 2, width, height, this.px(12));
+          const container = this.add.container(0, 0, [bg, text]); container.setSize(width, height); container.setInteractive({ useHandCursor: true });
+          container.on('pointerover', () => { this.tweens.add({ targets: container, scale: 1.05, duration: 200 }); bg.clear(); bg.fillStyle(0x57C785, 0.8); bg.fillRoundedRect(-width / 2, -height / 2, width, height, this.px(12)); bg.lineStyle(this.px(4), 0x042539, 1); bg.strokeRoundedRect(-width / 2, -height / 2, width, height, this.px(12)); text.setColor('#ffffff'); });
+          container.on('pointerout', () => { this.tweens.add({ targets: container, scale: 1, duration: 200 }); bg.clear(); bg.fillStyle(0xffffff, 0.6); bg.fillRoundedRect(-width / 2, -height / 2, width, height, this.px(12)); bg.lineStyle(this.px(3), 0x042539, 1); bg.strokeRoundedRect(-width / 2, -height / 2, width, height, this.px(12)); text.setColor('#042539'); });
           container.on('pointerdown', () => { this.tweens.add({ targets: container, scale: 1.1, duration: 300, ease: 'Circ.easeInOut', onComplete: () => this.handleShuffle() }); });
-          container.meta = { width, height }; this.shuffleBtn = container; this.positionShuffleButton();
+          container.meta = { widthPx: width, heightPx: height, widthCss, heightCss };
+          this.shuffleBtn = container; this.positionShuffleButton();
         }
-        positionShuffleButton() { if (!this.shuffleBtn) return; const width = this.shuffleBtn.meta.width; const height = this.shuffleBtn.meta.height; this.shuffleBtn.x = this.scale.width - 20 - width / 2; this.shuffleBtn.y = Math.max(10 + height / 2, this.scale.height * 0.04 + height / 2); }
-        handleShuffle() { this.rounds = buildRounds(20); this.roundIndex = 0; this.perRoundMistake = false; this.perfectRounds = 0; this.longestPerfectStreak = 0; this.currentPerfectStreak = 0; this.showRound(); }
+        positionShuffleButton() {
+          if (!this.shuffleBtn) return;
+          const cssW = this.cssW(); const cssH = this.cssH();
+          const width = this.shuffleBtn.meta.widthPx; const height = this.shuffleBtn.meta.heightPx;
+          this.shuffleBtn.x = this.px(cssW - 20 - (width / this.dpr) / 2);
+          this.shuffleBtn.y = this.px(Math.max(10 + (height / this.dpr) / 2, cssH * 0.04 + (height / this.dpr) / 2));
+        }
+        handleShuffle() { this.rounds = buildRounds(QUESTIONS_PER_RUN); this.roundIndex = 0; this.perRoundMistake = false; this.perfectRounds = 0; this.longestPerfectStreak = 0; this.currentPerfectStreak = 0; this.showRound(); }
+
+        // Handle option click with round lock (prevents score spamming)
+        handleOptionSelect(label, correct, container) {
+          if (this.roundLocked) return; // already answered correctly
+          const isCorrect = label === correct;
+
+          if (isCorrect) {
+            this.roundLocked = true;
+            // disable all option interactivity
+            this.optionButtons.forEach((c) => {
+              try { c.meta?.bg?.disableInteractive(); } catch {}
+            });
+            try { new Audio(PhaserGame.Utils.Array.GetRandom(this.correctAudioFiles)).play(); } catch {}
+            if (!this.perRoundMistake) {
+              this.perfectRounds += 1;
+              this.currentPerfectStreak += 1;
+              this.longestPerfectStreak = Math.max(this.longestPerfectStreak, this.currentPerfectStreak);
+            } else {
+              this.currentPerfectStreak = 0;
+            }
+            // small bounce like Game 1
+            this.tweens.add({
+              targets: container,
+              scale: 1.25,
+              duration: 300,
+              ease: 'Circ.easeInOut',
+              onComplete: () => {
+                this.tweens.add({
+                  targets: container,
+                  scale: 1,
+                  duration: 300,
+                  ease: 'Circ.easeInOut',
+                  onComplete: () => {
+                    this.roundIndex += 1;
+                    this.showRound();
+                  },
+                });
+              },
+            });
+          } else {
+            try { new Audio(PhaserGame.Utils.Array.GetRandom(this.wrongAudioFiles)).play(); } catch {}
+            this.perRoundMistake = true;
+            this.currentPerfectStreak = 0;
+            this.tweens.add({ targets: container, x: '+=5', duration: 50, yoyo: true, repeat: 2 });
+          }
+        }
 
         showRound() {
           if (this.roundIndex >= this.rounds.length) {
@@ -301,79 +415,184 @@ export function Game5() {
             this.promptText.setText('Which category does this item belong to?');
           }
 
-          // Target item (center/top)
-          const imgSize = Math.min(this.scale.width, this.scale.height) * 0.25;
-          this.itemSprite = this.add.image(this.scale.width / 2, this.scale.height / 2.75, round.item.imagePath).setDisplaySize(imgSize, imgSize).setOrigin(0.5);
+          // Target item (center/top) using CSS-px sizing
+          const cssW = this.cssW(); const cssH = this.cssH();
+          const imgSizeCss = Math.max(80, Math.min(220, Math.min(cssW, cssH) * 0.25));
+          const centerX = this.px(cssW / 2);
+          const centerY = this.px(Math.max(cssH * 0.42, (this.promptText.y / this.dpr) + imgSizeCss * 0.6));
+          this.itemSprite = this.add.image(centerX, centerY, round.item.imagePath).setDisplaySize(this.px(imgSizeCss), this.px(imgSizeCss)).setOrigin(0.5);
           this.tweens.add({ targets: this.itemSprite, y: '+=8', duration: 1400, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
 
-          // Build options with capped width and wrapping to prevent overlap
-          const options = round.options; const count = options.length;
-          const areaW = this.scale.width * 0.9; // usable width
-          const colGap = Math.max(14, Math.min(24, this.scale.width * 0.02));
-          const perWidth = Math.max(140, Math.min(280, areaW / count - colGap));
-          const centerY = this.scale.height * 0.70;
-          const startX = this.scale.width / 2 - ((count - 1) * (areaW / count)) / 2;
+          // Build options to visually match Game 1 (ellipse, semi-transparent, white text)
+          const mcqOptions = round.options;
+          const spacing = this.scale.width / (mcqOptions.length + 1);
+          const baseY = this.scale.height * 0.9;
 
-          options.forEach((label, idx) => {
-            const colCenter = startX + idx * (areaW / count);
-            const btn = this.createTextButton(colCenter, centerY, label, perWidth);
-            // Attach pointerdown to both text & bg like Game 1
-            btn.meta?.addPointerDown?.(() => {
-              if (this.roundLocked) return; // prevent double scoring
-              const isCorrect = label === round.correct;
-              if (isCorrect) {
-                this.roundLocked = true; // lock round immediately
-                // disable all buttons to prevent further clicks
-                this.optionButtons.forEach((b) => { try { b.meta?.disable?.(); } catch {} try { b.disableInteractive?.(); } catch {} });
-                new Audio(PhaserGame.Utils.Array.GetRandom(this.correctAudioFiles)).play();
-                if (!this.perRoundMistake) { this.perfectRounds += 1; this.currentPerfectStreak += 1; this.longestPerfectStreak = Math.max(this.longestPerfectStreak, this.currentPerfectStreak); } else { this.currentPerfectStreak = 0; }
-                this.tweens.add({ targets: btn, scale: 1.15, duration: 220, ease: 'Circ.easeOut', yoyo: true });
-                this.time.delayedCall(500, () => { this.roundIndex += 1; this.showRound(); });
-              } else {
-                new Audio(PhaserGame.Utils.Array.GetRandom(this.wrongAudioFiles)).play(); this.perRoundMistake = true; this.currentPerfectStreak = 0; this.tweens.add({ targets: btn, x: '+=6', duration: 60, yoyo: true, repeat: 2 });
-              }
-            });
-            this.optionButtons.push(btn);
+          const dpr = this.dpr;
+          const optWidthCss = this.cssW() / 6; // exactly 1/6th of container width
+          const optHeightCss = Math.max(36, Math.min(optWidthCss * 0.42, 84));
+          const optWidth = optWidthCss * dpr;
+          const optHeight = optHeightCss * dpr;
+
+          const created = [];
+          mcqOptions.forEach((label, i) => {
+            const x = spacing * (i + 1);
+            // Base font size in CSS px, then multiply to dpr for world units; shrink-to-fit computed in CSS units
+            const optFontSizeCss = Math.max(14, Math.min(30, this.cssH() * 0.055));
+            const text = this.add
+              .text(0, 0, label, {
+                fontFamily: 'Fredoka One',
+                fontSize: `${optFontSizeCss * dpr}px`,
+                color: '#fff',
+                stroke: '#042539',
+                strokeThickness: 4,
+              })
+              .setOrigin(0.5)
+              .setShadow(2, 2, 'rgba(4, 37, 57, 0.8)', 4)
+              .setResolution(dpr);
+
+            // Shrink-to-fit the available width minus padding (computed in CSS px)
+            const padCss = Math.max(6, Math.min(16, optWidthCss * 0.1));
+            const maxTextWidthCss = optWidthCss - padCss * 2;
+            const textWidthCss = text.width / dpr; // convert world -> CSS px
+            const shrink = Math.min(1, maxTextWidthCss / Math.max(1, textWidthCss));
+            text.setScale(shrink);
+
+            // Background graphics sized to constant size with semi-transparency
+            const bg = this.add.graphics();
+            bg.fillStyle(0xffffff, 0.8);
+            bg.fillEllipse(0, 0, optWidth, optHeight);
+            bg.lineStyle(4, 0x042539, 1);
+            bg.strokeEllipse(0, 0, optWidth, optHeight);
+            bg.setDepth(text.depth - 1);
+
+            const container = this.add.container(x, baseY, [bg, text]);
+            container.meta = { bg, text, optW: optWidth, optH: optHeight, textScaleBase: shrink };
+            container.setSize(optWidth, optHeight);
+            // Centered ellipse hit area on bg
+            bg.setInteractive(new PhaserGame.Geom.Ellipse(0, 0, optWidth, optHeight), PhaserGame.Geom.Ellipse.Contains);
+
+            // Hover effects similar to Game 1
+            const hoverIn = () => {
+              const baseScale = container.meta?.textScaleBase || 1;
+              this.tweens.add({ targets: text, scale: baseScale * 1.1, duration: 200 });
+              const w = container.meta?.optW || optWidth;
+              const h = container.meta?.optH || optHeight;
+              bg.clear();
+              bg.fillStyle(0x57C785, 0.8);
+              bg.fillEllipse(0, 0, w + 4, h + 4);
+              bg.lineStyle(6, 0x042539, 1);
+              bg.strokeEllipse(0, 0, w + 4, h + 4);
+              try { this.game.canvas.style.cursor = 'pointer'; } catch {}
+            };
+            const hoverOut = () => {
+              const baseScale = container.meta?.textScaleBase || 1;
+              this.tweens.add({ targets: text, scale: baseScale, duration: 200 });
+              const w = container.meta?.optW || optWidth;
+              const h = container.meta?.optH || optHeight;
+              bg.clear();
+              bg.fillStyle(0xffffff, 0.8);
+              bg.fillEllipse(0, 0, w, h);
+              bg.lineStyle(4, 0x042539, 1);
+              bg.strokeEllipse(0, 0, w, h);
+              try { this.game.canvas.style.cursor = 'default'; } catch {}
+            };
+
+            const onDown = () => this.handleOptionSelect(label, round.correct, container);
+
+            bg.on('pointerover', hoverIn);
+            bg.on('pointerout', hoverOut);
+            bg.on('pointerdown', onDown);
+
+            created.push(container);
           });
 
-          // Save a layout fn to recompute positions on resize
+          this.optionButtons = created;
+
+          // Save a layout fn to recompute positions/sizes on resize (exactly like Game 1)
           this.layoutOptionButtons = () => {
-            if (!this.optionButtons || this.optionButtons.length !== count) return;
-            const areaW2 = this.scale.width * 0.9; const perWidth2 = Math.max(140, Math.min(280, areaW2 / count - colGap));
-            const centerY2 = this.scale.height * 0.70; const startX2 = this.scale.width / 2 - ((count - 1) * (areaW2 / count)) / 2;
-            this.optionButtons.forEach((btn, i) => { btn.x = startX2 + i * (areaW2 / count); btn.y = centerY2; btn.meta?.resize?.(perWidth2); });
+            if (!this.optionButtons?.length) return;
+            const MCQ_COUNT = this.optionButtons.length;
+            const spacingDev = this.scale.width / (MCQ_COUNT + 1);
+            const baseYDev = this.scale.height * 0.9;
+
+            const dprNow = this.dpr;
+            const cssWNow = this.scale.width / dprNow;
+            const cssHNow = this.scale.height / dprNow;
+            const optWidthCssNow = cssWNow / 6; // exactly 1/6th
+            const optHeightCssNow = Math.max(36, Math.min(optWidthCssNow * 0.42, 84));
+            const optW = optWidthCssNow * dprNow;
+            const optH = optHeightCssNow * dprNow;
+
+            this.optionButtons.forEach((container, idx) => {
+              const text = container.meta?.text; const bg = container.meta?.bg; if (!text || !bg) return;
+              // Update font size + shrink in CSS px (DPR-independent), setResolution for crispness
+              const optFontSizeCssNow = Math.max(14, Math.min(30, cssHNow * 0.055));
+              text.setFontSize(optFontSizeCssNow * dprNow);
+              text.setResolution(dprNow);
+              text.setScale(1);
+              const padCss = Math.max(6, Math.min(16, optWidthCssNow * 0.1));
+              const maxTextWidthCss = optWidthCssNow - padCss * 2;
+              const textWidthCss = text.width / dprNow; // convert world -> CSS px
+              const shrink = Math.min(1, maxTextWidthCss / Math.max(1, textWidthCss));
+              text.setScale(shrink);
+              container.meta.textScaleBase = shrink;
+
+              // Redraw bg ellipse
+              bg.clear();
+              bg.fillStyle(0xffffff, 0.8);
+              bg.fillEllipse(0, 0, optW, optH);
+              bg.lineStyle(4, 0x042539, 1);
+              bg.strokeEllipse(0, 0, optW, optH);
+
+              container.meta.optW = optW; container.meta.optH = optH;
+              container.setSize(optW, optH);
+              bg.setInteractive(new PhaserGame.Geom.Ellipse(0, 0, optW, optH), PhaserGame.Geom.Ellipse.Contains);
+
+              const x = spacingDev * (idx + 1);
+              container.setPosition(x, baseYDev);
+            });
           };
+
+          // Final layout pass to ensure consistent positions and no overlap
+          this.layoutEverything();
         }
 
-        createTextButton(x, y, label, maxWidth) {
-          const targetWidth = Math.max(140, Math.min(maxWidth || 260, 400));
+        createTextButton(x, y, label, maxWidthCss) {
+          const cssH = this.cssH();
+          const targetWidthCss = Math.max(140, Math.min(maxWidthCss || 260, 400));
+          const fontCss = Math.max(18, Math.min(26, cssH * 0.04));
+
           const text = this.add.text(0, 0, label, {
             fontFamily: 'Fredoka One',
-            fontSize: `${Math.max(18, Math.min(28, this.scale.height * 0.045))}px`,
+            fontSize: `${this.px(fontCss)}px`,
             color: '#042539',
             align: 'center',
-            wordWrap: { width: targetWidth - 40, useAdvancedWrap: true },
-          }).setOrigin(0.5, 0.5);
+            wordWrap: { width: this.px(targetWidthCss - 40), useAdvancedWrap: true },
+          }).setOrigin(0.5, 0.5).setResolution(this.dpr);
 
-          let width = targetWidth;
-          let height = Math.max(44, text.height + 18);
+          let widthCss = targetWidthCss;
+          // Height in CSS px derived from device text height
+          let heightCss = Math.max(44, text.height / this.dpr + 18);
+
+          const width = this.px(widthCss); const height = this.px(heightCss);
 
           const bg = this.add.graphics();
           const drawDefault = () => {
             bg.clear();
             bg.fillStyle(0xffffff, 0.8);
-            bg.fillRoundedRect(-width / 2, -height / 2, width, height, 14);
-            bg.lineStyle(4, 0x042539, 1);
-            bg.strokeRoundedRect(-width / 2, -height / 2, width, height, 14);
+            bg.fillRoundedRect(-width / 2, -height / 2, width, height, this.px(14));
+            bg.lineStyle(this.px(4), 0x042539, 1);
+            bg.strokeRoundedRect(-width / 2, -height / 2, width, height, this.px(14));
           };
           const drawHover = () => {
             // Keep geometry constant on hover to avoid hit-area mismatch/flicker
             bg.clear();
             bg.fillStyle(0x57C785, 0.8);
-            bg.fillRoundedRect(-width / 2, -height / 2, width, height, 14);
+            bg.fillRoundedRect(-width / 2, -height / 2, width, height, this.px(14));
             // Keep stroke thickness identical to default to prevent border shift
-            bg.lineStyle(4, 0x042539, 1);
-            bg.strokeRoundedRect(-width / 2, -height / 2, width, height, 14);
+            bg.lineStyle(this.px(4), 0x042539, 1);
+            bg.strokeRoundedRect(-width / 2, -height / 2, width, height, this.px(14));
           };
           drawDefault();
 
@@ -414,13 +633,14 @@ export function Game5() {
           // Allow resize to adjust wrapping width and update hit area
           ct.meta = {
             addPointerDown: (cb) => { hit.on('pointerdown', cb); },
-            resize: (newMaxWidth) => {
-              const newW = Math.max(140, Math.min(newMaxWidth || 260, 400));
-              text.setStyle({ wordWrap: { width: newW - 40, useAdvancedWrap: true } });
+            resize: (newMaxWidthCss) => {
+              const newWcss = Math.max(140, Math.min(newMaxWidthCss || 260, 400));
+              text.setStyle({ wordWrap: { width: this.px(newWcss - 40), useAdvancedWrap: true } });
               text.setText(text.text);
 
-              const newH = Math.max(44, text.height + 18);
-              width = newW; height = newH;
+              const newHcss = Math.max(44, text.height / this.dpr + 18);
+              widthCss = newWcss; heightCss = newHcss;
+              const newW = this.px(newWcss); const newH = this.px(newHcss);
               ct.setSize(newW, newH);
               drawDefault();
               if (isHover) drawHover();
@@ -435,9 +655,38 @@ export function Game5() {
 
       class SummaryScene extends PhaserGame.Scene {
         constructor() { super({ key: 'SummaryScene' }); }
-        init(data) { this.correct = data.correct || 0; this.total = data.total || 0; try { this.history = JSON.parse(localStorage.getItem('game5_history') || '[]'); } catch (e) { this.history = []; } this.localHistory = this.history.slice(-5); }
-        preload() { this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js'); }
-        create() { /* eslint-disable no-undef */ WebFont.load({ google: { families: ['Fredoka One'] }, active: () => { const W = this.scale.width; const H = this.scale.height; buildSummaryUI(this, { correct: this.correct, total: this.total, history: this.localHistory, onRestart: () => this.scene.start('ClassifyScene'), texts: { heading: `You got ${this.correct} correct on first try!`, playAgain: 'Play Again' }, graph: { x: W / 2, y: H / 2 + 150, width: 400, height: 250, titleText: 'Progress Over Past 5 Attempts', entrance: { fromYOffset: 300, delay: 200 } }, renderHeading: true }); } }); /* eslint-enable */ }
+        init(data) {
+          this.correct = data.correct || 0;
+          this.total = data.total || 0;
+          try { this.history = JSON.parse(localStorage.getItem('game5_history') || '[]'); } catch (e) { this.history = []; }
+          this.localHistory = this.history.slice(-5);
+        }
+        preload() {
+          this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js');
+        }
+        create() {
+          const WF = (typeof window !== 'undefined' && window.WebFont) ? window.WebFont : null;
+          const start = () => {
+            const W = this.scale.width; const H = this.scale.height;
+            buildSummaryUI(this, {
+              correct: this.correct,
+              total: this.total,
+              history: this.localHistory,
+              onRestart: () => {
+                const fn = this.game?.reactHandleShuffle;
+                if (typeof fn === 'function') { fn(); } else { this.scene.start('ClassifyScene'); }
+              },
+              texts: { heading: `You got ${this.correct} correct on first try!`, playAgain: 'Play Again' },
+              graph: { x: W / 2, y: H / 2 + 150, width: 400, height: 250, titleText: 'Progress Over Past 5 Attempts', entrance: { fromYOffset: 300, delay: 200 } },
+              renderHeading: true,
+            });
+          };
+          if (WF && WF.load) {
+            WF.load({ google: { families: ['Fredoka One'] }, active: start, inactive: start });
+          } else {
+            start();
+          }
+        }
       }
 
       const ratio = window.devicePixelRatio || 1;
@@ -452,10 +701,18 @@ export function Game5() {
 
       phaserRef.current = new PhaserGame.Game(config);
 
+      // Expose a regeneration hook for SummaryUI Play Again
+      phaserRef.current.reactHandleShuffle = () => {
+        try { phaserRef.current.scene.stop('SummaryScene'); } catch {}
+        try { phaserRef.current.scene.stop('ClassifyScene'); } catch {}
+        phaserRef.current.scene.start('ClassifyScene');
+      };
+
       resizeObserverRef.current = new ResizeObserver(() => {
         if (!phaserRef.current) return;
         const w = container.clientWidth; const h = container.clientHeight;
-        phaserRef.current.scale.resize(w * ratio, h * ratio);
+        const dprNow = (typeof window !== 'undefined' && window.devicePixelRatio) ? window.devicePixelRatio : ratio;
+        phaserRef.current.scale.resize(w * dprNow, h * dprNow);
         phaserRef.current.canvas.style.width = `${w}px`;
         phaserRef.current.canvas.style.height = `${h}px`;
       });

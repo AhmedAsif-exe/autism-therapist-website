@@ -184,6 +184,8 @@ export default function GamesHome() {
   }, [view]);
 
   const [selectedGameId, setSelectedGameId] = useState(1);
+  // New: domain selection for games view
+  const [selectedDomain, setSelectedDomain] = useState(1);
 
   // Pull summaries from localStorage and refresh when we return to page
   const [refreshKey, setRefreshKey] = useState(0);
@@ -367,80 +369,127 @@ export default function GamesHome() {
       )}
 
       {view === 'games' && (
-			<div
-				className="w-full flex flex-wrap justify-center gap-8 py-8"
-				style={{ background: '#fff', opacity: gamesReveal ? 1 : 0, transform: `translateY(${gamesReveal ? 0 : 8}px)`, transition: 'opacity 320ms ease, transform 360ms ease' }}
-			>
-				{gamesList.map((game) => {
-					const isLocked = lockedLevels.includes(game.id);
-					return (
-						<div
-							key={game.id}
-							className={`${style.card} game-card-custom relative group`}
-							onClick={() => !isLocked && navigate(`/games/${game.id}`)}
-							style={{
-								width: 260,
-								height: 340,
-								border: isLocked ? '2.5px solid #bbb' : `2.5px solid ${gameColors[game.id] || '#f97544'}`,
-								borderRadius: 22,
-								boxShadow: isLocked
-									? '0 2px 8px rgba(180,180,180,0.08)'
-									: '0 6px 24px rgba(4,37,57,0.08), 0 1.5px 6px rgba(4,37,57,0.07)',
-								padding: 28,
-								background: isLocked
-									? 'linear-gradient(135deg, #f7f7f7 60%, #ededed 100%)'
-									: 'linear-gradient(135deg, #fff 60%, #f9f6f3 100%)',
-								margin: 8,
-								opacity: isLocked ? 0.7 : 1,
-								pointerEvents: 'auto',
-								position: 'relative',
-								overflow: 'hidden',
-								display: 'grid',
-								gridTemplateRows: '170px 1fr',
-								alignItems: 'stretch',
-								justifyItems: 'center',
-								transition: 'transform 200ms ease, box-shadow 200ms ease',
-								cursor: isLocked ? 'default' : 'pointer',
-                transform: isLocked ? 'none' : 'translateZ(0)',
-							}}
-							onMouseEnter={(e) => { if (!isLocked) e.currentTarget.style.transform = 'translateY(-4px)'; }}
-							onMouseLeave={(e) => { if (!isLocked) e.currentTarget.style.transform = 'translateY(0)'; }}
-						>
-							{/* Lock overlay for locked games */}
-							{isLocked && (
-								<div style={{
-									position: 'absolute',
-									top: 0,
-									left: 0,
-									width: '100%',
-									height: '100%',
-									background: 'rgba(255,255,255,0.7)',
-									zIndex: 2,
-									display: 'flex',
-									flexDirection: 'column',
-									alignItems: 'center',
-									justifyContent: 'center',
-								}}>
-									<img src="/Games/icons/lock.png" alt="Locked" style={{ width: 48, height: 48, marginBottom: 8, opacity: 0.85 }} />
-									<span style={{ color: '#888', fontWeight: 600, fontSize: 18 }}>Locked</span>
-									<button
-										className="mt-4 px-4 py-2 rounded bg-[#f97544] text-white font-semibold hover:bg-[#265c7e] transition-colors"
-										style={{ fontSize: 16, marginTop: 16, cursor: 'pointer' }}
-										onClick={e => { e.stopPropagation(); handlePurchaseClick(game); }}
-									>
-										Purchase
-									</button>
-								</div>
-							)}
-							<div className={style['icon-title']} style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-								<img src={game.img} alt={game.title} style={{ maxHeight: 90, marginBottom: 8, borderRadius: 12, display: 'block', marginLeft: 'auto', marginRight: 'auto' }} />
-								<h3 style={{ color: isLocked ? '#bbb' : (gameColors[game.id] || '#f97544'), fontWeight: 800, fontSize: 22, margin: 0, textAlign: 'center', fontFamily: 'Raleway, sans-serif', letterSpacing: 0.5 }}>{game.title}</h3>
-							</div>
-							<p className={style['card-body']} style={{ marginTop: 10, color: isLocked ? '#bbb' : '#265c7e', fontSize: 16, textAlign: 'center', fontWeight: 500, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{game.description}</p>
-						</div>
-					);
-				})}
-			</div>
+        <React.Fragment>
+          {/* Domain selector */}
+          <div style={{ width: '100%', display: 'flex', justifyContent: 'center', paddingTop: 18 }}>
+            <div style={{ display: 'flex', gap: 10, rowGap: 10, flexWrap: 'wrap', alignItems: 'stretch' }}>
+              <button
+                onClick={() => setSelectedDomain(1)}
+                aria-pressed={selectedDomain === 1}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 10, padding: '10px 16px',
+                  borderRadius: 999, border: `2px solid ${selectedDomain === 1 ? '#f97544' : '#e6edf2'}`,
+                  background: '#fff', color: selectedDomain === 1 ? '#f97544' : '#042539',
+                  cursor: 'pointer', boxShadow: selectedDomain === 1 ? '0 6px 16px rgba(0,0,0,0.08)' : '0 2px 8px rgba(4,37,57,0.06)',
+                  transform: selectedDomain === 1 ? 'scale(1.04)' : 'scale(1.0)', transition: 'transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, color 180ms ease',
+                  minWidth: 180, flex: '0 1 auto', flexShrink: 0, whiteSpace: 'nowrap'
+                }}
+              >
+                <span style={{ width: 12, height: 12, borderRadius: 999, background: '#f97544', boxShadow: selectedDomain === 1 ? '0 0 0 4px #f9754422' : 'none' }} />
+                <span style={{ fontWeight: 800, fontSize: 15 }}>Domain 1</span>
+                <span style={{ color: '#8AA3B5', fontWeight: 700, fontSize: 12 }}>(10 games)</span>
+              </button>
+              <div
+                aria-disabled
+                title="More domains coming soon"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 10, padding: '10px 16px',
+                  borderRadius: 999, border: '2px dashed #e6edf2', background: '#fff', color: '#8AA3B5',
+                  boxShadow: '0 2px 8px rgba(4,37,57,0.06)',
+                  minWidth: 220, flex: '0 1 auto', flexShrink: 0, whiteSpace: 'nowrap'
+                }}
+              >
+                <span style={{ width: 12, height: 12, borderRadius: 999, background: '#e6edf2' }} />
+                <span style={{ fontWeight: 800, fontSize: 15 }}>More domains</span>
+                <span style={{ color: '#8AA3B5', fontWeight: 700, fontSize: 12 }}>(coming soon)</span>
+              </div>
+            </div>
+          </div>
+
+          {selectedDomain === 1 ? (
+            <div
+              className="w-full flex flex-wrap justify-center gap-8 py-8"
+              style={{ background: '#fff', opacity: gamesReveal ? 1 : 0, transform: `translateY(${gamesReveal ? 0 : 8}px)`, transition: 'opacity 320ms ease, transform 360ms ease' }}
+            >
+              {gamesList.map((game) => {
+                const isLocked = lockedLevels.includes(game.id);
+                return (
+                  <div
+                    key={game.id}
+                    className={`${style.card} game-card-custom relative group`}
+                    onClick={() => !isLocked && navigate(`/games/${game.id}`)}
+                    style={{
+                      width: 260,
+                      height: 340,
+                      border: isLocked ? '2.5px solid #bbb' : `2.5px solid ${gameColors[game.id] || '#f97544'}`,
+                      borderRadius: 22,
+                      boxShadow: isLocked
+                        ? '0 2px 8px rgba(180,180,180,0.08)'
+                        : '0 6px 24px rgba(4,37,57,0.08), 0 1.5px 6px rgba(4,37,57,0.07)',
+                      padding: 28,
+                      background: isLocked
+                        ? 'linear-gradient(135deg, #f7f7f7 60%, #ededed 100%)'
+                        : 'linear-gradient(135deg, #fff 60%, #f9f6f3 100%)',
+                      margin: 8,
+                      opacity: isLocked ? 0.7 : 1,
+                      pointerEvents: 'auto',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      display: 'grid',
+                      gridTemplateRows: '170px 1fr',
+                      alignItems: 'stretch',
+                      justifyItems: 'center',
+                      transition: 'transform 200ms ease, box-shadow 200ms ease',
+                      cursor: isLocked ? 'default' : 'pointer',
+                      transform: isLocked ? 'none' : 'translateZ(0)',
+                    }}
+                    onMouseEnter={(e) => { if (!isLocked) e.currentTarget.style.transform = 'translateY(-4px)'; }}
+                    onMouseLeave={(e) => { if (!isLocked) e.currentTarget.style.transform = 'translateY(0)'; }}
+                  >
+                    {/* Lock overlay for locked games */}
+                    {isLocked && (
+                      <div style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        background: 'rgba(255,255,255,0.7)',
+                        zIndex: 2,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}>
+                        <img src="/Games/icons/lock.png" alt="Locked" style={{ width: 48, height: 48, marginBottom: 8, opacity: 0.85 }} />
+                        <span style={{ color: '#888', fontWeight: 600, fontSize: 18 }}>Locked</span>
+                        <button
+                          className="mt-4 px-4 py-2 rounded bg-[#f97544] text-white font-semibold hover:bg-[#265c7e] transition-colors"
+                          style={{ fontSize: 16, marginTop: 16, cursor: 'pointer' }}
+                          onClick={e => { e.stopPropagation(); handlePurchaseClick(game); }}
+                        >
+                          Purchase
+                        </button>
+                      </div>
+                    )}
+                    <div className={style['icon-title']} style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                      <img src={game.img} alt={game.title} style={{ maxHeight: 90, marginBottom: 8, borderRadius: 12, display: 'block', marginLeft: 'auto', marginRight: 'auto' }} />
+                      <h3 style={{ color: isLocked ? '#bbb' : (gameColors[game.id] || '#f97544'), fontWeight: 800, fontSize: 22, margin: 0, textAlign: 'center', fontFamily: 'Raleway, sans-serif', letterSpacing: 0.5 }}>{game.title}</h3>
+                    </div>
+                    <p className={style['card-body']} style={{ marginTop: 10, color: isLocked ? '#bbb' : '#265c7e', fontSize: 16, textAlign: 'center', fontWeight: 500, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{game.description}</p>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div style={{ width: '100%', display: 'flex', justifyContent: 'center', padding: '24px 16px' }}>
+              <div style={{ background: '#f7f9fb', border: '1px solid #e6edf2', borderRadius: 16, padding: 24, maxWidth: 720, textAlign: 'center', boxShadow: '0 6px 18px rgba(4,37,57,0.06)' }}>
+                <h3 style={{ color: '#265c7e', fontWeight: 800, fontSize: 20, marginBottom: 8 }}>More domains coming soon</h3>
+                <p style={{ color: '#8AA3B5', fontSize: 15, margin: 0 }}>We’re actively working on additional domains with new games and skills. Check back soon!</p>
+              </div>
+            </div>
+          )}
+        </React.Fragment>
       )}
 			{/* Purchase Modal */}
 			{modalOpen && (

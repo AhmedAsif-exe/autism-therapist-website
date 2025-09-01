@@ -10,15 +10,16 @@ import { buildSummaryUI } from './SummaryUI';
 import { FUNCTION_ASSET_MAPPINGS, getAllFunctions, getAssetsForFunction } from './AssetFunctionMapping';
 import { pickMCQUniqueForType } from './QuestionUtils';
 import { getDimOverlayStyle } from './GameTheme';
+import { QUESTIONS_PER_RUN } from './GameConfig';
 
 // Generate questions from function mappings
 function generateQuestions() {
   const questions = [];
   const usedImages = new Set();
   let attempts = 0;
-  const MAX_ATTEMPTS = 300; // be generous to find 20 unique items
+  const MAX_ATTEMPTS = 300; // be generous to find unique items up to QUESTIONS_PER_RUN
 
-  while (questions.length < 20 && attempts < MAX_ATTEMPTS) {
+  while (questions.length < QUESTIONS_PER_RUN && attempts < MAX_ATTEMPTS) {
     attempts += 1;
     const picked = pickMCQUniqueForType('function', 3);
     if (!picked) break;
@@ -121,6 +122,7 @@ export function ReceptiveFunctionGame() {
           this.questionText = null;
           this.iconImage = null;
           this.optionContainers = [];
+          this.shuffleBtn = null;
           this.correctAudioFiles = [
             '/Games/audio/right1.mp3',
             '/Games/audio/right2.mp3',
@@ -149,6 +151,7 @@ export function ReceptiveFunctionGame() {
                 this.setupScene();
                 this.createShuffleButton();
                 this.showQuestion();
+                this.attachResize();
               },
             });
           } else {
@@ -156,44 +159,143 @@ export function ReceptiveFunctionGame() {
             this.setupScene();
             this.createShuffleButton();
             this.showQuestion();
+            this.attachResize();
           }
         }
 
+        attachResize() {
+          // Re-layout everything on game-size changes
+          this.scale.on('resize', this.handleResize, this);
+          const off = () => { try { this.scale?.off('resize', this.handleResize, this); } catch {} };
+          this.events.once('shutdown', off);
+          this.events.once('destroy', off);
+        }
+
+        handleResize() {
+          // Recompute fonts/sizes/positions consistently
+          this.layoutTopBar?.();
+          this.layoutIcon();
+          this.layoutOptions();
+        }
+
         setupScene() {
-          // Responsive font size for question text
-          const qFontSize = Math.max(16, Math.min(36, this.scale.height * 0.07));
+          // Compute CSS-pixel-based sizes, then scale by DPR for internal canvas
+          const dpr = this.game?.renderer?.resolution || (typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1);
+          const cssH = this.scale.height / dpr;
+
+          // Responsive font size for question text (top-center)
+          const qFontSizeCss = Math.max(16, Math.min(36, cssH * 0.07));
           this.questionText = this.add
             .text(this.scale.width / 2, Math.max(24, this.scale.height * 0.07), '', {
               fontFamily: 'Fredoka One',
-              fontSize: `${qFontSize}px`,
+              fontSize: `${qFontSizeCss * dpr}px`,
               color: '#fff',
               stroke: '#042539',
               strokeThickness: 6,
             })
             .setOrigin(0.5)
             .setShadow(2, 2, 'rgba(4, 37, 57, 0.8)', 6);
+          // Ensure crisp text at high DPR without affecting layout size
+          this.questionText.setResolution(dpr);
 
-          // Responsive font size for current question text
-          const cqFontSize = Math.max(12, Math.min(32, this.scale.height * 0.055));
+          // Responsive font size for current question text (top-left)
+          const cqFontSizeCss = Math.max(12, Math.min(28, cssH * 0.05));
           this.currentQuestionText = this.add.text(
-            this.scale.width / 10, Math.max(20, this.scale.height * 0.07), '', {
+            Math.max(20, this.scale.width * 0.06),
+            Math.max(20, this.scale.height * 0.07),
+            '',
+            {
               fontFamily: 'Fredoka One',
-              fontSize: `${cqFontSize}px`,
+              fontSize: `${cqFontSizeCss * dpr}px`,
               color: '#fff',
               stroke: '#042539',
               strokeThickness: 6,
-            }).setOrigin(0.5)
+            }
+          )
+            .setOrigin(0, 0.5)
             .setShadow(2, 2, 'rgba(4, 37, 57, 0.8)', 6);
+          this.currentQuestionText.setResolution(dpr);
+
+          // Initial layout to avoid overlaps at startup
+          this.layoutTopBar?.();
+        }
+
+        // New: robust top-bar layout to prevent overlap on small screens
+        layoutTopBar() {
+          if (!this.questionText || !this.currentQuestionText) return;
+
+          const dpr = this.game?.renderer?.resolution || (typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1);
+          const cssW = this.scale.width / dpr;
+          const cssH = this.scale.height / dpr;
+
+          // Progress (left) font scales with both width and height
+          const progFontCss = Math.max(12, Math.min(28, Math.min(cssH * 0.05, cssW * 0.06)));
+          this.currentQuestionText.setFontSize(progFontCss * dpr);
+
+          // Shuffle button (right): resize text and redraw background
+          if (this.shuffleBtn && this.shuffleBtn.meta?.text && this.shuffleBtn.meta?.bg) {
+            const sFontCss = Math.max(12, Math.min(24, Math.min(cssH * 0.045, cssW * 0.05)));
+            const text = this.shuffleBtn.meta.text;
+            const bg = this.shuffleBtn.meta.bg;
+            text.setFontSize(sFontCss * dpr);
+            const width = text.width + 32;
+            const height = text.height + 16;
+            bg.clear();
+            bg.fillStyle(0xffffff, 0.6);
+            bg.fillRoundedRect(-width / 2, -height / 2, width, height, 12);
+            bg.lineStyle(4, 0x042539, 1);
+            bg.strokeRoundedRect(-width / 2, -height / 2, width, height, 12);
+            this.shuffleBtn.setSize(width, height);
+            // Right align with safe margin
+            this.shuffleBtn.x = this.scale.width - 20 - width / 2;
+          }
+
+          // Compute unified top bar height
+          const shuffleH = this.shuffleBtn ? this.shuffleBtn.height : 0;
+          const topBarH = Math.max(this.currentQuestionText.height, shuffleH);
+          const topPadCss = Math.max(8, cssH * 0.015);
+          const yCenter = topPadCss * dpr + topBarH / 2;
+
+          // Place progress (left) and shuffle (right)
+          const leftMarginCss = Math.max(16, cssW * 0.06);
+          this.currentQuestionText.setPosition(leftMarginCss * dpr, yCenter);
+          if (this.shuffleBtn) this.shuffleBtn.y = yCenter;
+
+          // Prompt sizing and wrap
+          const qFontCss = Math.max(16, Math.min(36, Math.min(cssH * 0.07, cssW * 0.08)));
+          this.questionText.setFontSize(qFontCss * dpr);
+          this.questionText.setStyle({ wordWrap: { width: cssW * 0.9 * dpr } });
+
+          // Place prompt below the top bar with margin
+          const marginCss = Math.max(10, cssH * 0.02);
+          const topBarBottom = yCenter + topBarH / 2;
+          this.questionText.setPosition(this.scale.width / 2, topBarBottom + marginCss * dpr);
+        }
+
+        layoutTexts() {
+          const dpr = this.game?.renderer?.resolution || (typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1);
+          const cssH = this.scale.height / dpr;
+          const qFontSizeCss = Math.max(16, Math.min(36, cssH * 0.07));
+          this.questionText.setFontSize(qFontSizeCss * dpr);
+          this.questionText.setPosition(this.scale.width / 2, Math.max(24, this.scale.height * 0.07));
+
+          const cqFontSizeCss = Math.max(12, Math.min(28, cssH * 0.05));
+          this.currentQuestionText.setFontSize(cqFontSizeCss * dpr);
+          this.currentQuestionText.setPosition(Math.max(20, this.scale.width * 0.06), Math.max(20, this.scale.height * 0.07));
         }
 
         createShuffleButton() {
-          // Responsive font size for shuffle button
-          const sFontSize = Math.max(14, Math.min(24, this.scale.height * 0.045));
+          // Responsive font size for shuffle button (top-right)
+          const dpr = this.game?.renderer?.resolution || (typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1);
+          const cssH = this.scale.height / dpr;
+          const sFontSizeCss = Math.max(14, Math.min(24, cssH * 0.045));
           const text = this.add.text(0, 0, 'Shuffle', {
             fontFamily: 'Fredoka One',
-            fontSize: `${sFontSize}px`,
+            fontSize: `${sFontSizeCss * dpr}px`,
             color: '#042539',
           }).setOrigin(0.5);
+          // DPR-aware crispness
+          text.setResolution(dpr);
 
           const width = text.width + 32;
           const height = text.height + 16;
@@ -203,12 +305,11 @@ export function ReceptiveFunctionGame() {
           bg.lineStyle(4, 0x042539, 1);
           bg.strokeRoundedRect(-width / 2, -height / 2, width, height, 12);
 
-          // Responsive y-position for shuffle button
           const x = this.scale.width - 20 - width / 2;
-          const y = Math.max(10 + height / 2, this.scale.height * 0.04 + height / 2);
+          const y = Math.max(10 + height / 2, this.scale.height * 0.06);
           const container = this.add.container(x, y, [bg, text]);
           container.setSize(width, height);
-          container.setInteractive();
+          container.setInteractive({ useHandCursor: true });
 
           container.on('pointerover', () => {
             this.tweens.add({ targets: container, scale: 1.05, duration: 200 });
@@ -241,11 +342,102 @@ export function ReceptiveFunctionGame() {
               }
             });
           });
+
+          container.meta = { bg, text };
+          this.shuffleBtn = container;
+        }
+
+        layoutShuffle() {
+          if (!this.shuffleBtn) return;
+          const text = this.shuffleBtn.meta.text;
+          const dpr = this.game?.renderer?.resolution || (typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1);
+          const cssH = this.scale.height / dpr;
+          // Update font size based on current height in CSS px
+          const sFontSizeCss = Math.max(14, Math.min(24, cssH * 0.045));
+          text.setFontSize(sFontSizeCss * dpr);
+          const width = text.width + 32;
+          const height = text.height + 16;
+          const bg = this.shuffleBtn.meta.bg;
+          bg.clear();
+          bg.fillStyle(0xffffff, 0.6);
+          bg.fillRoundedRect(-width / 2, -height / 2, width, height, 12);
+          bg.lineStyle(4, 0x042539, 1);
+          bg.strokeRoundedRect(-width / 2, -height / 2, width, height, 12);
+          this.shuffleBtn.setSize(width, height);
+          this.shuffleBtn.x = this.scale.width - 20 - width / 2;
+          this.shuffleBtn.y = Math.max(10 + height / 2, this.scale.height * 0.06);
+        }
+
+        layoutIcon() {
+          if (!this.iconImage) return;
+          // DPR-independent icon sizing: compute in CSS px, then multiply by DPR for internal pixels
+          const dpr = this.game?.renderer?.resolution || (typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1);
+          const cssMin = Math.min(this.scale.width / dpr, this.scale.height / dpr);
+          const iconSizeCss = Math.max(48, Math.min(cssMin * 0.22, 200)); // caps in CSS px
+          const iconSize = iconSizeCss * dpr; // convert to device px for Phaser
+          this.iconImage.setDisplaySize(iconSize, iconSize);
+          this.iconImage.setPosition(this.scale.width / 2, this.scale.height * 0.48);
+        }
+
+        layoutOptions() {
+          if (!this.optionContainers?.length) return;
+          const MCQ_COUNT = this.optionContainers.length;
+          const spacing = this.scale.width / (MCQ_COUNT + 1);
+          const baseY = this.scale.height * 0.9;
+
+          // DPR-aware sizing: make each option exactly 1/6th of the container width
+          const dpr = this.game?.renderer?.resolution || (typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1);
+          const cssW = this.scale.width / dpr;
+          const cssH = this.scale.height / dpr;
+          const optWidthCss = cssW / 6; // exactly 1/6th of container width
+          // Slightly reduce height vs before: 42% of width, clamped
+          const optHeightCss = Math.max(36, Math.min(optWidthCss * 0.42, 84));
+          const optWidth = optWidthCss * dpr;
+          const optHeight = optHeightCss * dpr;
+
+          this.optionContainers.forEach((container, idx) => {
+            const text = container.meta?.text;
+            const bg = container.meta?.bg;
+            if (!text || !bg) return;
+
+            // Update font size using CSS px baseline then shrink-to-fit within option width
+            // Slightly larger base on small screens
+            const optFontSizeCss = Math.max(14, Math.min(30, cssH * 0.055));
+            text.setFontSize(optFontSizeCss * dpr);
+            text.setScale(1); // reset any previous scaling before measuring
+            // Compute shrink in CSS px to be DPR-independent with dynamic padding for small widths
+            const padCss = Math.max(6, Math.min(16, optWidthCss * 0.1)); // 10% width, clamped
+            const maxTextWidthCss = optWidthCss - padCss * 2;
+            const textWidthCss = text.width / dpr;
+            const shrink = Math.min(1, maxTextWidthCss / Math.max(1, textWidthCss));
+            text.setScale(shrink);
+            container.meta.textScaleBase = shrink;
+
+            // Redraw background with constant size (ellipse for rounded look) and semi-transparent fill
+            bg.clear();
+            bg.fillStyle(0xffffff, 0.8);
+            bg.fillEllipse(0, 0, optWidth, optHeight);
+            bg.lineStyle(4, 0x042539, 1);
+            bg.strokeEllipse(0, 0, optWidth, optHeight);
+
+            // Keep meta up to date for hover handlers
+            container.meta.optW = optWidth;
+            container.meta.optH = optHeight;
+
+            // Update container size and position; set interactive on bg with centered ellipse
+            container.setSize(optWidth, optHeight);
+            bg.setInteractive(
+              new PhaserGame.Geom.Ellipse(0, 0, optWidth, optHeight),
+              PhaserGame.Geom.Ellipse.Contains
+            );
+            const x = spacing * (idx + 1);
+            container.setPosition(x, baseY);
+          });
         }
 
         showQuestion() {
-          console.log(this.totalCorrect);
-          if (this.qIndex >= 20) { // Fixed to 20 questions
+          // Remove noisy logs
+          if (this.qIndex >= QUESTIONS_PER_RUN) { // End after configured number of questions
             let h = [];
             try {
               h = JSON.parse(localStorage.getItem('game1_history') || '[]');
@@ -257,7 +449,7 @@ export function ReceptiveFunctionGame() {
 
             this.scene.start('SummaryScene', {
               correct: this.totalCorrect,
-              total: 20, // Always 20 questions
+              total: QUESTIONS_PER_RUN, // Use configured question count
             });
             return;
           }
@@ -267,19 +459,19 @@ export function ReceptiveFunctionGame() {
           const q = questions[this.qIndex];
           const questionPrompt = q.prompt || `What do you do with ${q.itemName}?`;
           this.questionText.setText(questionPrompt);
-          this.currentQuestionText.setText(`${this.currentQuestion} / 20`);
+          this.currentQuestionText.setText(`${this.currentQuestion} / ${QUESTIONS_PER_RUN}`);
           this.optionContainers.forEach(container => container.destroy());
           this.optionContainers = [];
 
-          const iconSize = Math.max(48, Math.min(Math.min(this.scale.width, this.scale.height) * 0.2, 180));
+          const iconSize = Math.max(48, Math.min(Math.min(this.scale.width, this.scale.height) * 0.22, 200));
           this.iconImage = this.add
-            .image(this.scale.width / 2, this.scale.height / 2 - iconSize / 2 - 20, q.item)
+            .image(this.scale.width / 2, this.scale.height * 0.48, q.item)
             .setDisplaySize(iconSize, iconSize)
             .setOrigin(0.5);
           this.tweens.add({
             targets: this.iconImage,
             x: '+=10',
-            y: '+=10',
+            y: '+=6',
             duration: 1500,
             yoyo: true,
             repeat: -1,
@@ -290,66 +482,99 @@ export function ReceptiveFunctionGame() {
           const mcqOptions = shuffleArray(q.options || [q.correct, ...shuffleArray(allOptions.filter(o => o !== q.correct)).slice(0,2)]);
 
           const spacing = this.scale.width / (mcqOptions.length + 1);
-          // Responsive y-position for options (never off-canvas)
-          const y = Math.min(this.scale.height * 0.85, this.scale.height - 40);
+          const baseY = this.scale.height * 0.9;
+
+          // DPR-aware option sizing: constant width (1/6th of container) with slightly reduced height
+          const dpr = this.game?.renderer?.resolution || (typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1);
+          const cssW = this.scale.width / dpr;
+          const cssH = this.scale.height / dpr;
+          const optWidthCss = cssW / 6; // exactly 1/6th
+          const optHeightCss = Math.max(36, Math.min(optWidthCss * 0.42, 84));
+          const optWidth = optWidthCss * dpr;
+          const optHeight = optHeightCss * dpr;
 
           mcqOptions.forEach((label, i) => {
             const x = spacing * (i + 1);
-            // Responsive font size for options
-            const optFontSize = Math.max(12, Math.min(28, this.scale.height * 0.045));
+            // Base font size in CSS px, then shrink-to-fit
+            const optFontSizeCss = Math.max(14, Math.min(30, cssH * 0.055));
             const text = this.add
               .text(0, 0, label, {
                 fontFamily: 'Fredoka One',
-                fontSize: `${optFontSize}px`,
+                fontSize: `${optFontSizeCss * dpr}px`,
                 color: '#fff',
                 stroke: '#042539',
                 strokeThickness: 4,
               })
               .setOrigin(0.5)
               .setShadow(2, 2, 'rgba(4, 37, 57, 0.8)', 4);
+            // DPR-aware crispness for option text
+            text.setResolution(dpr);
 
-            const width = text.width + 32;
-            const height = text.height + 20;
+            // Shrink-to-fit the available width minus padding (computed in CSS px)
+            const padCss = Math.max(6, Math.min(16, optWidthCss * 0.1));
+            const maxTextWidthCss = optWidthCss - padCss * 2;
+            const textWidthCss = text.width / dpr;
+            const shrink = Math.min(1, maxTextWidthCss / Math.max(1, textWidthCss));
+            text.setScale(shrink);
+
+            // Background graphics sized to constant size with semi-transparency
             const bg = this.add.graphics();
             bg.fillStyle(0xffffff, 0.8);
-            bg.fillEllipse(0, 0, width, height);
+            bg.fillEllipse(0, 0, optWidth, optHeight);
             bg.lineStyle(4, 0x042539, 1);
-            bg.strokeEllipse(0, 0, width, height);
+            bg.strokeEllipse(0, 0, optWidth, optHeight);
             bg.setDepth(text.depth - 1);
 
-            text.setInteractive({ useHandCursor: true });
-
-            const container = this.add.container(x, y, [bg, text]);
+            // Container to group bg+text
+            const container = this.add.container(x, baseY, [bg, text]);
+            container.meta = { bg, text, optW: optWidth, optH: optHeight, textScaleBase: shrink };
+            container.setSize(optWidth, optHeight);
+            // Centered ellipse hit area on bg (container uses top-left origin for hits)
+            bg.setInteractive(
+              new PhaserGame.Geom.Ellipse(0, 0, optWidth, optHeight),
+              PhaserGame.Geom.Ellipse.Contains
+            );
             this.optionContainers.push(container);
 
+            // Hover effects use constant size from meta and preserve shrink scale
             const hoverIn = () => {
-              this.tweens.add({ targets: text, scale: 1.1, duration: 200 });
+              const baseScale = container.meta?.textScaleBase || 1;
+              this.tweens.add({ targets: text, scale: baseScale * 1.1, duration: 200 });
+              const w = container.meta?.optW || optWidth;
+              const h = container.meta?.optH || optHeight;
               bg.clear();
               bg.fillStyle(0x57C785, 0.8);
-              bg.fillEllipse(0, 0, width + 4, height + 4);
+              bg.fillEllipse(0, 0, w + 4, h + 4);
               bg.lineStyle(6, 0x042539, 1);
-              bg.strokeEllipse(0, 0, width + 4, height + 4);
+              bg.strokeEllipse(0, 0, w + 4, h + 4);
+              try { this.game.canvas.style.cursor = 'pointer'; } catch {}
             };
 
             const hoverOut = () => {
-              this.tweens.add({ targets: text, scale: 1, duration: 200 });
+              const baseScale = container.meta?.textScaleBase || 1;
+              this.tweens.add({ targets: text, scale: baseScale, duration: 200 });
+              const w = container.meta?.optW || optWidth;
+              const h = container.meta?.optH || optHeight;
               bg.clear();
               bg.fillStyle(0xffffff, 0.8);
-              bg.fillEllipse(0, 0, width, height);
+              bg.fillEllipse(0, 0, w, h);
               bg.lineStyle(4, 0x042539, 1);
-              bg.strokeEllipse(0, 0, width, height);
+              bg.strokeEllipse(0, 0, w, h);
+              try { this.game.canvas.style.cursor = 'default'; } catch {}
             };
 
-            text.on('pointerover', hoverIn);
-            bg.setInteractive(new PhaserGame.Geom.Ellipse(x, y, width, height), PhaserGame.Geom.Ellipse.Contains);
-            bg.on('pointerover', hoverIn);
-            text.on('pointerout', hoverOut);
-            bg.on('pointerout', hoverOut);
-
             const onDown = () => this.checkAnswer(label, q.correct, container);
-            text.on('pointerdown', onDown);
+
+            // Attach events to bg (the interactive object)
+            bg.on('pointerover', hoverIn);
+            bg.on('pointerout', hoverOut);
             bg.on('pointerdown', onDown);
           });
+
+          // Final layout pass to ensure consistent positions and no overlap
+          this.layoutTopBar?.();
+          this.layoutIcon();
+          this.layoutOptions();
         }
 
         checkAnswer(label, correct, container) {
@@ -450,7 +675,14 @@ export function ReceptiveFunctionGame() {
             correct: this.correct,
             total: this.total,
             history: this.localHistory,
-            onRestart: () => this.scene.start('MainScene'),
+            onRestart: () => {
+              const fn = this.game?.reactHandleShuffle;
+              if (typeof fn === 'function') {
+                fn();
+              } else {
+                this.scene.start('MainScene');
+              }
+            },
             texts: {
               heading: `You got ${this.correct} correct on first try!`,
               playAgain: 'Play Again',
@@ -467,7 +699,6 @@ export function ReceptiveFunctionGame() {
         }
       }
 
-      const ratio = window.devicePixelRatio || 1;
       const config = {
         type: PhaserGame.AUTO,
         parent: container,
@@ -475,8 +706,8 @@ export function ReceptiveFunctionGame() {
         scene: [MainScene, SummaryScene],
         scale: {
           mode: PhaserGame.Scale.NONE,
-          width: container.clientWidth * ratio,
-          height: container.clientHeight * ratio,
+          width: container.clientWidth * (window.devicePixelRatio || 1),
+          height: container.clientHeight * (window.devicePixelRatio || 1),
         },
         callbacks: {
           postBoot: (game) => {
@@ -487,13 +718,15 @@ export function ReceptiveFunctionGame() {
       };
 
       phaserRef.current = new PhaserGame.Game(config);
+      // Expose shuffle/regenerate to SummaryScene via the game instance
+      phaserRef.current.reactHandleShuffle = handleShuffle;
 
       resizeObserverRef.current = new ResizeObserver(() => {
-        if (!phaserRef.current?.scene?.isActive()) return;
-
+        if (!phaserRef.current) return;
         const w = container.clientWidth;
         const h = container.clientHeight;
-        phaserRef.current?.scale.resize(w * ratio, h * ratio);
+        const ratio = window.devicePixelRatio || 1; // update on zoom changes
+        phaserRef.current.scale.resize(w * ratio, h * ratio);
         phaserRef.current.canvas.style.width = `${w}px`;
         phaserRef.current.canvas.style.height = `${h}px`;
       });
@@ -510,7 +743,11 @@ export function ReceptiveFunctionGame() {
   return (
     <div>
       <GameContainer>
-        <div className="pt-24 w-full flex justify-center items-center">
+        {/* Make sure the Phaser board fits fully within the viewport without scrollbars */}
+        <div
+          className="w-full flex justify-center items-center"
+          style={{ paddingTop: '2rem', overflow: 'hidden' }}
+        >
           <GameBoard ref={containerRef} />
         </div>
       </GameContainer>

@@ -4,6 +4,7 @@ import { styled } from '@mui/material/styles';
 import { buildProgressGraph } from './ProgressGraph';
 import { buildSummaryUI } from './SummaryUI';
 import { getDimOverlayStyle } from './GameTheme';
+import { QUESTIONS_PER_RUN } from './GameConfig';
 
 // Remove bespoke Game2 mappings and use shared QuestionUtils to avoid overlaps
 import { pickItemsFromType, getAllIconKeys, getAllKeysForType, itemsFor } from './QuestionUtils';
@@ -98,6 +99,9 @@ export function Game2() {
         preload() {
           const W = this.scale.width;
           const H = this.scale.height;
+          const dpr = this.game?.renderer?.resolution || (typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1);
+          const cssW = W / dpr;
+          const cssH = H / dpr;
 
           // Colors to match the app
           const COLOR_DARK = 0x042539; // dark stroke
@@ -116,16 +120,15 @@ export function Game2() {
           // Queue small logo early so it appears quickly
           this.load.image('preload_logo', '/logo512.png');
 
+          const titleFsCss = Math.max(18, Math.min(36, cssH * 0.055));
           const title = this.add.text(W / 2, H / 2 - panelH * 0.28, 'Loading...', {
             fontFamily: 'Fredoka One',
-            fontSize: `${Math.max(18, Math.min(36, H * 0.055))}px`,
+            fontSize: `${titleFsCss * dpr}px`,
             color: '#ffffff',
             stroke: '#1e607d',
             strokeThickness: 3,
             align: 'center',
           }).setOrigin(0.5);
-
-          
 
           // Loading bar track
           const barW = panelW * 0.78;
@@ -141,9 +144,10 @@ export function Game2() {
 
           const barFill = this.add.graphics();
 
+          const percentFsCss = Math.max(14, Math.min(22, cssH * 0.035));
           const percentText = this.add.text(W / 2, barY + barH * 2, '0%', {
             fontFamily: 'Fredoka One',
-            fontSize: `${Math.max(14, Math.min(22, H * 0.035))}px`,
+            fontSize: `${percentFsCss * dpr}px`,
             color: '#ffffff',
             stroke: '#1e607d',
             strokeThickness: 2,
@@ -235,20 +239,25 @@ export function Game2() {
 
           this.load.once('complete', () => {
             const scene = this;
-            // Ensure WebFont is active before starting the game scene
-            // eslint-disable-next-line no-undef
-            WebFont.load({
-              google: { families: ['Fredoka One'] },
-              active: () => {
-                scene.sheenTick?.remove();
-                scene.scene.start('SelectAllScene');
-              },
-              inactive: () => {
-                // Start anyway if font fails; UI will fallback to default font
-                scene.sheenTick?.remove();
-                scene.scene.start('SelectAllScene');
-              },
-            });
+            const wf = typeof window !== 'undefined' ? window.WebFont : undefined;
+            if (wf && typeof wf.load === 'function') {
+              wf.load({
+                google: { families: ['Fredoka One'] },
+                active: () => {
+                  if (scene.sheenTick) { scene.sheenTick.remove(); }
+                  scene.scene.start('SelectAllScene');
+                },
+                inactive: () => {
+                  // Start anyway if font fails; UI will fallback to default font
+                  if (scene.sheenTick) { scene.sheenTick.remove(); }
+                  scene.scene.start('SelectAllScene');
+                },
+              });
+            } else {
+              // Fallback if WebFont is unavailable
+              if (scene.sheenTick) { scene.sheenTick.remove(); }
+              scene.scene.start('SelectAllScene');
+            }
           });
         }
       }
@@ -326,10 +335,8 @@ export function Game2() {
         }
 
         init() {
-          const ROUND_LIMIT = 20; // Updated to 20 questions like Game 1
-          
           // Build rounds using QuestionUtils to ensure no overlaps and no repeated categories
-          this.rounds = this.buildUniqueRounds(ROUND_LIMIT);
+          this.rounds = this.buildUniqueRounds(QUESTIONS_PER_RUN);
           this.roundIndex = 0;
 
           // count of perfect rounds (all correct on first confirm, no mistakes)
@@ -361,27 +368,31 @@ export function Game2() {
         }
 
         setupUI() {
-          const qFont = Math.max(18, Math.min(40, this.scale.height * 0.075));
+          const dpr = this.game?.renderer?.resolution || (typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1);
+          const cssW = this.scale.width / dpr;
+          const cssH = this.scale.height / dpr;
+
+          const qFontCss = Math.max(18, Math.min(40, cssH * 0.075));
 
           this.promptText = this.add
             .text(this.scale.width / 2, Math.max(30, this.scale.height * 0.08), '', {
               fontFamily: 'Fredoka One',
-              fontSize: `${qFont}px`,
+              fontSize: `${qFontCss * dpr}px`,
               color: '#ffffff',
               stroke: '#1e607d',
               strokeThickness: 4,
               align: 'center',
-              wordWrap: { width: this.scale.width * 0.9 },
+              wordWrap: { width: cssW * 0.9 * dpr },
             })
             .setOrigin(0.5)
             .setShadow(2, 2, 'rgba(0,0,0,0.35)', 6);
 
-          const pFont = Math.max(14, Math.min(30, this.scale.height * 0.055));
+          const pFontCss = Math.max(14, Math.min(30, cssH * 0.055));
 
           this.progressText = this.add
             .text(this.scale.width / 12, Math.max(25, this.scale.height * 0.075), '', {
               fontFamily: 'Fredoka One',
-              fontSize: `${pFont}px`,
+              fontSize: `${pFontCss * dpr}px`,
               color: '#ffffff',
               stroke: '#1e607d',
               strokeThickness: 3,
@@ -397,10 +408,13 @@ export function Game2() {
           // Add shuffle button
           this.createShuffleButton();
 
+          // Initial layout to avoid overlaps
+          this.layoutTopUI?.();
+
           // Use stored refs so we can detach on shutdown/destroy
-          this._onResizeConfirm = () => this.positionConfirmButton();
-          this.scale.on('resize', this._onResizeConfirm);
-          const offAll = () => { try { if (this._onResizeConfirm) { this.scale.off('resize', this._onResizeConfirm); this._onResizeConfirm = null; } } catch {} };
+          this._onResize = () => { this.positionConfirmButton(); this.layoutTopUI?.(); };
+          this.scale.on('resize', this._onResize);
+          const offAll = () => { try { if (this._onResize) { this.scale.off('resize', this._onResize); this._onResize = null; } } catch {} };
           this.events.once('shutdown', offAll);
           this.events.once('destroy', offAll);
         }
@@ -414,6 +428,56 @@ export function Game2() {
 
           this.confirmBtn.y = btnY;
           this.confirmBtn.x = this.scale.width / 2;
+        }
+
+        // New: robust top-bar layout that scales fonts by both CSS width and height
+        layoutTopUI() {
+          if (!this.promptText || !this.progressText) return;
+          const dpr = this.game?.renderer?.resolution || (typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1);
+          const cssW = this.scale.width / dpr;
+          const cssH = this.scale.height / dpr;
+
+          // Scale by both height and width so narrow devices downscale appropriately
+          const pFontCss = Math.max(12, Math.min(28, Math.min(cssH * 0.050, cssW * 0.060)));
+          this.progressText.setFontSize(pFontCss * dpr);
+
+          // Shuffle button text size and redraw
+          if (this.shuffleBtn && this.shuffleBtn.meta?.text && this.shuffleBtn.meta?.bg) {
+            const sFontCss = Math.max(12, Math.min(24, Math.min(cssH * 0.045, cssW * 0.050)));
+            const text = this.shuffleBtn.meta.text;
+            const bg = this.shuffleBtn.meta.bg;
+            text.setFontSize(sFontCss * dpr);
+            const width = text.width + 32;
+            const height = text.height + 16;
+            bg.clear();
+            bg.fillStyle(0xffffff, 0.6);
+            bg.fillRoundedRect(-width / 2, -height / 2, width, height, 12);
+            bg.lineStyle(4, 0x042539, 1);
+            bg.strokeRoundedRect(-width / 2, -height / 2, width, height, 12);
+            this.shuffleBtn.setSize(width, height);
+            // Right-align within safe margin
+            this.shuffleBtn.x = this.scale.width - 20 - width / 2;
+          }
+
+          // Compute top bar height (max of left progress and right shuffle)
+          const shuffleH = this.shuffleBtn ? this.shuffleBtn.height : 0;
+          const topBarH = Math.max(this.progressText.height, shuffleH);
+          const topPadCss = Math.max(8, cssH * 0.015);
+          const yCenter = topPadCss * dpr + topBarH / 2;
+
+          // Vertically center both within top bar
+          this.progressText.y = yCenter;
+          if (this.shuffleBtn) this.shuffleBtn.y = yCenter;
+
+          // Prompt sizing: reduce on narrow screens as well
+          const qFontCss = Math.max(16, Math.min(36, Math.min(cssH * 0.075, cssW * 0.080)));
+          this.promptText.setFontSize(qFontCss * dpr);
+          this.promptText.setStyle({ wordWrap: { width: cssW * 0.9 * dpr } });
+
+          // Place prompt below the top bar with margin to avoid overlap
+          const marginCss = Math.max(10, cssH * 0.020);
+          const topBarBottom = yCenter + topBarH / 2;
+          this.promptText.setPosition(this.scale.width / 2, topBarBottom + marginCss * dpr);
         }
 
         buildConfirmButton() {
@@ -435,10 +499,15 @@ export function Game2() {
 
           draw(false);
 
+          const dpr = this.game?.renderer?.resolution || (typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1);
+          const cssH = this.scale.height / dpr;
+          const btnHCss = Math.max(48, cssH * 0.09);
+          const labelFsCss = Math.max(20, btnHCss * 0.42);
+
           const label = this.add
             .text(0, 0, 'Confirm', {
               fontFamily: 'Fredoka One',
-              fontSize: `${Math.max(20, h * 0.42)}px`,
+              fontSize: `${labelFsCss * dpr}px`,
               color: '#fff',
             })
             .setOrigin(0.5);
@@ -493,10 +562,12 @@ export function Game2() {
 
         createShuffleButton() {
           // Responsive font size for shuffle button
-          const sFontSize = Math.max(14, Math.min(24, this.scale.height * 0.045));
+          const dpr = this.game?.renderer?.resolution || (typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1);
+          const cssH = this.scale.height / dpr;
+          const sFontCss = Math.max(14, Math.min(24, cssH * 0.045));
           const text = this.add.text(0, 0, 'Shuffle', {
             fontFamily: 'Fredoka One',
-            fontSize: `${sFontSize}px`,
+            fontSize: `${sFontCss * dpr}px`,
             color: '#042539',
           }).setOrigin(0.5);
 
@@ -513,7 +584,7 @@ export function Game2() {
           const y = Math.max(10 + height / 2, this.scale.height * 0.04 + height / 2);
           const container = this.add.container(x, y, [bg, text]);
           container.setSize(width, height);
-          container.setInteractive();
+          container.setInteractive({ useHandCursor: true });
 
           container.on('pointerover', () => {
             this.tweens.add({ targets: container, scale: 1.05, duration: 200 });
@@ -546,19 +617,22 @@ export function Game2() {
               }
             });
           });
+
+          // Store for responsive layout updates
+          container.meta = { bg, text };
+          this.shuffleBtn = container;
         }
 
         handleShuffle() {
           // Regenerate questions with new shuffled order using QuestionUtils, still unique per game
-          const ROUND_LIMIT = 20;
-          this.rounds = this.buildUniqueRounds(ROUND_LIMIT);
-          
-          // Reset to first question
-          this.roundIndex = 0;
-          this.correctFirstTry = 0;
-          
-          // Show the new first round
-          this.showRound();
+          this.rounds = this.buildUniqueRounds(QUESTIONS_PER_RUN);
+           
+           // Reset to first question
+           this.roundIndex = 0;
+           this.correctFirstTry = 0;
+           
+           // Show the new first round
+           this.showRound();
         }
 
         enableConfirmIfNeeded() {
@@ -616,6 +690,9 @@ export function Game2() {
           this.promptText.setText(round.prompt);
           this.progressText.setText(`${this.roundIndex + 1} / ${this.rounds.length}`);
 
+          // Ensure top elements are laid out (prevents overlap on small screens)
+          this.layoutTopUI?.();
+
           // SHUFFLE OPTIONS EVERY TIME THEY'RE DISPLAYED
           const shuffledOptions = shuffle([...round.allOptions]);
 
@@ -628,6 +705,9 @@ export function Game2() {
           const startY = this.scale.height / 2 - areaH / 2 + 10;
           const cellW = areaW / cols;
           const cellH = areaH / rows;
+
+          const dpr = this.game?.renderer?.resolution || (typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1);
+          const cssH = this.scale.height / dpr;
 
           // Use the shuffled options instead of round.allOptions
           shuffledOptions.forEach((opt, idx) => {
@@ -647,7 +727,7 @@ export function Game2() {
             const imgSize = Math.min(cellW, cellH) * 0.55;
 
             const sprite = this.add
-              .image(0, -10, opt.imagePath) // Updated to use imagePath
+              .image(0, -10, opt.imagePath)
               .setDisplaySize(imgSize, imgSize)
               .setOrigin(0.5);
 
@@ -659,16 +739,12 @@ export function Game2() {
             ring.strokeCircle(0, -10, radius);
             ring.setAlpha(0);
 
-            // Label under image
-            const lblFont = Math.max(
-              12,
-              Math.min(22, this.scale.height * 0.035)
-            );
+            const lblFontCss = Math.max(12, Math.min(22, cssH * 0.035));
 
             const label = this.add
               .text(0, imgSize / 2 - 0, opt.name, {
                 fontFamily: 'Fredoka One',
-                fontSize: `${lblFont}px`,
+                fontSize: `${lblFontCss * dpr}px`,
                 color: '#ffffff',
                 align: 'center',
                 stroke: '#042539',
@@ -680,7 +756,7 @@ export function Game2() {
 
             container.meta = {
               itemName: opt.name,
-              imageKey: opt.imagePath, // Updated to use imagePath
+              imageKey: opt.imagePath,
               sprite,
               ring,
               label,
@@ -927,10 +1003,17 @@ export function Game2() {
         }
 
         create() {
-          WebFont.load({
-            google: { families: ['Fredoka One'] },
-            active: () => this.build(),
-          });
+          const wf = typeof window !== 'undefined' ? window.WebFont : undefined;
+          if (wf && typeof wf.load === 'function') {
+            wf.load({
+              google: { families: ['Fredoka One'] },
+              active: () => this.build(),
+              inactive: () => this.build(),
+            });
+          } else {
+            // Fallback if WebFont is unavailable
+            this.build();
+          }
         }
 
         build() {
@@ -942,7 +1025,14 @@ export function Game2() {
             correct: this.correct,
             total: this.total,
             history: this.localHistory,
-            onRestart: () => this.scene.start('SelectAllScene'),
+            onRestart: () => {
+              const fn = this.game?.reactHandleShuffle;
+              if (typeof fn === 'function') {
+                fn();
+              } else {
+                this.scene.start('SelectAllScene');
+              }
+            },
             texts: {
               heading: `You got ${this.correct} correct on first try!`,
               playAgain: 'Play Again',
@@ -981,6 +1071,13 @@ export function Game2() {
       };
 
       phaserRef.current = new PhaserGame.Game(config);
+
+      // Expose a regeneration hook so SummaryUI Play Again triggers fresh rounds rather than only restarting
+      phaserRef.current.reactHandleShuffle = () => {
+        try { phaserRef.current.scene.stop('SummaryScene'); } catch {}
+        try { phaserRef.current.scene.stop('SelectAllScene'); } catch {}
+        phaserRef.current.scene.start('SelectAllScene');
+      };
 
       resizeObserverRef.current = new ResizeObserver(() => {
         if (!phaserRef.current) {
