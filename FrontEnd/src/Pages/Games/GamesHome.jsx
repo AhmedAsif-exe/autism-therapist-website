@@ -96,14 +96,7 @@ const domains = [
     id: 2,
     title: 'More Domains',
     description: 'Coming soon',
-    img: '/Games/icons/lightbulb.png',
-    available: false,
-  },
-  {
-    id: 3,
-    title: 'More Domains',
-    description: 'Coming soon',
-    img: '/Games/icons/puzzle.png',
+    img: '/Games/loading.png',
     available: false,
   },
 ];
