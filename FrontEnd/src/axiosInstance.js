@@ -27,7 +27,7 @@ export async function checkAuthStatus() {
   }
 }
 const api = axios.create({
-  baseURL: "http://localhost:5000/", // Adjust if needed
+  baseURL: process.env.REACT_APP_BACKEND_URI, // Adjust if needed
   withCredentials: true, // This adds credentials (cookies) to every request
 });
 

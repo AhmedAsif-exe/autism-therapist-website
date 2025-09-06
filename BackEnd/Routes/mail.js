@@ -161,7 +161,7 @@ router.post("/announce", async (req, res) => {
 
     <!-- Read More button -->
     <td align="right" style="vertical-align:middle;">
-      <a href="https://autism-therapist.web.app/blogs/${_id}"
+      <a href="${process.env.FRONTEND_URL}/blogs/${_id}"
          style="display:inline-block;border-radius:9999px;padding:8px 16px;background:#10B981;color:#fff;text-decoration:none;font-size:14px;font-family:Arial, sans-serif;">
         Read More
       </a>
