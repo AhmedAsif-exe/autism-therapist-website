@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import api from "axiosInstance";
 import {
   Typography,
   TextField,
@@ -15,8 +16,16 @@ import {
 } from "@mui/material";
 import gsap from "gsap";
 import { Instagram, LinkedIn, Email } from "@mui/icons-material";
-
+import { useState } from "react";
 export const ContactInfoSection = () => {
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    enquiryType: "",
+    message: "",
+  });
   const contactInfo = {
     phone: "faiza.qasps",
     email: "contact@aba.virtual",
@@ -24,18 +33,16 @@ export const ContactInfoSection = () => {
   };
 
   const subjectOptions = [
-    { id: "general1", label: "Inquire about resources", checked: true },
-    { id: "general2", label: "Consult the professional", checked: false },
-    { id: "general3", label: "Write a blog for us", checked: false },
+    { id: "general1", label: "Inquire about resources" },
+    { id: "general2", label: "Consult the professional" },
+    { id: "general3", label: "Write a blog for us" },
     {
       id: "general4",
       label: "ABAT requires remote supervision",
-      checked: false,
     },
     {
       id: "general5",
       label: "Require ABAT competency assessment",
-      checked: false,
     },
   ];
 
@@ -71,7 +78,32 @@ export const ContactInfoSection = () => {
       "<"
     );
   }, []);
-
+  console.log(formData);
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+  const handleSubmit = async () => {
+    try {
+      const res = await api.post("mail/send", formData);
+      if (res.data.success) {
+        alert("Message sent successfully!");
+        setFormData({
+          firstName: "",
+          lastName: "",
+          email: "",
+          phone: "",
+          enquiry: "general1",
+          message: "",
+        });
+      } else {
+        alert("Failed to send message.");
+      }
+    } catch (err) {
+      console.log(err);
+      alert("Error sending message.");
+    }
+  };
   return (
     <div className="ml:px-14 ">
       <div className="flex flex-col items-center justify-center text-center mb-8 mt-10">
@@ -156,72 +188,87 @@ export const ContactInfoSection = () => {
           </div>
         </div>
         <div className="w-full p-10 flex flex-col gap-4">
+          {/* Name */}
           <div className="flex flex-col t:flex-row gap-4">
-            <TextField label="First Name" fullWidth variant="standard" />
             <TextField
-              label="Last Name"
-              defaultValue="Doe"
+              name="firstName"
+              label="First Name"
               fullWidth
               variant="standard"
+              value={formData.firstName}
+              onChange={handleChange}
+            />
+            <TextField
+              name="lastName"
+              label="Last Name"
+              fullWidth
+              variant="standard"
+              value={formData.lastName}
+              onChange={handleChange}
             />
           </div>
+
+          {/* Email + Phone */}
           <div className="flex flex-col t:flex-row gap-4">
             <TextField
+              name="email"
               label="Email"
               fullWidth
               variant="standard"
               type="email"
+              value={formData.email}
+              onChange={handleChange}
             />
-            <div className="relative w-full">
-              <TextField
-                label="Phone Number"
-                defaultValue="+1 012 3456 789"
-                fullWidth
-                variant="standard"
-              />
-              <img
-                src="https://c.animaapp.com/mc6n3jxhPDSCCl/img/clarity-cursor-hand-click-line.svg"
-                alt="Cursor"
-                className="absolute right-0 bottom-0 w-6 h-6"
-              />
-            </div>
+            <TextField
+              name="phone"
+              label="Phone Number"
+              fullWidth
+              variant="standard"
+              value={formData.phone}
+              onChange={handleChange}
+            />
           </div>
+
+          {/* Enquiry Type */}
           <FormControl>
             <FormLabel className="text-start text-[#4BB7BA]">
               Enquiry Type
             </FormLabel>
-            <RadioGroup row defaultValue="general1">
+            <RadioGroup
+              row
+              name="enquiryType"
+              value={formData.enquiryType}
+              onChange={handleChange}
+            >
               {subjectOptions.map((option) => (
                 <FormControlLabel
                   key={option.id}
-                  value={option.id}
-                  control={
-                    <Radio
-                      sx={{
-                        color: "#4BB7BA[800]",
-                        "&.Mui-checked": {
-                          color: "#4BB7BA[600]",
-                        },
-                      }}
-                      checked={option.checked}
-                    />
-                  }
+                  value={option.label}
+                  control={<Radio />}
                   label={option.label}
                 />
               ))}
             </RadioGroup>
           </FormControl>
+
+          {/* Message */}
           <TextField
+            name="message"
             label="Message"
             placeholder="Write your message.."
             multiline
             minRows={3}
             variant="standard"
             fullWidth
+            value={formData.message}
+            onChange={handleChange}
           />
+
+          {/* Submit Button */}
           <div className="flex justify-end">
             <Button
               variant="contained"
+              onClick={handleSubmit}
               sx={{
                 borderRadius: 4,
                 px: 6,

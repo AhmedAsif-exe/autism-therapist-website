@@ -114,7 +114,7 @@ export default function BlogPage() {
             </Box>
           ))}
 
-          <AuthorIntro authors={data?.Blog?.authors} />
+          {/* <AuthorIntro authors={data?.Blog?.authors} /> */}
           <Divider sx={{ my: 4 }} />
           <Comments blogId={data.Blog._id} />
         </Box>

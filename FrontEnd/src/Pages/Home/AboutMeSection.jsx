@@ -1,4 +1,4 @@
-import faiza from "Assets/Images/faiza-pic.jpg";
+import faiza from "Assets/Images/faiza-pic.jpeg";
 import aboutUs from "Assets/Images/About-Us-bg.png";
 import { useEffect } from "react";
 import gsap from "gsap";
@@ -59,10 +59,14 @@ export default function WhatIDoSection() {
           About Me
         </h2>
         <p className="text-white font-medium mb-4 text-left text-lg">
-          Hello! I’m Faiza Faizan, founder of aba.virtual and a Qualified Autism
-          Service Practitioner and Sueprvisor (QASP-S). Welcome to my platform.
-          Here, we offer caregivers of neurodivergent children with personalised
-          guidance that brings clarity and structure to overcome challenges.
+          Hello! I'm Faiza Faizan the founder of ABA Virtual. I am a Qualified
+          Autism Service Practitioner and Supervisor (QASP-S) and I belong from
+          Pakistan. Welcome to my platform which is built through experience and
+          learning. Here, we offer caregivers and professionals of
+          neurodivergent students with personalised guidance that brings clarity
+          and structure to overcome challenges. Being a resources teacher in
+          past, I have enjoyed creating resources and now I hope you all enjoy
+          it too!
         </p>
         <a
           href="/about"

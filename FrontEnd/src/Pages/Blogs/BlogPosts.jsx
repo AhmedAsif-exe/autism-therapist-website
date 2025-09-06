@@ -125,7 +125,7 @@ function Author({ authors, _id }) {
 const BlogPosts = ({ data }) => {
   return (
     <>
-      {data?.allBlog?.map((blog, index) => (
+      {data?.map((blog, index) => (
         <Grid item xs={12} md={5} key={index}>
           <SyledCard variant="outlined" tabIndex={0}>
             <CardMedia

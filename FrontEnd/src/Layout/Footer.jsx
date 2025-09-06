@@ -9,9 +9,10 @@ import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { LinkedIn } from "@mui/icons-material";
+import api from "axiosInstance";
 import InstagramIcon from "@mui/icons-material/Instagram";
 // import SitemarkIcon from "./SitemarkIcon";
-
+import { useState } from "react";
 function Copyright() {
   return (
     <Typography variant="body2" sx={{ color: "#ffffff", mt: 1 }}>
@@ -27,6 +28,38 @@ function Copyright() {
 }
 
 export default function Footer() {
+  const [email, setEmail] = useState("");
+  const handleSubscribe = async () => {
+    // ✅ Basic client-side validation
+    if (!email || !/\S+@\S+\.\S+/.test(email)) {
+      alert("Please enter a valid email address.");
+      return;
+    }
+
+    try {
+      // ✅ Send request to backend
+      const res = await api.post("newsletter/subscribe", { email });
+
+      if (res.data.success) {
+        setEmail(""); // clear input
+        alert(res.data.message || "You’ve successfully subscribed!");
+      } else {
+        alert(res.data.error || "Subscription failed. Please try again.");
+      }
+    } catch (err) {
+      console.error("Subscription error:", err);
+
+      // ✅ Handle specific error cases
+      if (err.response) {
+        alert(err.response.data.error || "Server error, try again later.");
+      } else if (err.request) {
+        alert("No response from server. Check your connection.");
+      } else {
+        alert("Unexpected error occurred.");
+      }
+    }
+  };
+
   return (
     <Container
       maxWidth={false}
@@ -70,13 +103,14 @@ export default function Footer() {
                 color: "white",
               }}
             >
-              Join the newsletter
+              Stay Updated with Our Blog
             </Typography>
             <Typography
               variant="body2"
               sx={{ color: "text.secondary", mb: 2, color: "white" }}
             >
-              Subscribe for monthly update.
+              Subscribe to get the latest posts and updates delivered straight
+              to your inbox.
             </Typography>
             <InputLabel htmlFor="email-newsletter" sx={{ color: "white" }}>
               Email
@@ -86,10 +120,11 @@ export default function Footer() {
                 id="email-newsletter"
                 hiddenLabel
                 size="small"
-                // variant="outlined"
+                value={email}
                 fullWidth
                 aria-label="Enter your email address"
                 placeholder="Your email address"
+                onChange={(e) => setEmail(e.target.value)}
                 slotProps={{
                   htmlInput: {
                     autoComplete: "off",
@@ -103,6 +138,7 @@ export default function Footer() {
                 }}
               />
               <Button
+                onClick={handleSubscribe}
                 sx={{
                   borderRadius: "5px",
                   // fontSize: "20px",
