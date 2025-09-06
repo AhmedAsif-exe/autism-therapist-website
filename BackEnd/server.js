@@ -9,13 +9,17 @@ const MongoStore = require("connect-mongo");
 require("./Config/passport")(passport);
 const authRoutes = require("./Routes/auth");
 const commentRoutes = require("./Routes/comments");
-const paymentRoutes = require("./Routes/gateway")
+const paymentRoutes = require("./Routes/gateway");
+const mailRoutes = require("./Routes/mail");
+const newsletterRoutes = require("./Routes/newsletter");
 const app = express();
 
 mongoose
   .connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
+    tlsAllowInvalidCertificates: false,
+    serverSelectionTimeoutMS: 5000,
   })
   .then(() => console.log("Mongo DB connected successfully"));
 
@@ -47,5 +51,7 @@ app.use(passport.session());
 app.use("/auth", authRoutes);
 app.use("/comments", commentRoutes);
 app.use("/gateway", paymentRoutes.normalRouter);
+app.use("/mail", mailRoutes);
+app.use("/newsletter", newsletterRoutes);
 const PORT = 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

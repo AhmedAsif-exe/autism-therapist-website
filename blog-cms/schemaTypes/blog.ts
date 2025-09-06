@@ -1,5 +1,5 @@
-import { defineField, defineType } from 'sanity'
-import { section } from './section'  // adjust the path accordingly
+import {defineField, defineType} from 'sanity'
+import {section} from './section' // adjust the path accordingly
 
 export const blog = defineType({
   name: 'blog',
@@ -11,13 +11,18 @@ export const blog = defineType({
       type: 'string',
       title: 'Main Title',
     }),
-    defineField({name: "authors", type:"array", title:"Authors", of:[{type:"string"}] }),
-    defineField({name: "description", type:"string", title:"Description"}),
+    defineField({
+      name: 'authors',
+      type: 'array',
+      title: 'Authors',
+      of: [{type: 'author'}], // ✅ use named schema
+    }),
+    defineField({name: 'description', type: 'string', title: 'Description'}),
     defineField({
       name: 'mainImage',
       type: 'image',
       title: 'Main Image',
-      options: { hotspot: true },
+      options: {hotspot: true},
       fields: [
         defineField({
           name: 'alt',
@@ -29,13 +34,13 @@ export const blog = defineType({
     defineField({
       name: 'categories',
       title: 'Categories',
-      type: 'string' ,
+      type: 'string',
     }),
     defineField({
       name: 'sections',
       type: 'array',
       title: 'Sections',
-      of: [{ type: 'section' }],  // reference named schema here
+      of: [{type: 'section'}], // reference named schema here
     }),
   ],
 })
