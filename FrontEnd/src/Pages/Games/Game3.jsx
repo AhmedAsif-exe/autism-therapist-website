@@ -5,6 +5,7 @@ import { buildSummaryUI } from './SummaryUI';
 import { getAllFeatureAssets } from './AssetFeatureMapping';
 import { pickItemsFromType, getAllIconKeys } from './QuestionUtils';
 import { getDimOverlayStyle } from './GameTheme';
+import { QUESTIONS_PER_RUN } from './GameConfig';
 
 // Receptive Identification of Feature (Game 3)
 // Shows 3 image options with labels and asks: "Which item has/is [feature]?"
@@ -257,8 +258,8 @@ export function Game3() {
         }
 
         init() {
-          // 20 questions (unique by feature and correct image)
-          this.rounds = buildRoundsUnique(20);
+          // Build QUESTIONS_PER_RUN questions (unique by feature and correct image)
+          this.rounds = buildRoundsUnique(QUESTIONS_PER_RUN);
           this.roundIndex = 0;
           this.firstAttempt = true;
           this.score = 0;
@@ -313,25 +314,80 @@ export function Game3() {
             .setOrigin(0.5)
             .setShadow(2, 2, 'rgba(0,0,0,0.4)', 6);
 
-          // Shuffle button like Game 2
+          // Ensure crisp text on HiDPI: set resolution once
+          try {
+            const dpr0 = this.game?.renderer?.resolution || (typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1);
+            this.promptText.setResolution?.(dpr0);
+            this.progressText.setResolution?.(dpr0);
+          } catch {}
+
+          // Shuffle button
           this.createShuffleButton();
-          // Attach resize with a stored ref so we can detach on shutdown
-          this._onResizeRef = () => this.positionShuffleButton();
-          this.scale.on('resize', this._onResizeRef);
-          this.events.once('shutdown', () => { try { if (this._onResizeRef) { this.scale.off('resize', this._onResizeRef); this._onResizeRef = null; } } catch {} });
-          this.events.once('destroy', () => { try { if (this._onResizeRef) { this.scale.off('resize', this._onResizeRef); this._onResizeRef = null; } } catch {} });
+
+          // New: unified top-bar layout like Game 1 so prompt sits below progress/shuffle on all sizes
+          this.layoutTopBar = () => {
+            const dpr = this.game?.renderer?.resolution || (typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1);
+            const cssW = this.scale.width / dpr;
+            const cssH = this.scale.height / dpr;
+
+            // Progress (left)
+            const progFontCss = Math.max(12, Math.min(28, Math.min(cssH * 0.05, cssW * 0.06)));
+            this.progressText.setFontSize(progFontCss * dpr);
+            this.progressText.setResolution?.(dpr);
+
+            // Shuffle (right) – resize text and redraw bg
+            if (this.shuffleBtn && this.shuffleBtn.meta?.text && this.shuffleBtn.meta?.bg) {
+              const sFontCss = Math.max(12, Math.min(24, Math.min(cssH * 0.045, cssW * 0.05)));
+              const text = this.shuffleBtn.meta.text;
+              const bg = this.shuffleBtn.meta.bg;
+              text.setFontSize(sFontCss * dpr);
+              text.setResolution?.(dpr);
+              const width = text.width + 32;
+              const height = text.height + 16;
+              bg.clear();
+              bg.fillStyle(0xffffff, 0.6);
+              bg.fillRoundedRect(-width / 2, -height / 2, width, height, 12);
+              bg.lineStyle(4, 0x042539, 1);
+              bg.strokeRoundedRect(-width / 2, -height / 2, width, height, 12);
+              this.shuffleBtn.setSize(width, height);
+              // Right-align with margin
+              this.shuffleBtn.x = this.scale.width - 20 - width / 2;
+            }
+
+            // Compute unified top bar height and center Y
+            const shuffleH = this.shuffleBtn ? this.shuffleBtn.height : 0;
+            const topBarH = Math.max(this.progressText.height, shuffleH);
+            const topPadCss = Math.max(8, cssH * 0.015);
+            const yCenter = topPadCss * dpr + topBarH / 2;
+
+            // Place progress (left) and shuffle (right)
+            const leftMarginCss = Math.max(16, cssW * 0.06);
+            this.progressText.setPosition(leftMarginCss * dpr, yCenter);
+            if (this.shuffleBtn) this.shuffleBtn.y = yCenter;
+
+            // Prompt sizing and wrap
+            const qFontCss = Math.max(16, Math.min(36, Math.min(cssH * 0.07, cssW * 0.08)));
+            this.promptText.setFontSize(qFontCss * dpr);
+            this.promptText.setResolution?.(dpr);
+            this.promptText.setStyle({ wordWrap: { width: cssW * 0.9 * dpr } });
+
+            // Place prompt below the top bar with margin
+            const marginCss = Math.max(10, cssH * 0.02);
+            const topBarBottom = yCenter + topBarH / 2;
+            this.promptText.setPosition(this.scale.width / 2, topBarBottom + marginCss * dpr);
+          };
+
+          // Initial layout and resize handling
+          this.layoutTopBar?.();
+          this._onResizeUnified = () => { try { this.layoutTopBar?.(); this.layoutOptions?.(); } catch {} };
+          this.scale.on('resize', this._onResizeUnified);
+          const off = () => { try { if (this._onResizeUnified) { this.scale.off('resize', this._onResizeUnified); this._onResizeUnified = null; } } catch {} };
+          this.events.once('shutdown', off);
+          this.events.once('destroy', off);
         }
 
-        positionShuffleButton() {
-          if (!this.shuffleBtn) return;
-          const width = this.shuffleBtn.meta.width;
-          const height = this.shuffleBtn.meta.height;
-          const x = this.scale.width - 20 - width / 2;
-          const y = Math.max(10 + height / 2, this.scale.height * 0.04 + height / 2);
-          this.shuffleBtn.x = x;
-          this.shuffleBtn.y = y;
-        }
-
+        positionShuffleButton() { if (!this.shuffleBtn) return; const width = this.shuffleBtn.meta.width; const height = this.shuffleBtn.meta.height; this.shuffleBtn.x = this.scale.width - 20 - width / 2; this.shuffleBtn.y = Math.max(10 + height / 2, this.scale.height * 0.04 + height / 2); }
+        
         createShuffleButton() {
           const sFontSize = Math.max(14, Math.min(24, this.scale.height * 0.045));
           const text = this.add.text(0, 0, 'Shuffle', {
@@ -339,6 +395,7 @@ export function Game3() {
             fontSize: `${sFontSize}px`,
             color: '#042539',
           }).setOrigin(0.5);
+          try { text.setResolution?.(this.game?.renderer?.resolution || (typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1)); } catch {}
 
           const width = text.width + 32;
           const height = text.height + 16;
@@ -382,12 +439,13 @@ export function Game3() {
             });
           });
 
-          container.meta = { width, height };
+          // Store refs so layoutTopBar can resize/redraw reliably
+          container.meta = { width, height, text, bg };
           this.shuffleBtn = container;
         }
 
         handleShuffle() {
-          this.rounds = buildRoundsUnique(20);
+          this.rounds = buildRoundsUnique(QUESTIONS_PER_RUN);
           this.roundIndex = 0;
           this.firstAttempt = true;
           this.score = 0;
@@ -422,38 +480,40 @@ export function Game3() {
           this.promptText.setText(formatFeatureQuestion(round.feature));
           this.progressText.setText(`${this.roundIndex + 1} / ${this.rounds.length}`);
 
-          // Layout: 3 options horizontally centered
+          // Layout: 3 options horizontally centered (positions are relative; sizes DPR-aware)
           const options = round.options;
           const spacing = this.scale.width / (options.length + 1);
           const areaH = this.scale.height * 0.55;
           const y = this.scale.height / 2 + areaH / 4;
 
+          const dprInit = this.game?.renderer?.resolution || (typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1);
+          const cssWInit = this.scale.width / dprInit;
+          const cssHInit = this.scale.height / dprInit;
+
           options.forEach((opt, i) => {
             const x = spacing * (i + 1);
             const container = this.add.container(x, y);
 
-            const imgBase = Math.min(this.scale.width, this.scale.height);
-            const imgSize = Math.min(imgBase * 0.18, 150);
-            const sprite = this.add
-              .image(0, -10, opt.imagePath)
-              .setDisplaySize(imgSize, imgSize)
-              .setOrigin(0.5);
+            // Image size in CSS px, then scaled by DPR for crispness
+            const imgBaseCss = Math.min(cssWInit, cssHInit);
+            const imgSizeCss = Math.min(imgBaseCss * 0.18, 150);
+            const sprite = this.add.image(0, -10 * dprInit, opt.imagePath).setOrigin(0.5);
+            sprite.setDisplaySize(imgSizeCss * dprInit, imgSizeCss * dprInit);
 
-            const lblFont = Math.max(12, Math.min(20, this.scale.height * 0.03));
-            const label = this.add
-              .text(0, imgSize / 2 - 0, opt.name, {
-                fontFamily: 'Fredoka One',
-                fontSize: `${lblFont}px`,
-                color: '#ffffff',
-                align: 'center',
-                stroke: '#042539',
-                strokeThickness: 4,
-              })
-              .setOrigin(0.5, 0)
-              .setShadow(2, 2, 'rgba(0,0,0,0.45)', 4);
+            // Label uses CSS px font size and DPR resolution
+            const lblFontCss = Math.max(12, Math.min(20, cssHInit * 0.03));
+            const label = this.add.text(0, (imgSizeCss * dprInit) / 2 - 0, opt.name, {
+              fontFamily: 'Fredoka One',
+              fontSize: `${lblFontCss * dprInit}px`,
+              color: '#ffffff',
+              align: 'center',
+              stroke: '#042539',
+              strokeThickness: 4,
+            }).setOrigin(0.5, 0).setShadow(2, 2, 'rgba(0,0,0,0.45)', 4);
+            try { label.setResolution?.(dprInit); } catch {}
 
             container.add([sprite, label]);
-            container.setSize(imgSize + 30, imgSize + label.height + 20);
+            container.setSize(imgSizeCss * dprInit + 30, imgSizeCss * dprInit + label.height + 20);
             container.setInteractive({ useHandCursor: true });
 
             container.on('pointerover', () => {
@@ -466,8 +526,36 @@ export function Game3() {
             const onDown = () => this.checkAnswer(round, opt.imagePath, container);
             container.on('pointerdown', onDown);
 
+            // Store elements for DPR-aware relayout
+            container.meta = { sprite, label };
             this.optionContainers.push(container);
           });
+
+          // Define DPR-aware relayout for current round
+          this.layoutOptions = () => {
+            if (!this.optionContainers || this.optionContainers.length === 0) return;
+            const dpr = this.game?.renderer?.resolution || (typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1);
+            const cssW = this.scale.width / dpr;
+            const cssH = this.scale.height / dpr;
+            const imgBaseCss2 = Math.min(cssW, cssH);
+            const imgSizeCss2 = Math.min(imgBaseCss2 * 0.18, 150);
+
+            this.optionContainers.forEach((ct) => {
+              const m = ct.meta || {};
+              const spr = m.sprite; const lbl = m.label;
+              if (!spr || !spr.scene || !lbl || !lbl.scene) return;
+              spr.setPosition(0, -10 * dpr);
+              spr.setDisplaySize(imgSizeCss2 * dpr, imgSizeCss2 * dpr);
+              const lblFontCss2 = Math.max(12, Math.min(20, cssH * 0.03));
+              lbl.setFontSize(lblFontCss2 * dpr);
+              lbl.setResolution?.(dpr);
+              lbl.setY((imgSizeCss2 * dpr) / 2 - 0);
+              ct.setSize(imgSizeCss2 * dpr + 30, imgSizeCss2 * dpr + lbl.height + 20);
+            });
+          };
+
+          // Apply initial size normalization now that elements are created
+          this.layoutOptions?.();
         }
 
         checkAnswer(round, chosenKey, container) {
@@ -549,7 +637,14 @@ export function Game3() {
             correct: this.correct,
             total: this.total,
             history: this.localHistory,
-            onRestart: () => this.scene.start('FeatureScene'),
+            onRestart: () => {
+              const fn = this.game?.reactHandleShuffle;
+              if (typeof fn === 'function') {
+                fn();
+              } else {
+                this.scene.start('FeatureScene');
+              }
+            },
             texts: {
               heading: `You got ${this.correct} correct on first try!`,
               playAgain: 'Play Again',
@@ -587,6 +682,13 @@ export function Game3() {
       };
 
       phaserRef.current = new PhaserGame.Game(config);
+
+      // Expose a regeneration hook for SummaryUI Play Again
+      phaserRef.current.reactHandleShuffle = () => {
+        try { phaserRef.current.scene.stop('SummaryScene'); } catch {}
+        try { phaserRef.current.scene.stop('FeatureScene'); } catch {}
+        phaserRef.current.scene.start('FeatureScene');
+      };
 
       resizeObserverRef.current = new ResizeObserver(() => {
         if (!phaserRef.current) return;

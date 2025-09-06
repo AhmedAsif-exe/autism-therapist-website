@@ -248,9 +248,15 @@ export const FEATURE_ASSET_MAPPINGS = {
 
   'Are red': [
     { name: 'Tomato', imagePath: 'tomato' },
+    { name: 'Circle', imagePath: 'circle' },
     { name: 'Strawberry', imagePath: 'strawberry' },
+    { name: 'Apple', imagePath: 'apple' },
+    { name: 'Scooter', imagePath: 'scooter' },
     { name: 'Blood', imagePath: 'blood' },
+    { name: 'Book', imagePath: 'book' },
+    { name: 'Car', imagePath: 'car' },
     { name: 'Rose', imagePath: 'rose' },
+    { name: 'Jacket', imagePath: 'jacket' },
     { name: 'Heart', imagePath: 'heart' },
     { name: 'Cherries', imagePath: 'cherries' },
   ],

@@ -6,6 +6,7 @@ import { getAllClassAssets, convertToGame6Format } from './AssetClassMapping';
 import { getAllAssets as getAllFunctionAssets } from './AssetFunctionMapping';
 import { getAllFeatureAssets } from './AssetFeatureMapping';
 import { pickItemsFromType, getAllIconKeys } from './QuestionUtils';
+import { QUESTIONS_PER_RUN } from './GameConfig';
 
 // Game 7 — Drag & Drop (Function, Feature, Class)
 // - 20 trials, each with a prompt and 6 draggable items (3 correct + 3 incorrect)
@@ -300,7 +301,7 @@ export function Game7() {
           }
         }
         init() {
-          this.trials = buildTrials(20);
+          this.trials = buildTrials(QUESTIONS_PER_RUN);
           this.index = 0; this.correctFirstTry = 0; this.firstAttempt = true;
           // Ensure locks are reset on scene start
           this.evalInProgress = false;
@@ -492,7 +493,7 @@ export function Game7() {
         }
 
         handleShuffle() {
-          this.trials = buildTrials(20);
+          this.trials = buildTrials(QUESTIONS_PER_RUN);
           this.index = 0;
           this.correctFirstTry = 0;
           this.firstAttempt = true;
@@ -701,7 +702,7 @@ export function Game7() {
         constructor() { super({ key: 'SummaryScene' }); }
         init(data) { this.correct = data.correct || 0; this.total = data.total || 0; try { this.history = JSON.parse(localStorage.getItem('game7_history') || '[]'); } catch (e) { this.history = []; } this.localHistory = this.history.slice(-5); }
         preload() { this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js'); }
-        create() { /* eslint-disable no-undef */ WebFont.load({ google: { families: ['Fredoka One'] }, active: () => { const W = this.scale.width; const H = this.scale.height; buildSummaryUI(this, { correct: this.correct, total: this.total, history: this.localHistory, onRestart: () => { try { this.scene.stop('SummaryScene'); } catch {} try { this.scene.stop('DragDropScene'); } catch {} this.scene.start('DragDropScene'); }, texts: { heading: `You got ${this.correct} correct on first try!`, playAgain: 'Play Again' }, graph: { x: W / 2, y: H / 2 + 150, width: 400, height: 250, titleText: 'Progress Over Past 5 Attempts', entrance: { fromYOffset: 300, delay: 200 } }, renderHeading: true }); } }); /* eslint-enable */ }
+        create() { /* eslint-disable no-undef */ WebFont.load({ google: { families: ['Fredoka One'] }, active: () => { const W = this.scale.width; const H = this.scale.height; buildSummaryUI(this, { correct: this.correct, total: this.total, history: this.localHistory, onRestart: () => { const fn = this.game?.reactHandleShuffle; if (typeof fn === 'function') { fn(); } else { try { this.scene.stop('SummaryScene'); } catch {} try { this.scene.stop('DragDropScene'); } catch {} this.scene.start('DragDropScene'); } }, texts: { heading: `You got ${this.correct} correct on first try!`, playAgain: 'Play Again' }, graph: { x: W / 2, y: H / 2 + 150, width: 400, height: 250, titleText: 'Progress Over Past 5 Attempts', entrance: { fromYOffset: 300, delay: 200 } }, renderHeading: true }); } }); /* eslint-enable */ }
       }
 
       const ratio = window.devicePixelRatio || 1;
@@ -716,6 +717,13 @@ export function Game7() {
       };
 
       phaserRef.current = new PhaserGame.Game(config);
+
+      // Expose a regeneration hook for SummaryUI Play Again
+      phaserRef.current.reactHandleShuffle = () => {
+        try { phaserRef.current.scene.stop('SummaryScene'); } catch {}
+        try { phaserRef.current.scene.stop('DragDropScene'); } catch {}
+        phaserRef.current.scene.start('DragDropScene');
+      };
 
       resizeObserverRef.current = new ResizeObserver(() => {
         if (!phaserRef.current) return;

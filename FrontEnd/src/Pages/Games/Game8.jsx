@@ -4,6 +4,7 @@ import { styled } from '@mui/material/styles';
 import { buildSummaryUI } from './SummaryUI';
 import { itemsFor as qItemsFor, getAllKeysForType, getAllIconKeys as qGetAllIconKeys } from './QuestionUtils';
 import { getDimOverlayStyle } from './GameTheme';
+import { QUESTIONS_PER_RUN } from './GameConfig';
 
 // Game 8 — Category Guess (MCQ)
 // Show 2–3 items. Player chooses the correct Function, Feature, or Class from 3 options.
@@ -124,28 +125,34 @@ export function Game8() {
           const W = this.scale.width; const H = this.scale.height;
           const COLOR_DARK = 0x042539; const COLOR_ACCENT = 0x57c785; const COLOR_ACCENT_2 = 0xf9644d;
 
+          const dpr = Math.max(1, window.devicePixelRatio || 1);
+
           const panel = this.add.graphics();
-          const panelW = Math.min(W * 0.7, 560); const panelH = Math.min(H * 0.24, 180);
+          const panelW = Math.min(W * 0.7, 560 * dpr); const panelH = Math.min(H * 0.24, 180 * dpr);
           panel.fillStyle(0xffffff, 0.12);
-          panel.fillRoundedRect((W - panelW) / 2, (H - panelH) / 2, panelW, panelH, 18);
-          panel.lineStyle(4, COLOR_DARK, 1);
-          panel.strokeRoundedRect((W - panelW) / 2, (H - panelH) / 2, panelW, panelH, 18);
+          panel.fillRoundedRect((W - panelW) / 2, (H - panelH) / 2, panelW, panelH, 18 * dpr);
+          panel.lineStyle(4 * dpr, COLOR_DARK, 1);
+          panel.strokeRoundedRect((W - panelW) / 2, (H - panelH) / 2, panelW, panelH, 18 * dpr);
 
-          this.add.text(W / 2, H / 2 - panelH * 0.28, 'Loading...', {
+          const loadingFontCss = Math.max(18, Math.min(36, (H / dpr) * 0.055));
+          const loadingText = this.add.text(W / 2, H / 2 - panelH * 0.28, 'Loading...', {
             fontFamily: 'Fredoka One',
-            fontSize: `${Math.max(18, Math.min(36, H * 0.055))}px`,
-            color: '#ffffff', stroke: '#1e607d', strokeThickness: 3, align: 'center',
+            fontSize: `${Math.round(loadingFontCss * dpr)}px`,
+            color: '#ffffff', stroke: '#1e607d', strokeThickness: Math.round(3 * dpr), align: 'center',
           }).setOrigin(0.5);
+          try { loadingText.setResolution(dpr); } catch {}
 
-          const barW = panelW * 0.78; const barH = Math.max(12, Math.min(18, H * 0.025));
+          const barW = Math.min(panelW * 0.78, 600 * dpr); const barH = Math.max(12 * dpr, Math.min(18 * dpr, H * 0.025));
           const barX = (W - barW) / 2; const barY = H / 2 + barH * 0.5;
           const barBg = this.add.graphics(); barBg.fillStyle(0xffffff, 0.25);
-          barBg.fillRoundedRect(barX, barY, barW, barH, 10);
-          barBg.lineStyle(3, COLOR_DARK, 1); barBg.strokeRoundedRect(barX, barY, barW, barH, 10);
+          barBg.fillRoundedRect(barX, barY, barW, barH, 10 * dpr);
+          barBg.lineStyle(3 * dpr, COLOR_DARK, 1); barBg.strokeRoundedRect(barX, barY, barW, barH, 10 * dpr);
           const barFill = this.add.graphics();
+          const percentFontCss = Math.max(14, Math.min(22, (H / dpr) * 0.035));
           const percentText = this.add.text(W / 2, barY + barH * 2, '0%', {
-            fontFamily: 'Fredoka One', fontSize: `${Math.max(14, Math.min(22, H * 0.035))}px`, color: '#ffffff', stroke: '#1e607d', strokeThickness: 2,
+            fontFamily: 'Fredoka One', fontSize: `${Math.round(percentFontCss * dpr)}px`, color: '#ffffff', stroke: '#1e607d', strokeThickness: Math.round(2 * dpr),
           }).setOrigin(0.5);
+          try { percentText.setResolution(dpr); } catch {}
 
           this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js');
           // Use shared preloader list to ensure all icons referenced by QuestionUtils are loaded
@@ -180,8 +187,14 @@ export function Game8() {
           });
 
           this.load.once('complete', () => {
-            const scene = this; // eslint-disable-next-line no-undef
-            WebFont.load({ google: { families: ['Fredoka One'] }, active: () => { scene.sheenTick?.remove(); scene.scene.start('CategoryMCQScene'); }, inactive: () => { scene.sheenTick?.remove(); scene.scene.start('CategoryMCQScene'); } });
+            const scene = this;
+            const WF = window.WebFont;
+            if (WF && WF.load) {
+              WF.load({ google: { families: ['Fredoka One'] }, active: () => { scene.sheenTick?.remove(); scene.scene.start('CategoryMCQScene'); }, inactive: () => { scene.sheenTick?.remove(); scene.scene.start('CategoryMCQScene'); } });
+            } else {
+              scene.sheenTick?.remove();
+              scene.scene.start('CategoryMCQScene');
+            }
           });
         }
       }
@@ -189,7 +202,7 @@ export function Game8() {
       class CategoryMCQScene extends PhaserGame.Scene {
         constructor() { super({ key: 'CategoryMCQScene' }); }
         init() {
-          this.rounds = buildRounds(20);
+          this.rounds = buildRounds(QUESTIONS_PER_RUN);
           this.roundIndex = 0;
           this.perRoundMistake = false;
           this.perfectRounds = 0;
@@ -200,23 +213,58 @@ export function Game8() {
           // Guard: prevent multiple scoring per round
           this.roundLocked = false;
         }
+        // DPR helpers
+        getDpr() { return Math.max(1, window.devicePixelRatio || 1); }
+        px(n) { return Math.round(n * this.getDpr()); }
         preload() {}
         create() {
-          const qFont = Math.max(18, Math.min(40, this.scale.height * 0.075));
-          this.promptText = this.add.text(this.scale.width / 2, Math.max(28, this.scale.height * 0.08), '', {
-            fontFamily: 'Fredoka One', fontSize: `${qFont}px`, color: '#ffffff', stroke: '#042539', strokeThickness: 6, align: 'center', wordWrap: { width: this.scale.width * 0.9 },
-          }).setOrigin(0.5).setShadow(2, 2, 'rgba(0,0,0,0.4)', 6);
-          const pFont = Math.max(14, Math.min(28, this.scale.height * 0.05));
-          this.progressText = this.add.text(this.scale.width / 12, Math.max(24, this.scale.height * 0.075), '', {
-            fontFamily: 'Fredoka One', fontSize: `${pFont}px`, color: '#ffffff', stroke: '#042539', strokeThickness: 5,
-          }).setOrigin(0.5).setShadow(2, 2, 'rgba(0,0,0,0.4)', 6);
+          const dpr = this.getDpr();
+          const hCss = this.scale.height / dpr;
+          // Prompt & progress
+          const qFontCss = Math.max(18, Math.min(40, hCss * 0.075));
+          this.promptText = this.add.text(this.scale.width / 2, this.px(10), '', {
+            fontFamily: 'Fredoka One', fontSize: `${Math.round(qFontCss * dpr)}px`, color: '#ffffff', stroke: '#042539', strokeThickness: this.px(6), align: 'center', wordWrap: { width: this.scale.width - this.px(40) },
+          }).setOrigin(0.5).setShadow(2 * dpr, 2 * dpr, 'rgba(0,0,0,0.4)', 6 * dpr);
+          try { this.promptText.setResolution(dpr); } catch {}
+
+          const pFontCss = Math.max(14, Math.min(28, hCss * 0.05));
+          this.progressText = this.add.text(this.scale.width / 12, this.px(10), '', {
+            fontFamily: 'Fredoka One', fontSize: `${Math.round(pFontCss * dpr)}px`, color: '#ffffff', stroke: '#042539', strokeThickness: this.px(5),
+          }).setOrigin(0.5).setShadow(2 * dpr, 2 * dpr, 'rgba(0,0,0,0.4)', 6 * dpr);
+          try { this.progressText.setResolution(dpr); } catch {}
 
           this.createShuffleButton();
           this.positionShuffleButton();
-          // Guarded resize handler to avoid calling layout on destroyed objects
+
+          // Keep progress at the same height as Shuffle
+          this.positionTopBar = () => {
+            if (this.progressText && this.shuffleBtn) {
+              this.progressText.y = this.shuffleBtn.y;
+            }
+          };
+          this.positionTopBar();
+
+          // Compute safe top area and position prompt below it
+          this.positionPrompt = () => {
+            if (!this.promptText) return;
+            const bottoms = [
+              this.progressText ? (this.progressText.y + this.progressText.height / 2) : 0,
+              (this.shuffleBtn && this.shuffleBtn.meta) ? (this.shuffleBtn.y + this.shuffleBtn.meta.height / 2) : 0,
+              (this.micBtn && this.micBtn.meta) ? (this.micBtn.y + this.micBtn.meta.h / 2) : 0,
+            ];
+            const topSafe = Math.max(...bottoms);
+            const pad = this.px(4); // 50% tighter than before so prompt sits higher
+            this.promptText.y = topSafe + pad + this.promptText.height / 2;
+            try { this.promptText.setStyle({ wordWrap: { width: this.scale.width - this.px(40) } }); } catch {}
+          };
+          this.positionPrompt();
+
+          // Guarded resize handler
           this.onResizeHandler = () => {
             if (!this.sys || this.sys.isDestroyed || !this.scale || !this.game) return;
             try { this.positionShuffleButton && this.positionShuffleButton(); } catch {}
+            try { this.positionTopBar && this.positionTopBar(); } catch {}
+            try { this.positionPrompt && this.positionPrompt(); } catch {}
             try { typeof this.layoutOptionButtons === 'function' && this.layoutOptionButtons(); } catch {}
             try { typeof this.layoutItems === 'function' && this.layoutItems(); } catch {}
           };
@@ -226,32 +274,41 @@ export function Game8() {
           this.events.once('destroy', off);
 
           this.buildMicButton();
+          // Reposition prompt and top bar in case mic affected layout
+          this.positionTopBar && this.positionTopBar();
+          this.positionPrompt && this.positionPrompt();
 
           this.showRound();
         }
         createShuffleButton() {
-          const sFontSize = Math.max(14, Math.min(24, this.scale.height * 0.045));
-          const text = this.add.text(0, 0, 'Shuffle', { fontFamily: 'Fredoka One', fontSize: `${sFontSize}px`, color: '#042539' }).setOrigin(0.5);
-          const width = text.width + 32; const height = text.height + 16;
-          const bg = this.add.graphics(); bg.fillStyle(0xffffff, 0.6); bg.fillRoundedRect(-width / 2, -height / 2, width, height, 12); bg.lineStyle(4, 0x042539, 1); bg.strokeRoundedRect(-width / 2, -height / 2, width, height, 12);
-          const x = this.scale.width - 20 - width / 2; const y = Math.max(10 + height / 2, this.scale.height * 0.04 + height / 2);
+          const dpr = this.getDpr();
+          const hCss = this.scale.height / dpr;
+          const sFontSizeCss = Math.max(14, Math.min(24, hCss * 0.045));
+          const text = this.add.text(0, 0, 'Shuffle', { fontFamily: 'Fredoka One', fontSize: `${Math.round(sFontSizeCss * dpr)}px`, color: '#042539' }).setOrigin(0.5);
+          try { text.setResolution(dpr); } catch {}
+          const width = text.width + this.px(32); const height = text.height + this.px(16);
+          const bg = this.add.graphics(); bg.fillStyle(0xffffff, 0.6); bg.fillRoundedRect(-width / 2, -height / 2, width, height, this.px(12)); bg.lineStyle(this.px(4), 0x042539, 1); bg.strokeRoundedRect(-width / 2, -height / 2, width, height, this.px(12));
+          const x = this.scale.width - this.px(20) - width / 2; const y = Math.max(this.px(10) + height / 2, this.px(hCss * 0.04) + height / 2);
           const container = this.add.container(x, y, [bg, text]); container.setSize(width, height); container.setInteractive({ useHandCursor: true });
-          container.on('pointerover', () => { this.tweens.add({ targets: container, scale: 1.05, duration: 200 }); bg.clear(); bg.fillStyle(0x57C785, 0.8); bg.fillRoundedRect(-width / 2, -height / 2, width, height, 12); bg.lineStyle(6, 0x042539, 1); bg.strokeRoundedRect(-width / 2, -height / 2, width, height, 12); text.setColor('#ffffff'); });
-          container.on('pointerout', () => { this.tweens.add({ targets: container, scale: 1, duration: 200 }); bg.clear(); bg.fillStyle(0xffffff, 0.6); bg.fillRoundedRect(-width / 2, -height / 2, width, height, 12); bg.lineStyle(4, 0x042539, 1); bg.strokeRoundedRect(-width / 2, -height / 2, width, height, 12); text.setColor('#042539'); });
+          container.on('pointerover', () => { this.tweens.add({ targets: container, scale: 1.05, duration: 200 }); bg.clear(); bg.fillStyle(0x57C785, 0.8); bg.fillRoundedRect(-width / 2, -height / 2, width, height, this.px(12)); bg.lineStyle(this.px(6), 0x042539, 1); bg.strokeRoundedRect(-width / 2, -height / 2, width, height, this.px(12)); text.setColor('#ffffff'); });
+          container.on('pointerout', () => { this.tweens.add({ targets: container, scale: 1, duration: 200 }); bg.clear(); bg.fillStyle(0xffffff, 0.6); bg.fillRoundedRect(-width / 2, -height / 2, width, height, this.px(12)); bg.lineStyle(this.px(4), 0x042539, 1); bg.strokeRoundedRect(-width / 2, -height / 2, width, height, this.px(12)); text.setColor('#042539'); });
           container.on('pointerdown', () => { this.tweens.add({ targets: container, scale: 1.1, duration: 300, ease: 'Circ.easeInOut', onComplete: () => this.handleShuffle() }); });
           container.meta = { width, height }; this.shuffleBtn = container;
         }
-        positionShuffleButton() { if (!this.shuffleBtn) return; const width = this.shuffleBtn.meta.width; const height = this.shuffleBtn.meta.height; this.shuffleBtn.x = this.scale.width - 20 - width / 2; this.shuffleBtn.y = Math.max(10 + height / 2, this.scale.height * 0.04 + height / 2); }
-        handleShuffle() { this.rounds = buildRounds(20); this.roundIndex = 0; this.perRoundMistake = false; this.perfectRounds = 0; this.roundLocked = false; this.showRound(); }
+        positionShuffleButton() { if (!this.shuffleBtn) return; const width = this.shuffleBtn.meta.width; const height = this.shuffleBtn.meta.height; const dpr = this.getDpr(); const hCss = this.scale.height / dpr; this.shuffleBtn.x = this.scale.width - this.px(20) - width / 2; this.shuffleBtn.y = Math.max(this.px(10) + height / 2, this.px(hCss * 0.04) + height / 2); }
+        handleShuffle() { this.rounds = buildRounds(QUESTIONS_PER_RUN); this.roundIndex = 0; this.perRoundMistake = false; this.perfectRounds = 0; this.roundLocked = false; this.showRound(); }
 
         buildMicButton() {
           if (!ENABLE_SPEECH) return;
-          const s = Math.max(24, this.scale.height * 0.035);
-          const icon = this.add.text(0, 0, '🎤', { fontSize: `${s}px` }).setOrigin(0.5);
-          const w = s + 18; const h = s + 12;
+          const dpr = this.getDpr();
+          const hCss = this.scale.height / dpr;
+          const sCss = Math.max(24, hCss * 0.035);
+          const icon = this.add.text(0, 0, '🎤', { fontSize: `${Math.round(sCss * dpr)}px` }).setOrigin(0.5);
+          try { icon.setResolution(dpr); } catch {}
+          const w = Math.round(sCss * dpr) + this.px(18); const h = Math.round(sCss * dpr) + this.px(12);
           const bg = this.add.graphics();
-          bg.fillStyle(0xffffff, 0.6); bg.fillRoundedRect(-w/2, -h/2, w, h, 10); bg.lineStyle(4, 0x042539, 1); bg.strokeRoundedRect(-w/2, -h/2, w, h, 10);
-          const ct = this.add.container(this.scale.width * 0.08, Math.max(24, this.scale.height * 0.08), [bg, icon]);
+          bg.fillStyle(0xffffff, 0.6); bg.fillRoundedRect(-w/2, -h/2, w, h, this.px(10)); bg.lineStyle(this.px(4), 0x042539, 1); bg.strokeRoundedRect(-w/2, -h/2, w, h, this.px(10));
+          const ct = this.add.container(this.scale.width * 0.08, Math.max(this.px(24), this.px(hCss * 0.08)), [bg, icon]);
           ct.setSize(w, h); ct.setInteractive({ useHandCursor: true });
           ct.on('pointerover', () => { this.tweens.add({ targets: ct, scale: 1.05, duration: 160 }); });
           ct.on('pointerout', () => { this.tweens.add({ targets: ct, scale: 1.0, duration: 160 }); });
@@ -276,6 +333,7 @@ export function Game8() {
           const round = this.rounds[this.roundIndex];
           this.promptText.setText(round.prompt);
           this.progressText.setText(`${this.roundIndex + 1} / ${this.rounds.length}`);
+          this.positionPrompt && this.positionPrompt();
           this.speak(round.prompt);
 
           // Layout 2-3 items in a row
@@ -290,17 +348,17 @@ export function Game8() {
             this.tweens.add({ targets: sp, y: '+=6', duration: 1400, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
             this.itemSprites.push(sp);
           });
-          // Options row
+          // Options row: fixed width = 1/4 container width (DPR aware) to avoid overlap
           const options = round.options;
-          const oAreaW = this.scale.width * 0.9; const colGap = Math.max(14, Math.min(24, this.scale.width * 0.02));
-          const perWidth = Math.max(160, Math.min(300, oAreaW / options.length - colGap));
+          const oAreaW = this.scale.width * 0.9; // for centering only
+          const colGap = this.px(16);
+          const perWidth = Math.max(this.px(60), Math.floor(this.scale.width * 0.25) - colGap);
           const optY = this.scale.height * 0.77;
           const oStartX = this.scale.width / 2 - ((options.length - 1) * (oAreaW / options.length)) / 2;
 
           options.forEach((opt, idx) => {
             const colCenter = oStartX + idx * (oAreaW / options.length);
             const btn = this.createTextButton(colCenter, optY, opt.label, perWidth);
-            // Prevent multiple scoring/spam: ignore clicks when locked
             btn.meta = btn.meta || {};
             btn.meta.addPointerDown(() => {
               if (this.roundLocked) return;
@@ -310,14 +368,19 @@ export function Game8() {
           });
 
           this.layoutItems = () => {
-            const count2 = round.picks.length; const areaW2 = this.scale.width * 0.85; const imgSize2 = Math.min(this.scale.width, this.scale.height) * (count2 === 2 ? 0.22 : 0.2); const centerY2 = this.scale.height * 0.36; const startX2 = this.scale.width / 2 - ((count2 - 1) * (areaW2 / count2)) / 2;
+            const dpr2 = window.devicePixelRatio || 1;
+            const cssW2 = this.scale.width / dpr2; const cssH2 = this.scale.height / dpr2;
+            const count2 = round.picks.length; const areaW2 = this.scale.width * 0.85; const imgCssSize2 = Math.min(cssW2, cssH2) * (count2 === 2 ? 0.22 : 0.2); const imgSize2 = imgCssSize2 * dpr2; const centerY2 = this.scale.height * 0.36; const startX2 = this.scale.width / 2 - ((count2 - 1) * (areaW2 / count2)) / 2;
             if (!this.itemSprites || this.itemSprites.length === 0) return;
             this.itemSprites.forEach((sp, i) => { if (!sp || !sp.scene || sp._destroyed) return; sp.setDisplaySize(imgSize2, imgSize2); sp.x = startX2 + i * (areaW2 / count2); sp.y = centerY2; });
           };
 
           this.layoutOptionButtons = () => {
             if (!options || !this.optionButtons || this.optionButtons.length === 0) return;
-            const oAreaW2 = this.scale.width * 0.9; const perWidth2 = Math.max(160, Math.min(300, oAreaW2 / options.length - colGap)); const optY2 = this.scale.height * 0.77; const oStartX2 = this.scale.width / 2 - ((options.length - 1) * (oAreaW2 / options.length)) / 2;
+            const oAreaW2 = this.scale.width * 0.9;
+            const perWidth2 = Math.max(this.px(60), Math.floor(this.scale.width * 0.25) - this.px(16));
+            const optY2 = this.scale.height * 0.77;
+            const oStartX2 = this.scale.width / 2 - ((options.length - 1) * (oAreaW2 / options.length)) / 2;
             this.optionButtons.forEach((btn, i) => { if (!btn || !btn.scene || btn._destroyed) return; btn.x = oStartX2 + i * (oAreaW2 / options.length); btn.y = optY2; try { btn.meta?.resize?.(perWidth2); } catch {} });
           };
         }
@@ -340,32 +403,63 @@ export function Game8() {
         }
 
         createTextButton(x, y, label, maxWidth) {
-          const targetWidth = Math.max(140, Math.min(maxWidth || 260, 420));
+          const dpr = this.getDpr();
+          const clampW = (w) => Math.max(this.px(60), Math.min(w, this.px(420)));
+          const targetWidth = clampW(typeof maxWidth === 'number' ? maxWidth : this.px(260));
+          const fsCssBase = Math.max(18, Math.min(28, (this.scale.height / dpr) * 0.045));
           const text = this.add.text(0, 0, label, {
             fontFamily: 'Fredoka One',
-            fontSize: `${Math.max(18, Math.min(28, this.scale.height * 0.045))}px`,
+            fontSize: `${Math.round(fsCssBase * dpr)}px`,
             color: '#042539',
             align: 'center',
-            wordWrap: { width: targetWidth - 40, useAdvancedWrap: true },
           }).setOrigin(0.5, 0.5);
+          try { text.setResolution(dpr); } catch {}
+
+          const padX = this.px(40);
+
+          const setFsCss = (cssPx) => {
+            text.setStyle({ fontSize: `${Math.round(cssPx * dpr)}px` });
+            try { text.setResolution(dpr); } catch {}
+            text.setText(text.text);
+          };
+          const shrinkToFit = (maxW) => {
+            const minCss = 12;
+            let css = fsCssBase;
+            // Disable wrapping for measurement
+            text.setStyle({ wordWrap: { width: Math.max(maxW * 4, this.px(4000)), useAdvancedWrap: true } });
+            setFsCss(css);
+            let safety = 40;
+            while (text.width > maxW - padX && css > minCss && safety-- > 0) {
+              const factor = Math.max(0.8, (maxW - padX) / Math.max(1, text.width));
+              css = Math.max(minCss, Math.floor(css * factor));
+              setFsCss(css);
+            }
+            // Keep wrapping effectively disabled so text never wraps
+            text.setStyle({ wordWrap: { width: Math.max(maxW * 4, this.px(4000)), useAdvancedWrap: true } });
+            text.setText(text.text);
+            return css;
+          };
+
+          // Initial shrink-to-fit
+          const finalCss = shrinkToFit(targetWidth);
 
           let width = targetWidth;
-          let height = Math.max(44, text.height + 18);
+          let height = Math.max(this.px(44), text.height + this.px(18));
 
           const bg = this.add.graphics();
           const drawDefault = () => {
             bg.clear();
             bg.fillStyle(0xffffff, 0.8);
-            bg.fillRoundedRect(-width / 2, -height / 2, width, height, 14);
-            bg.lineStyle(4, 0x042539, 1);
-            bg.strokeRoundedRect(-width / 2, -height / 2, width, height, 14);
+            bg.fillRoundedRect(-width / 2, -height / 2, width, height, this.px(14));
+            bg.lineStyle(this.px(4), 0x042539, 1);
+            bg.strokeRoundedRect(-width / 2, -height / 2, width, height, this.px(14));
           };
           const drawHover = () => {
             bg.clear();
             bg.fillStyle(0x57C785, 0.8);
-            bg.fillRoundedRect(-width / 2, -height / 2, width, height, 14);
-            bg.lineStyle(4, 0x042539, 1);
-            bg.strokeRoundedRect(-width / 2, -height / 2, width, height, 14);
+            bg.fillRoundedRect(-width / 2, -height / 2, width, height, this.px(14));
+            bg.lineStyle(this.px(4), 0x042539, 1);
+            bg.strokeRoundedRect(-width / 2, -height / 2, width, height, this.px(14));
           };
           drawDefault();
 
@@ -393,15 +487,11 @@ export function Game8() {
             addPointerDown: (cb) => { hit.on('pointerdown', cb); },
             resize: (newMaxWidth) => {
               if (!ct || !ct.scene || !text || !text.scene || ct._destroyed || text._destroyed) return;
-              const newW = Math.max(140, Math.min(newMaxWidth || 260, 420));
+              const newW = clampW(typeof newMaxWidth === 'number' ? newMaxWidth : this.px(260));
               if (newW === width) return; // avoid unnecessary reflow
-              try {
-                text.setStyle({ wordWrap: { width: newW - 40, useAdvancedWrap: true } });
-                text.setText(text.text);
-              } catch {
-                return; // guard against text being mid-destroy
-              }
-              const newH = Math.max(44, text.height + 18);
+              // re-run shrink-to-fit with new width
+              shrinkToFit(newW);
+              const newH = Math.max(this.px(44), text.height + this.px(18));
               width = newW; height = newH;
               ct.setSize(newW, newH);
               drawDefault();
@@ -438,7 +528,18 @@ export function Game8() {
         constructor() { super({ key: 'SummaryScene' }); }
         init(data) { this.correct = data.correct || 0; this.total = data.total || 0; try { this.history = JSON.parse(localStorage.getItem('game8_history') || '[]'); } catch (e) { this.history = []; } this.localHistory = this.history.slice(-5); }
         preload() { this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js'); }
-        create() { /* eslint-disable no-undef */ WebFont.load({ google: { families: ['Fredoka One'] }, active: () => { const W = this.scale.width; const H = this.scale.height; buildSummaryUI(this, { correct: this.correct, total: this.total, history: this.localHistory, onRestart: () => this.scene.start('CategoryMCQScene'), texts: { heading: `You got ${this.correct} correct on first try!`, playAgain: 'Play Again' }, graph: { x: W / 2, y: H / 2 + 150, width: 400, height: 250, titleText: 'Progress Over Past 5 Attempts', entrance: { fromYOffset: 300, delay: 200 } }, renderHeading: true }); } }); /* eslint-enable */ }
+        create() {
+          const W = this.scale.width; const H = this.scale.height;
+          const renderSummary = () => {
+            buildSummaryUI(this, { correct: this.correct, total: this.total, history: this.localHistory, onRestart: () => { const fn = this.game?.reactHandleShuffle; if (typeof fn === 'function') { fn(); } else { this.scene.start('CategoryMCQScene'); } }, texts: { heading: `You got ${this.correct} correct on first try!`, playAgain: 'Play Again' }, graph: { x: W / 2, y: H / 2 + 150, width: 400, height: 250, titleText: 'Progress Over Past 5 Attempts', entrance: { fromYOffset: 300, delay: 200 } }, renderHeading: true });
+          };
+          const WF = window.WebFont;
+          if (WF && WF.load) {
+            WF.load({ google: { families: ['Fredoka One'] }, active: renderSummary, inactive: renderSummary });
+          } else {
+            renderSummary();
+          }
+        }
       }
 
       const ratio = window.devicePixelRatio || 1;
@@ -452,6 +553,13 @@ export function Game8() {
       };
 
       phaserRef.current = new PhaserGame.Game(config);
+
+      // Expose a regeneration hook for SummaryUI Play Again
+      phaserRef.current.reactHandleShuffle = () => {
+        try { phaserRef.current.scene.stop('SummaryScene'); } catch {}
+        try { phaserRef.current.scene.stop('CategoryMCQScene'); } catch {}
+        phaserRef.current.scene.start('CategoryMCQScene');
+      };
 
       resizeObserverRef.current = new ResizeObserver(() => {
         if (!phaserRef.current) return;

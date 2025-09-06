@@ -2,18 +2,17 @@ import React, { useLayoutEffect, useRef } from "react";
 import { Box, Paper } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { buildSummaryUI } from "./SummaryUI";
-import {
-  convertToGame6Format,
-  getAllClassAssets,
-  getClassesForAsset,
-} from "./AssetClassMapping";
-import {
-  pickItemsFromType,
-  getAllIconKeys,
-  getAllKeysForType,
-  itemsFor,
-} from "./QuestionUtils";
 import { getDimOverlayStyle } from "./GameTheme";
+import { QUESTIONS_PER_RUN } from "./GameConfig";
+
+// Use QuestionUtils for dataset and preloading
+import {
+  itemsFor,
+  getAllKeysForType,
+  getAllIconKeys,
+  pickItemsFromType,
+} from "./QuestionUtils";
+import { getAllClassAssets, convertToGame6Format } from "./AssetClassMapping";
 
 // Game 6 — MCQ Clickable Classes (Select-All by class)
 // - Show a class (e.g., Vehicles) and 8 item images
@@ -185,6 +184,7 @@ export function Game6() {
   const containerRef = useRef();
   const phaserRef = useRef();
   const resizeObserverRef = useRef();
+  const listenersRef = useRef({ update: null });
 
   useLayoutEffect(() => {
     let mounted = true;
@@ -196,7 +196,7 @@ export function Game6() {
       const PhaserGame = PhaserLib.default;
       phaserRef.current?.destroy(true);
 
-      // New Preload Scene (like Games 2-5)
+      // New Preload Scene (like Games 2-5) with DPR-aware sizing
       class PreloadScene extends PhaserGame.Scene {
         constructor() {
           super({ key: "PreloadScene" });
@@ -204,60 +204,64 @@ export function Game6() {
         preload() {
           const W = this.scale.width;
           const H = this.scale.height;
+          const dpr = window.devicePixelRatio || 1;
+          const px = (n) => n * dpr;
           const COLOR_DARK = 0x042539;
           const COLOR_ACCENT = 0x57c785;
           const COLOR_ACCENT_2 = 0xf9644d;
 
           const panel = this.add.graphics();
-          const panelW = Math.min(W * 0.7, 560);
-          const panelH = Math.min(H * 0.24, 180);
+          const panelW = Math.min(W * 0.7, 560 * dpr);
+          const panelH = Math.min(H * 0.24, 180 * dpr);
           panel.fillStyle(0xffffff, 0.12);
           panel.fillRoundedRect(
             (W - panelW) / 2,
             (H - panelH) / 2,
             panelW,
             panelH,
-            18
+            px(18)
           );
-          panel.lineStyle(4, COLOR_DARK, 1);
+          panel.lineStyle(px(4), COLOR_DARK, 1);
           panel.strokeRoundedRect(
             (W - panelW) / 2,
             (H - panelH) / 2,
             panelW,
             panelH,
-            18
+            px(18)
           );
 
           this.add
             .text(W / 2, H / 2 - panelH * 0.28, "Loading...", {
               fontFamily: "Fredoka One",
-              fontSize: `${Math.max(18, Math.min(36, H * 0.055))}px`,
+              fontSize: `${Math.max(18, Math.min(36, (H / dpr) * 0.055))}px`,
               color: "#ffffff",
               stroke: "#1e607d",
-              strokeThickness: 3,
+              strokeThickness: px(3),
               align: "center",
             })
-            .setOrigin(0.5);
+            .setOrigin(0.5)
+            .setResolution(dpr);
 
           const barW = panelW * 0.78;
-          const barH = Math.max(12, Math.min(18, H * 0.025));
+          const barH = Math.max(px(12), Math.min(px(18), H * 0.025));
           const barX = (W - barW) / 2;
           const barY = H / 2 + barH * 0.5;
           const barBg = this.add.graphics();
           barBg.fillStyle(0xffffff, 0.25);
-          barBg.fillRoundedRect(barX, barY, barW, barH, 10);
-          barBg.lineStyle(3, COLOR_DARK, 1);
-          barBg.strokeRoundedRect(barX, barY, barW, barH, 10);
+          barBg.fillRoundedRect(barX, barY, barW, barH, px(10));
+          barBg.lineStyle(px(3), COLOR_DARK, 1);
+          barBg.strokeRoundedRect(barX, barY, barW, barH, px(10));
           const barFill = this.add.graphics();
           const percentText = this.add
             .text(W / 2, barY + barH * 2, "0%", {
               fontFamily: "Fredoka One",
-              fontSize: `${Math.max(14, Math.min(22, H * 0.035))}px`,
+              fontSize: `${Math.max(14, Math.min(22, (H / dpr) * 0.035))}px`,
               color: "#ffffff",
               stroke: "#1e607d",
-              strokeThickness: 2,
+              strokeThickness: px(2),
             })
-            .setOrigin(0.5);
+            .setOrigin(0.5)
+            .setResolution(dpr);
 
           this.load.script(
             "webfont",
@@ -278,13 +282,19 @@ export function Game6() {
             const w = Math.max(0, Math.min(1, p)) * barW;
             barFill.clear();
             barFill.fillStyle(COLOR_ACCENT, 0.95);
-            barFill.fillRoundedRect(barX, barY, w, barH, 10);
-            barFill.lineStyle(2, COLOR_DARK, 1);
-            barFill.strokeRoundedRect(barX, barY, Math.max(w, 2), barH, 10);
-            if (w > 8) {
+            barFill.fillRoundedRect(barX, barY, w, barH, px(10));
+            barFill.lineStyle(px(2), COLOR_DARK, 1);
+            barFill.strokeRoundedRect(
+              barX,
+              barY,
+              Math.max(w, px(2)),
+              barH,
+              px(10)
+            );
+            if (w > px(8)) {
               const t = (this.time.now % 1200) / 1200;
-              const sheenWidth = Math.max(30, Math.min(80, w * 0.25));
-              const sxRaw = barX - 60 + (w + 120) * t;
+              const sheenWidth = Math.max(px(30), Math.min(px(80), w * 0.25));
+              const sxRaw = barX - px(60) + (w + px(120)) * t;
               const startX = Math.max(barX, sxRaw);
               const endX = Math.min(barX + w, sxRaw + sheenWidth);
               const cw = endX - startX;
@@ -292,20 +302,20 @@ export function Game6() {
                 barFill.fillStyle(0xffffff, 0.2);
                 barFill.beginPath();
                 barFill.moveTo(startX, barY);
-                barFill.lineTo(startX + Math.min(16, cw * 0.25), barY);
+                barFill.lineTo(startX + Math.min(px(16), cw * 0.25), barY);
                 barFill.lineTo(startX + cw, barY + barH);
                 barFill.lineTo(
-                  startX + Math.max(0, cw - Math.min(16, cw * 0.25)),
+                  startX + Math.max(0, cw - Math.min(px(16), cw * 0.25)),
                   barY + barH
                 );
                 barFill.closePath();
                 barFill.fillPath();
                 barFill.fillStyle(COLOR_ACCENT_2, 0.12);
                 barFill.fillRect(
-                  Math.max(barX, endX - 2),
-                  barY + 2,
-                  2,
-                  barH - 4
+                  Math.max(barX, endX - px(2)),
+                  barY + px(2),
+                  px(2),
+                  barH - px(4)
                 );
               }
             }
@@ -362,16 +372,16 @@ export function Game6() {
         }
 
         init() {
-          this.rounds = buildRounds(20);
+          this.dpr = window.devicePixelRatio || 1;
+          this.px = (n) => n * this.dpr;
+          this.rounds = buildRounds(QUESTIONS_PER_RUN);
           this.roundIndex = 0;
-
-          this.correctFirstTry = 0; // perfect rounds
+          this.perfectRounds = 0;
           this.optionContainers = [];
           this.selected = new Set();
-          this.firstAttempt = true;
           this.roundComplete = false;
-          this.confirmBtn = null;
-          this.shuffleBtn = null;
+          this.firstAttempt = true;
+          this.correctFirstTry = 0;
 
           this.correctAudioFiles = [
             "/Games/audio/right1.mp3",
@@ -390,204 +400,213 @@ export function Game6() {
           // Font already loaded in PreloadScene
           this.setupUI();
           this.showRound();
-          this.scale.on("resize", this.handleResize, this);
-          // Detach on shutdown/destroy
-          const off = () => {
-            try {
-              this.scale?.off("resize", this.handleResize, this);
-            } catch {}
+        }
+
+        cssDims() {
+          return {
+            cssW: this.scale.width / this.dpr,
+            cssH: this.scale.height / this.dpr,
           };
-          this.events.once("shutdown", off);
-          this.events.once("destroy", off);
         }
 
         setupUI() {
-          const qFont = Math.max(18, Math.min(40, this.scale.height * 0.075));
+          const { cssH, cssW } = this.cssDims();
+
+          // Prompt
+          const qFontCss = Math.max(18, Math.min(40, cssH * 0.075));
           this.promptText = this.add
             .text(
               this.scale.width / 2,
-              Math.max(28, this.scale.height * 0.08),
+              Math.max(this.px(28), this.scale.height * 0.08),
               "",
               {
                 fontFamily: "Fredoka One",
-                fontSize: `${qFont}px`,
+                fontSize: `${qFontCss * this.dpr}px`,
                 color: "#ffffff",
                 stroke: "#042539",
-                strokeThickness: 6,
+                strokeThickness: this.px(4),
                 align: "center",
-                wordWrap: { width: this.scale.width * 0.9 },
+                wordWrap: { width: cssW * 0.9 * this.dpr },
               }
             )
             .setOrigin(0.5)
             .setShadow(2, 2, "rgba(0,0,0,0.4)", 6);
+          // Ensure prompt renders above option grid
+          this.promptText.setDepth(900);
 
-          const pFont = Math.max(14, Math.min(28, this.scale.height * 0.05));
+          // Progress
+          const pFontCss = Math.max(14, Math.min(30, cssH * 0.055));
           this.progressText = this.add
             .text(
               this.scale.width / 12,
-              Math.max(24, this.scale.height * 0.075),
+              Math.max(this.px(24), this.scale.height * 0.075),
               "",
               {
                 fontFamily: "Fredoka One",
-                fontSize: `${pFont}px`,
+                fontSize: `${pFontCss * this.dpr}px`,
                 color: "#ffffff",
                 stroke: "#042539",
-                strokeThickness: 5,
+                strokeThickness: this.px(3),
               }
             )
             .setOrigin(0.5)
             .setShadow(2, 2, "rgba(0,0,0,0.4)", 6);
+          // Ensure progress renders above option grid
+          this.progressText.setDepth(1000);
 
-          // Confirm button (reuse pattern from Game 2/4)
+          // Confirm button (DPR-aware)
           this.confirmBtn = this.buildConfirmButton();
           this.positionConfirmButton();
+          // Keep confirm visible over grid
+          this.confirmBtn.setDepth(1000);
 
-          // Shuffle button (top-right like Game 5)
+          // Shuffle button
           this.createShuffleButton();
-          this.positionShuffleButton();
+          // Keep shuffle visible over grid
+          if (this.shuffleBtn) this.shuffleBtn.setDepth(1000);
+
+          // Initial top layout to avoid overlap
+          this.layoutTopUI?.();
+
+          // Unified resize handler
+          this._onResize = () => {
+            this.positionConfirmButton();
+            this.layoutTopUI?.();
+            this.layoutOptionGrid?.();
+          };
+          this.scale.on("resize", this._onResize);
+
+          const offAll = () => {
+            try {
+              if (this._onResize) {
+                this.scale.off("resize", this._onResize);
+                this._onResize = null;
+              }
+            } catch {}
+          };
+          this.events.once("shutdown", offAll);
+          this.events.once("destroy", offAll);
         }
 
-        handleResize(gameSize) {
-          // Update prompt/progress font sizes and positions
-          const qFont = Math.max(18, Math.min(40, this.scale.height * 0.075));
-          this.promptText
-            .setFontSize(qFont)
-            .setPosition(
-              this.scale.width / 2,
-              Math.max(28, this.scale.height * 0.08)
-            );
-          const pFont = Math.max(14, Math.min(28, this.scale.height * 0.05));
-          this.progressText
-            .setFontSize(pFont)
-            .setPosition(
-              this.scale.width / 12,
-              Math.max(24, this.scale.height * 0.075)
-            );
+        // Top bar layout akin to Game 4
+        layoutTopUI() {
+          if (!this.promptText || !this.progressText) return;
+          const cssW = this.scale.width / this.dpr;
+          const cssH = this.scale.height / this.dpr;
 
-          // Update buttons
-          this.positionConfirmButton();
-          this.positionShuffleButton();
+          // Progress font scales by both height and width
+          const pFontCss = Math.max(
+            12,
+            Math.min(28, Math.min(cssH * 0.05, cssW * 0.06))
+          );
+          this.progressText.setFontSize(pFontCss * this.dpr);
 
-          // Relayout options to keep hitboxes accurate
-          this.relayoutOptions();
+          // Shuffle sizing and placement
+          if (
+            this.shuffleBtn &&
+            this.shuffleBtn.meta?.text &&
+            this.shuffleBtn.meta?.bg
+          ) {
+            const sFontCss = Math.max(
+              12,
+              Math.min(24, Math.min(cssH * 0.045, cssW * 0.05))
+            );
+            const text = this.shuffleBtn.meta.text;
+            const bg = this.shuffleBtn.meta.bg;
+            text.setFontSize(sFontCss * this.dpr);
+            const width = text.width + 32;
+            const height = text.height + 16;
+            bg.clear();
+            bg.fillStyle(0xffffff, 0.6);
+            bg.fillRoundedRect(
+              -width / 2,
+              -height / 2,
+              width,
+              height,
+              this.px(12)
+            );
+            bg.lineStyle(this.px(4), 0x042539, 1);
+            bg.strokeRoundedRect(
+              -width / 2,
+              -height / 2,
+              width,
+              height,
+              this.px(12)
+            );
+            this.shuffleBtn.setSize(width, height);
+            // Track computed size for later layout measurements
+            this.shuffleBtn.meta.w = width;
+            this.shuffleBtn.meta.h = height;
+            this.shuffleBtn.x = this.scale.width - this.px(20) - width / 2;
+          }
+
+          // Use tracked shuffle height if available
+          const shuffleH =
+            this.shuffleBtn && this.shuffleBtn.meta?.h
+              ? this.shuffleBtn.meta.h
+              : this.shuffleBtn
+              ? this.shuffleBtn.height
+              : 0;
+          const topBarH = Math.max(this.progressText.height, shuffleH);
+          const topPadCss = Math.max(12, cssH * 0.025); // slightly larger safe padding for small screens
+          const yCenter = topPadCss * this.dpr + topBarH / 2;
+          this.progressText.y = yCenter;
+          if (this.shuffleBtn) this.shuffleBtn.y = yCenter;
+
+          const qFontCss = Math.max(
+            16,
+            Math.min(36, Math.min(cssH * 0.075, cssW * 0.08))
+          );
+          this.promptText.setFontSize(qFontCss * this.dpr);
+          this.promptText.setStyle({
+            wordWrap: { width: cssW * 0.9 * this.dpr },
+          });
+
+          const marginCss = Math.max(12, cssH * 0.02);
+          const topBarBottom = yCenter + topBarH / 2;
+          this.promptText.setPosition(
+            this.scale.width / 2,
+            topBarBottom + marginCss * this.dpr
+          );
         }
 
         positionConfirmButton() {
           if (!this.confirmBtn) return;
+          const btnY = this.scale.height * 0.9;
+          this.confirmBtn.y = btnY;
           this.confirmBtn.x = this.scale.width / 2;
-          this.confirmBtn.y = this.scale.height * 0.9;
-        }
-
-        // New Shuffle button
-        createShuffleButton() {
-          const sFontSize = Math.max(
-            14,
-            Math.min(24, this.scale.height * 0.045)
-          );
-          const text = this.add
-            .text(0, 0, "Shuffle", {
-              fontFamily: "Fredoka One",
-              fontSize: `${sFontSize}px`,
-              color: "#042539",
-            })
-            .setOrigin(0.5);
-          const width = text.width + 32;
-          const height = text.height + 16;
-          const bg = this.add.graphics();
-          bg.fillStyle(0xffffff, 0.6);
-          bg.fillRoundedRect(-width / 2, -height / 2, width, height, 12);
-          bg.lineStyle(4, 0x042539, 1);
-          bg.strokeRoundedRect(-width / 2, -height / 2, width, height, 12);
-
-          const x = this.scale.width - 20 - width / 2;
-          const y = Math.max(
-            10 + height / 2,
-            this.scale.height * 0.04 + height / 2
-          );
-          const container = this.add.container(x, y, [bg, text]);
-          container.setSize(width, height);
-          container.setInteractive({ useHandCursor: true });
-          container.on("pointerover", () => {
-            this.tweens.add({ targets: container, scale: 1.05, duration: 200 });
-            bg.clear();
-            bg.fillStyle(0x57c785, 0.8);
-            bg.fillRoundedRect(-width / 2, -height / 2, width, height, 12);
-            bg.lineStyle(6, 0x042539, 1);
-            bg.strokeRoundedRect(-width / 2, -height / 2, width, height, 12);
-            text.setColor("#ffffff");
-          });
-          container.on("pointerout", () => {
-            this.tweens.add({ targets: container, scale: 1, duration: 200 });
-            bg.clear();
-            bg.fillStyle(0xffffff, 0.6);
-            bg.fillRoundedRect(-width / 2, -height / 2, width, height, 12);
-            bg.lineStyle(4, 0x042539, 1);
-            bg.strokeRoundedRect(-width / 2, -height / 2, width, height, 12);
-            text.setColor("#042539");
-          });
-          container.on("pointerdown", () => {
-            this.tweens.add({
-              targets: container,
-              scale: 1.1,
-              duration: 300,
-              ease: "Circ.easeInOut",
-              onComplete: () => this.handleShuffle(),
-            });
-          });
-          container.meta = { width, height };
-          this.shuffleBtn = container;
-        }
-        positionShuffleButton() {
-          if (!this.shuffleBtn) return;
-          const width = this.shuffleBtn.meta.width;
-          const height = this.shuffleBtn.meta.height;
-          this.shuffleBtn.x = this.scale.width - 20 - width / 2;
-          this.shuffleBtn.y = Math.max(
-            10 + height / 2,
-            this.scale.height * 0.04 + height / 2
-          );
-        }
-        handleShuffle() {
-          // Reset and rebuild rounds
-          this.rounds = buildRounds(20);
-          this.roundIndex = 0;
-          this.firstAttempt = true;
-          this.roundComplete = false;
-          this.selected.clear();
-          this.optionContainers.forEach((c) => c.destroy());
-          this.optionContainers = [];
-          this.enableConfirmIfNeeded();
-          this.showRound();
         }
 
         buildConfirmButton() {
-          const w = Math.min(260, this.scale.width * 0.4);
-          const h = Math.max(48, this.scale.height * 0.09);
+          const { cssW, cssH } = this.cssDims();
+          const cssWBtn = Math.min(260, cssW * 0.4);
+          const cssHBtn = Math.max(48, cssH * 0.09);
+          const w = cssWBtn * this.dpr;
+          const h = cssHBtn * this.dpr;
           const g = this.add.graphics();
           const draw = (enabled, evaluating = false) => {
             g.clear();
             const fill = !enabled ? 0x8aa3b5 : evaluating ? 0x57c785 : 0xf9644d;
             g.fillStyle(fill, 0.92);
-            g.fillRoundedRect(-w / 2, -h / 2, w, h, 20);
-            g.lineStyle(4, 0x042539, 1);
-            g.strokeRoundedRect(-w / 2, -h / 2, w, h, 20);
+            g.fillRoundedRect(-w / 2, -h / 2, w, h, this.px(20));
+            g.lineStyle(this.px(4), 0x042539, 1);
+            g.strokeRoundedRect(-w / 2, -h / 2, w, h, this.px(20));
           };
           draw(false);
-
+          const labelFsCss = Math.max(20, cssHBtn * 0.42);
           const label = this.add
             .text(0, 0, "Confirm", {
               fontFamily: "Fredoka One",
-              fontSize: `${Math.max(20, h * 0.42)}px`,
+              fontSize: `${labelFsCss * this.dpr}px`,
               color: "#fff",
             })
             .setOrigin(0.5);
-
           const ct = this.add.container(
             this.scale.width / 2,
             this.scale.height * 0.9,
             [g, label]
           );
-          ct.meta = { draw, label, enabled: false };
+          ct.meta = { draw, label, enabled: false, g, w, h, cssWBtn, cssHBtn };
           ct.setSize(w, h);
           ct.setInteractive({ useHandCursor: true });
           ct.on("pointerover", () => {
@@ -601,7 +620,6 @@ export function Game6() {
           ct.on("pointerdown", () => {
             if (ct.meta.enabled) this.evaluateSelection();
           });
-
           ct.disable = () => {
             ct.meta.enabled = false;
             draw(false);
@@ -611,9 +629,27 @@ export function Game6() {
             draw(true);
           };
           ct.setEvaluating = (flag) => draw(ct.meta.enabled, flag);
-
           ct.disable();
           return ct;
+        }
+
+        updateConfirmButtonStyle() {
+          if (!this.confirmBtn) return;
+          const { cssW, cssH } = this.cssDims();
+          const cssWBtn = Math.min(260, cssW * 0.4);
+          const cssHBtn = Math.max(48, cssH * 0.09);
+          const w = cssWBtn * this.dpr;
+          const h = cssHBtn * this.dpr;
+          this.confirmBtn.meta.w = w;
+          this.confirmBtn.meta.h = h;
+          this.confirmBtn.meta.cssWBtn = cssWBtn;
+          this.confirmBtn.meta.cssHBtn = cssHBtn;
+          const { g, draw, label } = this.confirmBtn.meta;
+          this.confirmBtn.setSize(w, h);
+          draw(this.confirmBtn.meta.enabled);
+          label.setStyle({
+            fontSize: `${Math.max(20, cssHBtn * 0.42) * this.dpr}px`,
+          });
         }
 
         enableConfirmIfNeeded() {
@@ -623,66 +659,214 @@ export function Game6() {
           else this.confirmBtn.disable();
         }
 
+        createShuffleButton() {
+          const cssW = this.scale.width / this.dpr;
+          const cssH = this.scale.height / this.dpr;
+          const sFontCss = Math.max(
+            14,
+            Math.min(24, Math.min(cssH * 0.045, cssW * 0.05))
+          );
+          const text = this.add
+            .text(0, 0, "Shuffle", {
+              fontFamily: "Fredoka One",
+              fontSize: `${sFontCss * this.dpr}px`,
+              color: "#042539",
+            })
+            .setOrigin(0.5);
+          const width = text.width + 32;
+          const height = text.height + 16;
+          const bg = this.add.graphics();
+          bg.fillStyle(0xffffff, 0.6);
+          bg.fillRoundedRect(
+            -width / 2,
+            -height / 2,
+            width,
+            height,
+            this.px(12)
+          );
+          bg.lineStyle(this.px(4), 0x042539, 1);
+          bg.strokeRoundedRect(
+            -width / 2,
+            -height / 2,
+            width,
+            height,
+            this.px(12)
+          );
+          const x = this.scale.width - this.px(20) - width / 2;
+          const y = Math.max(
+            this.px(10) + height / 2,
+            this.scale.height * 0.04 + height / 2
+          );
+          const container = this.add.container(x, y, [bg, text]);
+          container.setSize(width, height);
+          container.setInteractive({ useHandCursor: true });
+          // Track size for layout use
+          container.meta = { bg, text, w: width, h: height };
+
+          container.on("pointerover", () => {
+            this.tweens.add({ targets: container, scale: 1.05, duration: 200 });
+            bg.clear();
+            bg.fillStyle(0x57c785, 0.8);
+            bg.fillRoundedRect(
+              -width / 2,
+              -height / 2,
+              width,
+              height,
+              this.px(12)
+            );
+            bg.lineStyle(this.px(6), 0x042539, 1);
+            bg.strokeRoundedRect(
+              -width / 2,
+              -height / 2,
+              width,
+              height,
+              this.px(12)
+            );
+            text.setColor("#ffffff");
+          });
+
+          container.on("pointerout", () => {
+            this.tweens.add({ targets: container, scale: 1, duration: 200 });
+            bg.clear();
+            bg.fillStyle(0xffffff, 0.6);
+            bg.fillRoundedRect(
+              -width / 2,
+              -height / 2,
+              width,
+              height,
+              this.px(12)
+            );
+            bg.lineStyle(this.px(4), 0x042539, 1);
+            bg.strokeRoundedRect(
+              -width / 2,
+              -height / 2,
+              width,
+              height,
+              this.px(12)
+            );
+            text.setColor("#042539");
+          });
+
+          container.on("pointerdown", () => {
+            this.tweens.add({
+              targets: container,
+              scale: 1.1,
+              duration: 300,
+              ease: "Circ.easeInOut",
+              onComplete: () => this.handleShuffle(),
+            });
+          });
+
+          this.shuffleBtn = container;
+        }
+
+        handleShuffle() {
+          this.rounds = buildRounds(QUESTIONS_PER_RUN);
+          this.roundIndex = 0;
+          this.firstAttempt = true;
+          this.correctFirstTry = 0;
+          this.showRound();
+        }
+
+        // Compute 4x2 grid area (dynamic: avoids overlapping the top bar and confirm button)
         computeGrid() {
           const cols = 4;
           const rows = 2;
           const areaW = this.scale.width * 0.9;
-          const areaH = this.scale.height * 0.55;
-          const startY = this.scale.height / 2 - areaH / 2 + 10;
+
+          // Determine safe top bound: below progress/shuffle and prompt
+          const safePadTop = this.px(12);
+          let topBound = safePadTop;
+          if (this.progressText)
+            topBound = Math.max(
+              topBound,
+              this.progressText.y + this.progressText.height / 2 + this.px(8)
+            );
+          if (this.shuffleBtn) {
+            const shH = this.shuffleBtn.meta?.h || this.shuffleBtn.height || 0;
+            topBound = Math.max(
+              topBound,
+              this.shuffleBtn.y + shH / 2 + this.px(8)
+            );
+          }
+          if (this.promptText)
+            topBound = Math.max(
+              topBound,
+              this.promptText.y + this.promptText.height / 2 + this.px(12)
+            );
+
+          // Determine safe bottom bound: above confirm button
+          const safePadBottom = this.px(12);
+          let bottomBound = this.scale.height - safePadBottom;
+          if (this.confirmBtn?.meta?.h)
+            bottomBound = Math.min(
+              bottomBound,
+              this.confirmBtn.y - this.confirmBtn.meta.h / 2 - this.px(12)
+            );
+
+          // Ensure a reasonable area and clamp
+          const totalAvail = Math.max(this.px(140), bottomBound - topBound);
+          const areaH = Math.min(
+            totalAvail,
+            Math.max(this.scale.height * 0.62, totalAvail)
+          );
+          const startY = topBound; // start right below the header/prompt region
+
           const cellW = areaW / cols;
-          const cellH = areaH / rows;
-          return { cols, rows, areaW, areaH, startY, cellW, cellH };
+          const cellH = (bottomBound - startY) / rows;
+          return {
+            cols,
+            rows,
+            areaW,
+            areaH: bottomBound - startY,
+            startY,
+            cellW,
+            cellH,
+          };
         }
 
-        relayoutOptions() {
+        layoutOptionGrid() {
           if (!this.optionContainers || this.optionContainers.length === 0)
             return;
+          const cssH = this.scale.height / this.dpr;
           const { cols, startY, cellW, cellH } = this.computeGrid();
-          const imgBaseScale = 0.55;
-          this.optionContainers.forEach((container, idx) => {
+          const imgSize = Math.min(cellW, cellH) * 0.55;
+          const lblFontCss = Math.max(12, Math.min(22, cssH * 0.035));
+
+          this.optionContainers.forEach((container) => {
+            const idx = container.meta.idx || 0;
             const r = Math.floor(idx / cols);
             const c = idx % cols;
             const x =
               this.scale.width / 2 - (cellW * cols) / 2 + cellW * c + cellW / 2;
             const y = startY + cellH * r + cellH / 2;
-
-            const imgSize = Math.min(cellW, cellH) * imgBaseScale;
             container.setPosition(x, y);
 
-            // Update sprite size and positions
             container.meta.sprite
               .setDisplaySize(imgSize, imgSize)
-              .setPosition(0, -10);
-
-            // Update label font size and position
-            const lblFont = Math.max(
-              12,
-              Math.min(22, this.scale.height * 0.035)
-            );
+              .setPosition(0, -this.px(10));
             container.meta.label
-              .setFontSize(lblFont)
-              .setPosition(0, imgSize / 2 - 0);
+              .setFontSize(lblFontCss * this.dpr)
+              .setPosition(0, imgSize / 2 - 0)
+              .setStyle({ strokeThickness: this.px(4) });
 
-            // Update ring radius and redraw if visible
-            container.meta.radius = imgSize / 2 + 10;
+            container.meta.radius = imgSize / 2 + this.px(10);
             const { ring } = container.meta;
             if (ring.alpha > 0 && container.meta.ringColor) {
               ring.clear();
               ring.lineStyle(
-                container.meta.ringWidth || 6,
+                container.meta.ringWidth || this.px(6),
                 container.meta.ringColor,
                 1
               );
-              ring.strokeCircle(0, -10, container.meta.radius);
+              ring.strokeCircle(0, -this.px(10), container.meta.radius);
             }
 
-            // Update hit zone
-            const hitW = imgSize + 30;
-            const hitH = imgSize + container.meta.label.height + 20;
+            const hitW = imgSize + this.px(30);
+            const hitH = imgSize + container.meta.label.height + this.px(20);
             container.setSize(hitW, hitH);
-            if (container.meta.zone) {
+            if (container.meta.zone)
               container.meta.zone.setSize(hitW, hitH).setPosition(0, 0);
-            }
           });
         }
 
@@ -716,13 +900,14 @@ export function Game6() {
           this.optionContainers = [];
           this.enableConfirmIfNeeded();
 
+          const { cols, startY, cellW, cellH } = this.computeGrid();
+
           const round = this.rounds[this.roundIndex];
           this.promptText.setText(round.prompt);
           this.progressText.setText(
             `${this.roundIndex + 1} / ${this.rounds.length}`
           );
-
-          const { cols, startY, cellW, cellH } = this.computeGrid();
+          this.layoutTopUI?.();
 
           round.options.forEach((opt, idx) => {
             const r = Math.floor(idx / cols);
@@ -735,28 +920,24 @@ export function Game6() {
             const imgSize = Math.min(cellW, cellH) * 0.55;
 
             const sprite = this.add
-              .image(0, -10, opt.image)
+              .image(0, -this.px(10), opt.image)
               .setDisplaySize(imgSize, imgSize)
               .setOrigin(0.5);
 
             const ring = this.add.graphics();
-            const radius = imgSize / 2 + 10;
-            ring.lineStyle(6, 0x57c785, 1);
-            ring.strokeCircle(0, -10, radius);
+            const radius = imgSize / 2 + this.px(10);
             ring.setAlpha(0);
 
-            const lblFont = Math.max(
-              12,
-              Math.min(22, this.scale.height * 0.035)
-            );
+            const cssH = this.scale.height / this.dpr;
+            const lblFontCss = Math.max(12, Math.min(22, cssH * 0.035));
             const label = this.add
               .text(0, imgSize / 2 - 0, opt.name, {
                 fontFamily: "Fredoka One",
-                fontSize: `${lblFont}px`,
+                fontSize: `${lblFontCss * this.dpr}px`,
                 color: "#ffffff",
                 align: "center",
                 stroke: "#042539",
-                strokeThickness: 4,
+                strokeThickness: this.px(4),
               })
               .setOrigin(0.5, 0);
 
@@ -769,12 +950,13 @@ export function Game6() {
               label,
               radius,
               ringColor: undefined,
-              ringWidth: 6,
+              ringWidth: this.px(6),
+              idx,
             };
 
             // Accurate hit area via centered Zone (aligns with visual bounds)
-            const hitW = imgSize + 30;
-            const hitH = imgSize + label.height + 20;
+            const hitW = imgSize + this.px(30);
+            const hitH = imgSize + label.height + this.px(20);
             container.setSize(hitW, hitH);
             const zone = this.add.zone(0, 0, hitW, hitH).setOrigin(0.5);
             zone.setInteractive({ useHandCursor: true });
@@ -827,9 +1009,9 @@ export function Game6() {
           ring.clear();
           // Red ring on selection (like Game 2)
           container.meta.ringColor = 0xf9644d;
-          container.meta.ringWidth = 6;
+          container.meta.ringWidth = this.px(6);
           ring.lineStyle(container.meta.ringWidth, container.meta.ringColor, 1);
-          ring.strokeCircle(0, -10, container.meta.radius);
+          ring.strokeCircle(0, -this.px(10), container.meta.radius);
           this.tweens.add({
             targets: container,
             scale: 1.12,
@@ -878,9 +1060,9 @@ export function Game6() {
               ring.clear();
               const color = isCorrect ? 0x57c785 : 0xf9644d;
               ct.meta.ringColor = color;
-              ct.meta.ringWidth = 8;
+              ct.meta.ringWidth = this.px(8);
               ring.lineStyle(ct.meta.ringWidth, color, 1);
-              ring.strokeCircle(0, -10, ct.meta.radius);
+              ring.strokeCircle(0, -this.px(10), ct.meta.radius);
               if (!isCorrect)
                 this.tweens.add({
                   targets: ct,
@@ -969,7 +1151,14 @@ export function Game6() {
               correct: this.correct,
               total: this.total,
               history: this.localHistory,
-              onRestart: () => this.scene.start("ClassSelectAllScene"),
+              onRestart: () => {
+                const fn = this.game?.reactHandleShuffle;
+                if (typeof fn === "function") {
+                  fn();
+                } else {
+                  this.scene.start("ClassSelectAllScene");
+                }
+              },
               texts: {
                 heading: `You got ${this.correct} correct on first try!`,
                 playAgain: "Play Again",
@@ -1020,6 +1209,17 @@ export function Game6() {
 
       phaserRef.current = new PhaserGame.Game(config);
 
+      // Expose a regeneration hook for SummaryUI Play Again
+      phaserRef.current.reactHandleShuffle = () => {
+        try {
+          phaserRef.current.scene.stop("SummaryScene");
+        } catch {}
+        try {
+          phaserRef.current.scene.stop("ClassSelectAllScene");
+        } catch {}
+        phaserRef.current.scene.start("ClassSelectAllScene");
+      };
+
       resizeObserverRef.current = new ResizeObserver(() => {
         if (!phaserRef.current) return;
         const w = container.clientWidth;
@@ -1034,6 +1234,12 @@ export function Game6() {
     return () => {
       mounted = false;
       resizeObserverRef.current?.disconnect();
+      const fn = listenersRef.current.update;
+      if (fn) {
+        if (window.visualViewport)
+          window.visualViewport.removeEventListener("resize", fn);
+        window.removeEventListener("resize", fn);
+      }
       phaserRef.current?.destroy(true);
     };
   }, []);
@@ -1041,7 +1247,16 @@ export function Game6() {
   return (
     <div>
       <GameContainer>
-        <div className="pt-24 w-full flex justify-center items-center">
+        {/* Place board fully below fixed navbar and prevent scrollbars */}
+        <div
+          className="w-full flex justify-center items-center"
+          style={{
+            height: "calc(100vh - 96px)",
+            marginTop: "96px",
+            overflow: "hidden",
+            boxSizing: "border-box",
+          }}
+        >
           <GameBoard ref={containerRef} />
         </div>
       </GameContainer>
