@@ -1,4 +1,4 @@
- import faiza from "Assets/Images/faiza.jpeg";
+import faiza from "Assets/Images/faiza-pic.jpeg";
 import aboutUs from "Assets/Images/About-Us-bg.png";
 import { useEffect } from "react";
 import gsap from "gsap";
@@ -47,30 +47,26 @@ export default function WhatIDoSection() {
   }, []);
   return (
     <div
-      className=" bg-cover bg-bottom bg-no-repeat py-10 relative flex flex-col-reverse t:flex-row max-w-fit flex-wrap t:flex-nowrap"
+      className=" bg-cover bg-bottom bg-no-repeat py-10 relative flex flex-col-reverse t:flex-row max-w-fit flex-wrap t:flex-nowrap max-w-[1440px] mx-auto"
       id="about-section"
       style={{ backgroundImage: `url(${aboutUs})` }}
     >
       {/* Overlay */}
       <div className="absolute inset-0 bg-[#042539b5] z-10"></div>
-
       {/* Text Content */}
       <div className="w-full t:w-[70%] z-20 flex flex-col items-start font-[raleway] px-6 py-6 t:px-12 text-white">
         <h2 className="text-[40px] t:text-[60px] font-bold mb-2 text-left">
           About Me
         </h2>
-        <p className="text-white text-sm t:text-base font-medium mb-4 text-left">
-          Hello! My name is Faiza Faizan and I am a Qualified Autism Service
-          Practitioner and Supervisor (QASP-S) from a reputable credentialing
-          board QABA. I have dedicated my work in coaching and supporting
-          parents, therapist and caregivers of individuals with Autism (mostly).
-          My work revolves around training, formulating behavior and
-          individualized educational plans and tracking its progress. I work
-          closely with clients, families, and other professionals to ensure that
-          therapy is tailored to each person’s unique needs. My goal in
-          providing therapy is to empower individuals by helping them build
-          communication, social, and daily living skills, ultimately enhancing
-          their independence and quality of life.
+        <p className="text-white font-medium mb-4 text-left text-lg">
+          Hello! I'm Faiza Faizan the founder of ABA Virtual. I am a Qualified
+          Autism Service Practitioner and Supervisor (QASP-S) and I belong from
+          Pakistan. Welcome to my platform which is built through experience and
+          learning. Here, we offer caregivers and professionals of
+          neurodivergent students with personalised guidance that brings clarity
+          and structure to overcome challenges. Being a resources teacher in
+          past, I have enjoyed creating resources and now I hope you all enjoy
+          it too!
         </p>
         <a
           href="/about"

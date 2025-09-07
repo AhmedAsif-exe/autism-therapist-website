@@ -8,17 +8,18 @@ import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import FacebookIcon from "@mui/icons-material/Facebook";
+import { LinkedIn } from "@mui/icons-material";
+import api from "axiosInstance";
 import InstagramIcon from "@mui/icons-material/Instagram";
-import TwitterIcon from "@mui/icons-material/X";
 // import SitemarkIcon from "./SitemarkIcon";
-
+import { useState } from "react";
 function Copyright() {
   return (
     <Typography variant="body2" sx={{ color: "#ffffff", mt: 1 }}>
+      {" "}
       {"Copyright © "}
       <Link color="#ffffff" href="#">
-        Faiza.
+        aba.virtual
       </Link>
       &nbsp;
       {new Date().getFullYear()}
@@ -27,6 +28,38 @@ function Copyright() {
 }
 
 export default function Footer() {
+  const [email, setEmail] = useState("");
+  const handleSubscribe = async () => {
+    // ✅ Basic client-side validation
+    if (!email || !/\S+@\S+\.\S+/.test(email)) {
+      alert("Please enter a valid email address.");
+      return;
+    }
+
+    try {
+      // ✅ Send request to backend
+      const res = await api.post("newsletter/subscribe", { email });
+
+      if (res.data.success) {
+        setEmail(""); // clear input
+        alert(res.data.message || "You’ve successfully subscribed!");
+      } else {
+        alert(res.data.error || "Subscription failed. Please try again.");
+      }
+    } catch (err) {
+      console.error("Subscription error:", err);
+
+      // ✅ Handle specific error cases
+      if (err.response) {
+        alert(err.response.data.error || "Server error, try again later.");
+      } else if (err.request) {
+        alert("No response from server. Check your connection.");
+      } else {
+        alert("Unexpected error occurred.");
+      }
+    }
+  };
+
   return (
     <Container
       maxWidth={false}
@@ -59,7 +92,6 @@ export default function Footer() {
           }}
         >
           <Box sx={{ width: { xs: "100%", sm: "60%" } }}>
-            {/* <SitemarkIcon /> */}
             <Typography
               variant="body2"
               gutterBottom
@@ -71,13 +103,14 @@ export default function Footer() {
                 color: "white",
               }}
             >
-              Join the newsletter
+              Stay Updated with Our Blog
             </Typography>
             <Typography
               variant="body2"
               sx={{ color: "text.secondary", mb: 2, color: "white" }}
             >
-              Subscribe for weekly updates. No spams ever!
+              Subscribe to get the latest posts and updates delivered straight
+              to your inbox.
             </Typography>
             <InputLabel htmlFor="email-newsletter" sx={{ color: "white" }}>
               Email
@@ -87,10 +120,11 @@ export default function Footer() {
                 id="email-newsletter"
                 hiddenLabel
                 size="small"
-                // variant="outlined"
+                value={email}
                 fullWidth
                 aria-label="Enter your email address"
                 placeholder="Your email address"
+                onChange={(e) => setEmail(e.target.value)}
                 slotProps={{
                   htmlInput: {
                     autoComplete: "off",
@@ -104,6 +138,7 @@ export default function Footer() {
                 }}
               />
               <Button
+                onClick={handleSubscribe}
                 sx={{
                   borderRadius: "5px",
                   // fontSize: "20px",
@@ -131,17 +166,14 @@ export default function Footer() {
           >
             Portfolio
           </Typography>
-          <Link color="#ffffff" variant="body2" href="#">
+          <Link color="#ffffff" variant="body2" href="/">
             Home
           </Link>
-          <Link color="#ffffff" variant="body2" href="#">
+          <Link color="#ffffff" variant="body2" href="/about">
             About
           </Link>
-          <Link color="#ffffff" variant="body2" href="#">
+          <Link color="#ffffff" variant="body2" href="/testimonials">
             Testimonials
-          </Link>
-          <Link color="#ffffff" variant="body2" href="#">
-            Mentors
           </Link>
         </Box>
         <Box
@@ -157,7 +189,7 @@ export default function Footer() {
           >
             Content Writing
           </Typography>
-          <Link color="#ffffff" variant="body2" href="#">
+          <Link color="#ffffff" variant="body2" href="/blogs">
             Blogs
           </Link>
         </Box>
@@ -174,10 +206,10 @@ export default function Footer() {
           >
             E-Commerce
           </Typography>
-          <Link color="#ffffff" variant="body2" href="#">
+          <Link color="#ffffff" variant="body2" href="/resources">
             Resources
           </Link>
-          <Link color="#ffffff" variant="body2" href="#">
+          <Link color="#ffffff" variant="body2" href="/contact">
             Contact
           </Link>
         </Box>
@@ -205,18 +237,12 @@ export default function Footer() {
           <IconButton
             color="inherit"
             size="small"
-            aria-label="GitHub"
-            sx={{ alignSelf: "center" }}
-          >
-            <FacebookIcon />
-          </IconButton>
-          <IconButton
-            color="inherit"
-            size="small"
             aria-label="X"
             sx={{ alignSelf: "center" }}
           >
-            <TwitterIcon />
+            <a href="http://www.linkedin.com/in/faiza-faizan-b-s-qasp-s-509b03206">
+              <LinkedIn />
+            </a>
           </IconButton>
           <IconButton
             color="inherit"
@@ -224,7 +250,9 @@ export default function Footer() {
             aria-label="Instagram"
             sx={{ alignSelf: "center" }}
           >
-            <InstagramIcon />
+            <a href="https://www.instagram.com/faiza.qasps/">
+              <InstagramIcon />
+            </a>
           </IconButton>
         </Stack>
       </Box>

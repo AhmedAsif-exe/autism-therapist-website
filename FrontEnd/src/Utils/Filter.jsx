@@ -67,7 +67,7 @@ const Filter = ({ handleClick, tags }) => {
           }}
         >
           <Chip
-            onClick={handleClick.bind(null, "all")}
+            onClick={handleClick.bind(null, "All")}
             size="medium"
             label="All categories"
           />

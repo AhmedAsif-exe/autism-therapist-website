@@ -3,7 +3,7 @@ import { Typography, Box, List, ListItem, Alert } from "@mui/material";
 
 const Block = {
   normal: ({ children }) => (
-    <Typography paragraph sx={{ textAlign: "left" }}>
+    <Typography paragraph sx={{ textAlign: "left" }} fontSize={"20px"}>
       {children}
     </Typography>
   ),

@@ -1,6 +1,7 @@
 import * as React from "react";
 
 import Box from "@mui/material/Box";
+import { useState } from "react";
 import Chip from "@mui/material/Chip";
 import Grid from "@mui/material/Grid";
 import IconButton from "@mui/material/IconButton";
@@ -14,7 +15,7 @@ import { ALL_BLOGS } from "Utils/Queries/Blog";
 import { useQuery } from "@apollo/client";
 import BlogPosts from "./BlogPosts";
 import PageTemplate from "Utils/PageTemplate";
-export function Search() {
+function Search({ value, onChange }) {
   return (
     <FormControl sx={{ flexGrow: 1 }} variant="outlined">
       <OutlinedInput
@@ -22,6 +23,8 @@ export function Search() {
         id="search"
         placeholder="Search…"
         sx={{ flexGrow: 1 }}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
         startAdornment={
           <InputAdornment position="start" sx={{ color: "text.primary" }}>
             <SearchRoundedIcon fontSize="small" />
@@ -36,9 +39,14 @@ export function Search() {
 }
 
 export default function MainContent() {
-  const [focusedCardIndex, setFocusedCardIndex] = React.useState(null);
-
   const { data, loading, error } = useQuery(ALL_BLOGS);
+  const [search, setSearch] = useState("");
+  const filteredData = data
+    ? data.allBlog.filter((blog) =>
+        blog.title.toLowerCase().includes(search.toLowerCase())
+      )
+    : [];
+  console.log(filteredData);
 
   return (
     <PageTemplate
@@ -55,14 +63,14 @@ export default function MainContent() {
           overflow: "auto",
         }}
       >
-        <Search />
+        <Search value={search} onChange={setSearch} />
         <IconButton size="small" aria-label="RSS feed">
           <RssFeedRoundedIcon />
         </IconButton>
       </Box>
 
       <Grid container spacing={5} columns={12} justifyContent={"center"}>
-        {!loading && <BlogPosts data={data} />}
+        {!loading && <BlogPosts data={filteredData} />}
       </Grid>
     </PageTemplate>
   );

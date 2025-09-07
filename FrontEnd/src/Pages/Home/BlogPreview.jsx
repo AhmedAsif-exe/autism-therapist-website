@@ -5,27 +5,25 @@ import gsap from "gsap";
 import { useEffect } from "react";
 const blogsData = [
   {
-    _id: "00728d16-b15c-4db6-96e3-0ab6601bdd7a",
-    title: "Understanding React Context API",
+    _id: "e88f3013-c993-4afe-b6ed-6e279f77c6e4",
+    title: "Teaching Functional Skills via Telehealth",
     description:
-      " A brief overview of React Context API for state management in modern web applications.",
-    categories: "Technology ",
-    authors: ["Faiza Faizan", "Ahmed Asif"],
-    _createdAt: "2025-06-02T22:44:04Z",
+      "Discover how research explores teaching functional living skills and its effectiveness via ABA on Telehealth",
+    categories: "Review ",
+    authors: ["Faiza Faizan"],
+    _createdAt: "2025-08-30T22:44:04Z",
   },
   {
-    _id: "51168236-4e9d-4f32-9750-d5a13deff365",
-    title: "The Rise of Mindful Technology in Everyday Life",
-    description:
-      "This blog showcases insightful content on autism therapy, personal growth, and expert guidance. Explore structured articles written with empathy and clarity to support individuals and families. Visuals and resources are curated to create an engaging, informative experience for all readers.",
-    categories: "Technology",
+    _id: "f343b270-f9ba-4c9f-9f15-6cdea337cc8a",
+    title: "WHY ABA VIRTUAL",
+    description: "This is a blog",
+    categories: "Intro",
     authors: ["Faiza Faizan"],
-    _createdAt: "2025-05-29T15:13:05Z",
+    _createdAt: "2025-07-22T15:13:05Z",
   },
 ];
 // Dummy avatar import path assumes avatars are in /public/static/images/avatar/
 const BlogFooter = ({ authors = [], _id }) => {
-  
   return (
     <div className="flex flex-row items-center justify-between p-4 text-[#265c7e]">
       {/* Left: Avatars and names */}
@@ -69,7 +67,6 @@ function formatDate(isoString) {
   return date.toLocaleDateString("en-US", options);
 }
 const BlogPreview = () => {
-   
   useEffect(() => {
     const tl = gsap.timeline({
       scrollTrigger: {
@@ -105,10 +102,9 @@ const BlogPreview = () => {
           Blogs
         </h2>
         <p className="ms:text-sm text-xs mt-2">
-          <span className="text-[#f97544]">//</span> Stay in the loop with the
-          latest about our products <span className="text-[#f97544]">//</span>
+          Stay in the loop with the latest about our products{" "}
         </p>
-        <div className="grid t:grid-cols-2 grid-cols-1 ml:mx-12 my-14 gap-10">
+        <div className="grid t:grid-cols-2 grid-cols-1  my-14 gap-10 max-w-[1440px] mx-auto">
           {blogsData.map((blog) => (
             <div className="flex flex-col h-full p-0 hover:cursor-pointer bg-white/10 backdrop-blur-md rounded-md">
               <div className="flex flex-col gap-1 p-4 grow pb-4">

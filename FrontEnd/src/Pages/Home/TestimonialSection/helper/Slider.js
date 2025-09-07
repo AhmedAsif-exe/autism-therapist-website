@@ -185,8 +185,8 @@ const SliderContent = (props) => {
     >
       <p>&ldquo;{props.message}&rdquo;</p>
 
-      <p>by {props.name}</p>
-      <p>{props.title}</p>
+      <p>{props.name}</p>
+      {/* <p>{props.title}</p> */}
     </div>
   );
 };

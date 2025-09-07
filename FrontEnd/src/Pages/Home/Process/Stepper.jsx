@@ -16,50 +16,47 @@ import therapyPlanning from "Assets/Icons/planning.png";
 import { Avatar } from "@mui/material";
 
 import { useEffect } from "react";
-const steps = [
-  "Initial Consultation",
-  "Assessment Phase",
-  "Supervisor Review",
-  "Rapport Building",
-  "Parent Commitments",
-  "Therapy Planning",
-];
 
 const therapyStepsData = [
   {
-    title: "Gather Background",
+    title: "Initial Consultation",
     description:
       "Collect medical, educational, and behavior history from caregivers.",
     icon: session,
   },
   {
-    title: "Assessment Phase",
-    description: "Run interviews and virtual assessments over a few days.",
+    title: "Signing Documents",
+    description:
+      "An exchange of necessary documents to ensure and proceed towards therapy planning",
     icon: assessment,
   },
   {
-    title: "Supervisor Review",
-    description: "Present findings to supervisor for feedback and approval.",
+    title: "Assessment Phase",
+    description:
+      "Behavioral and skill-based assessment virtually guided by the consultant and conducted by caregivers.",
     icon: supervisor,
   },
   {
-    title: "Build Rapport",
+    title: "Parent and Therapist Commitments",
     description:
-      "Engage in preferred online activities to build student trust.",
+      "Parents and therapists collaborate to facilitate implementation of behavior goals.",
     icon: rapport,
   },
   {
-    title: "Parent Commitments",
-    description: "Get consent forms and documents signed by parents.",
+    title: "Assessment & Intervention Plans",
+    description:
+      "A report following the assessment phase to help caregivers understand current abilities and upcoming goals.",
     icon: parentCommitments,
   },
   {
-    title: "Plan & Train",
-    description: "Create plans and train caregivers to use them effectively.",
+    title: "Initiating Therapy",
+    description:
+      "Training caregivers for effective implementation of intervention goals.",
     icon: therapyPlanning,
   },
 ];
 
+const steps = therapyStepsData.map((d) => d.title);
 const ColorlibConnector = styled(StepConnector)(({ theme }) => ({
   [`&.${stepConnectorClasses.alternativeLabel}`]: {
     top: 22,
@@ -236,7 +233,7 @@ export default function CustomizedSteppers({ activeStep, setActiveStep }) {
                   }}
                 />
                 <h2 className="font-semibold mt-1  text-[#f97544] text-xl">
-                  {steps[idx]}
+                  {t.title}
                 </h2>
                 <p className="mt-1">{t.description}</p>
               </div>
@@ -252,29 +249,30 @@ export default function CustomizedSteppers({ activeStep, setActiveStep }) {
             sx={{ backgroundColor: "#28a5a8", p: 2, height: 60, width: 60 }}
           />
           <h2 className="font-semibold mt-1  text-[#f97544] text-xl">
-            {steps[activeStep]}
+            {therapyStepsData[activeStep].title}
           </h2>
           <p className="mt-1">{therapyStepsData[activeStep].description}</p>
         </div>
       </div>
       <div className="t:hidden block ">
-        <p className="text-[40px] text-[#57c785] font-[raleway]">
+        {/* <p className="text-[40px] text-[#57c785] font-[raleway]">
           0{activeStep + 1}
-        </p>
-        <div
-          key={activeStep}
-          id="flip-card"
-          className="text-center flex flex-col w-[300px] items-center border mt-[50px] border-[#28a5a8] p-4 rounded-lg shadow-xl border-2 text-[17px] transition-opacity duration-500 opacity-100"
-        >
-          <Avatar
-            src={therapyStepsData[activeStep].icon}
-            sx={{ backgroundColor: "#28a5a8", p: 2, height: 60, width: 60 }}
-          />
-          <h2 className="font-semibold mt-1  text-[#f97544] text-xl">
-            {steps[activeStep]}
-          </h2>
-          <p className="mt-1">{therapyStepsData[activeStep].description}</p>
-        </div>
+        </p> */}
+        {therapyStepsData.map((s, index) => (
+          <div
+            key={index}
+            className="text-center flex my-3 flex-col w-[300px] items-center border border-[#28a5a8] p-4 rounded-lg shadow-xl border-2 text-[17px] transition-opacity duration-500 opacity-100"
+          >
+            <Avatar
+              src={s.icon}
+              sx={{ backgroundColor: "#28a5a8", p: 2, height: 60, width: 60 }}
+            />
+            <h2 className="font-semibold mt-1  text-[#f97544] text-xl">
+              {s.title}
+            </h2>
+            <p className="mt-1">{s.description}</p>
+          </div>
+        ))}
       </div>
     </>
   );

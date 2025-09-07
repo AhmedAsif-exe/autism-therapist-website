@@ -44,10 +44,12 @@ function App() {
                   <AboutMeSection />
                   <TestimonialSection />
                   <BlogPreview />
-                  <Expertise />
-                  <ResourcesPreview />
+                  <div className="t:px-0 px-[25px]">
+                    <Expertise />
+                  </div>
+                  {/* <ResourcesPreview /> */}
                   <Contact />
-                  <GamesHome />
+                  {/* <GamesHome /> */}
                 </>
               }
             />

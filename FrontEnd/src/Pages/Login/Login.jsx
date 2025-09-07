@@ -36,7 +36,7 @@ const Card = styled(MuiCard)(({ theme }) => ({
 
 const SignInContainer = styled(Stack)(({ theme }) => ({
   //   height: "calc((1 - var(--template-frame-height, 0)) * 100dvh)",
-  marginTop:"100px",
+  marginTop: "100px",
   minHeight: "100%",
   padding: theme.spacing(2),
   [theme.breakpoints.up("sm")]: {
@@ -70,9 +70,9 @@ export default function Login(props) {
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState("");
   const [nameError, setNameError] = React.useState(false);
   const [nameErrorMessage, setNameErrorMessage] = React.useState("");
- 
+
   const navigate = useNavigate();
- 
+
   const validateInputs = () => {
     const email = document.getElementById("email");
     const password = document.getElementById("password");
@@ -135,7 +135,7 @@ export default function Login(props) {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = "http://localhost:5000/auth/google";
+    window.location.href = `${process.env.REACT_APP_BACKEND_URI}auth/google`;
   };
 
   return (
