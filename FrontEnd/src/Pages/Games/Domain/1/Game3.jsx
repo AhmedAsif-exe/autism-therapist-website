@@ -6,6 +6,9 @@ import { getAllFeatureAssets } from './AssetFeatureMapping';
 import { pickItemsFromType, getAllIconKeys } from './QuestionUtils';
 import { getDimOverlayStyle } from './GameTheme';
 import { QUESTIONS_PER_RUN } from './GameConfig';
+import BackToGames from './BackToGames';
+import { useGameAccessGuard } from './useGameAccessGuard';
+import GameLoadingScreen from './GameLoadingScreen';
 
 // Receptive Identification of Feature (Game 3)
 // Shows 3 image options with labels and asks: "Which item has/is [feature]?"
@@ -117,14 +120,23 @@ const GameBoard = styled(Paper)(({ theme }) => ({
 }));
 
 export function Game3() {
+  const { allowed, checking } = useGameAccessGuard(1);
   const containerRef = useRef();
   const phaserRef = useRef();
   const resizeObserverRef = useRef();
-
+  // NOTE: Hooks must always run; we moved conditional return below and gate effect logic.
   useLayoutEffect(() => {
+    // If still checking, or not allowed, ensure any existing instance is torn down and exit.
+    if (checking) return; // wait until guard resolved
+    if (!allowed) {
+      try { resizeObserverRef.current?.disconnect(); } catch {}
+      try { phaserRef.current?.destroy(true); } catch {}
+      return; // do not initialize Phaser
+    }
+
     let mounted = true;
     const container = containerRef.current;
-    if (!container) return;
+    if (!container) return () => { mounted = false; };
 
     import('phaser').then((PhaserLib) => {
       if (!mounted || !container) return;
@@ -133,122 +145,29 @@ export function Game3() {
 
       // Preloader with themed progress (no bouncing logo)
       class PreloadScene extends PhaserGame.Scene {
-        constructor() {
-          super({ key: 'PreloadScene' });
-        }
+        constructor() { super({ key: 'PreloadScene' }); }
 
         preload() {
           const W = this.scale.width;
           const H = this.scale.height;
-
-          const COLOR_DARK = 0x042539;
-          const COLOR_ACCENT = 0x57c785;
-          const COLOR_ACCENT_2 = 0xf9644d;
-
-          // Panel
+          const COLOR_DARK = 0x042539; const COLOR_ACCENT = 0x57c785; const COLOR_ACCENT_2 = 0xf9644d;
           const panel = this.add.graphics();
-          const panelW = Math.min(W * 0.7, 560);
-          const panelH = Math.min(H * 0.24, 180);
-          panel.fillStyle(0xffffff, 0.12);
-          panel.fillRoundedRect((W - panelW) / 2, (H - panelH) / 2, panelW, panelH, 18);
-          panel.lineStyle(4, COLOR_DARK, 1);
-          panel.strokeRoundedRect((W - panelW) / 2, (H - panelH) / 2, panelW, panelH, 18);
-
-          const title = this.add.text(W / 2, H / 2 - panelH * 0.28, 'Loading...', {
-            fontFamily: 'Fredoka One',
-            fontSize: `${Math.max(18, Math.min(36, H * 0.055))}px`,
-            color: '#ffffff',
-            stroke: '#1e607d',
-            strokeThickness: 3,
-            align: 'center',
-          }).setOrigin(0.5);
-
-          // Bar
-          const barW = panelW * 0.78;
-          const barH = Math.max(12, Math.min(18, H * 0.025));
-          const barX = (W - barW) / 2;
-          const barY = H / 2 + barH * 0.5;
-
-          const barBg = this.add.graphics();
-          barBg.fillStyle(0xffffff, 0.25);
-          barBg.fillRoundedRect(barX, barY, barW, barH, 10);
-          barBg.lineStyle(3, COLOR_DARK, 1);
-          barBg.strokeRoundedRect(barX, barY, barW, barH, 10);
-
+          const panelW = Math.min(W * 0.7, 560); const panelH = Math.min(H * 0.24, 180);
+          panel.fillStyle(0xffffff, 0.12); panel.fillRoundedRect((W - panelW) / 2, (H - panelH) / 2, panelW, panelH, 18);
+          panel.lineStyle(4, COLOR_DARK, 1); panel.strokeRoundedRect((W - panelW) / 2, (H - panelH) / 2, panelW, panelH, 18);
+          this.add.text(W / 2, H / 2 - panelH * 0.28, 'Loading...', { fontFamily: 'Fredoka One', fontSize: `${Math.max(18, Math.min(36, H * 0.055))}px`, color: '#ffffff', stroke: '#1e607d', strokeThickness: 3, align: 'center' }).setOrigin(0.5);
+          const barW = panelW * 0.78; const barH = Math.max(12, Math.min(18, H * 0.025)); const barX = (W - barW) / 2; const barY = H / 2 + barH * 0.5;
+          const barBg = this.add.graphics(); barBg.fillStyle(0xffffff, 0.25); barBg.fillRoundedRect(barX, barY, barW, barH, 10); barBg.lineStyle(3, COLOR_DARK, 1); barBg.strokeRoundedRect(barX, barY, barW, barH, 10);
           const barFill = this.add.graphics();
-          const percentText = this.add.text(W / 2, barY + barH * 2, '0%', {
-            fontFamily: 'Fredoka One',
-            fontSize: `${Math.max(14, Math.min(22, H * 0.035))}px`,
-            color: '#ffffff',
-            stroke: '#1e607d',
-            strokeThickness: 2,
-          }).setOrigin(0.5);
-
-          // Load webfont script and ALL icon assets
+          const percentText = this.add.text(W / 2, barY + barH * 2, '0%', { fontFamily: 'Fredoka One', fontSize: `${Math.max(14, Math.min(22, H * 0.035))}px`, color: '#ffffff', stroke: '#1e607d', strokeThickness: 2 }).setOrigin(0.5);
           this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js');
-          ALL_ICON_KEYS.forEach((key) => {
-            this.load.image(key, `/Games/icons/${encodeURIComponent(key)}.png`);
-          });
-
-          // Sheen + smooth progress
+          ALL_ICON_KEYS.forEach((key) => { this.load.image(key, `/Games/icons/${encodeURIComponent(key)}.png`); });
           this.prog = { v: 0 };
-          const drawBar = (p) => {
-            const w = Math.max(0, Math.min(1, p)) * barW;
-            barFill.clear();
-            barFill.fillStyle(COLOR_ACCENT, 0.95);
-            barFill.fillRoundedRect(barX, barY, w, barH, 10);
-            barFill.lineStyle(2, COLOR_DARK, 1);
-            barFill.strokeRoundedRect(barX, barY, Math.max(w, 2), barH, 10);
-            // sheen
-            if (w > 8) {
-              const t = (this.time.now % 1200) / 1200;
-              const sheenWidth = Math.max(30, Math.min(80, w * 0.25));
-              const sxRaw = barX - 60 + (w + 120) * t;
-              const startX = Math.max(barX, sxRaw);
-              const endX = Math.min(barX + w, sxRaw + sheenWidth);
-              const cw = endX - startX;
-              if (cw > 0) {
-                barFill.fillStyle(0xffffff, 0.2);
-                barFill.beginPath();
-                barFill.moveTo(startX, barY);
-                barFill.lineTo(startX + Math.min(16, cw * 0.25), barY);
-                barFill.lineTo(startX + cw, barY + barH);
-                barFill.lineTo(startX + Math.max(0, cw - Math.min(16, cw * 0.25)), barY + barH);
-                barFill.closePath();
-                barFill.fillPath();
-                barFill.fillStyle(0xf9644d, 0.12);
-                barFill.fillRect(Math.max(barX, endX - 2), barY + 2, 2, barH - 4);
-              }
-            }
-          };
+          const drawBar = (p) => { const w = Math.max(0, Math.min(1, p)) * barW; barFill.clear(); barFill.fillStyle(COLOR_ACCENT, 0.95); barFill.fillRoundedRect(barX, barY, w, barH, 10); barFill.lineStyle(2, COLOR_DARK, 1); barFill.strokeRoundedRect(barX, barY, Math.max(w, 2), barH, 10); if (w > 8) { const t = (this.time.now % 1200) / 1200; const sheenWidth = Math.max(30, Math.min(80, w * 0.25)); const sxRaw = barX - 60 + (w + 120) * t; const startX = Math.max(barX, sxRaw); const endX = Math.min(barX + w, sxRaw + sheenWidth); const cw = endX - startX; if (cw > 0) { barFill.fillStyle(0xffffff, 0.2); barFill.beginPath(); barFill.moveTo(startX, barY); barFill.lineTo(startX + Math.min(16, cw * 0.25), barY); barFill.lineTo(startX + cw, barY + barH); barFill.lineTo(startX + Math.max(0, cw - Math.min(16, cw * 0.25)), barY + barH); barFill.closePath(); barFill.fillPath(); barFill.fillStyle(0xf9644d, 0.12); barFill.fillRect(Math.max(barX, endX - 2), barY + 2, 2, barH - 4); } } };
           drawBar(0);
           this.sheenTick = this.time.addEvent({ delay: 40, loop: true, callback: () => drawBar(this.prog.v) });
-
-          this.load.on('progress', (value) => {
-            if (this.progressTween) this.progressTween.remove();
-            const start = this.prog.v;
-            const dist = Math.abs(value - start);
-            this.progressTween = this.tweens.add({
-              targets: this.prog,
-              v: value,
-              duration: Math.max(200, Math.min(700, 800 * dist)),
-              ease: 'Sine.easeOut',
-              onUpdate: () => {
-                drawBar(this.prog.v);
-                percentText.setText(`${Math.round(this.prog.v * 100)}%`);
-              },
-            });
-          });
-
-          this.load.once('complete', () => {
-            const scene = this;
-            // eslint-disable-next-line no-undef
-            WebFont.load({
-              google: { families: ['Fredoka One'] },
-              active: () => { scene.sheenTick?.remove(); scene.scene.start('FeatureScene'); },
-              inactive: () => { scene.sheenTick?.remove(); scene.scene.start('FeatureScene'); },
-            });
-          });
+          this.load.on('progress', (value) => { if (this.progressTween) this.progressTween.remove(); const start = this.prog.v; const dist = Math.abs(value - start); this.progressTween = this.tweens.add({ targets: this.prog, v: value, duration: Math.max(200, Math.min(700, 800 * dist)), ease: 'Sine.easeOut', onUpdate: () => { drawBar(this.prog.v); percentText.setText(`${Math.round(this.prog.v * 100)}%`); }, }); });
+          this.load.once('complete', () => { const scene = this; const WebFont = window.WebFont; if (WebFont) { WebFont.load({ google: { families: ['Fredoka One'] }, active: () => { scene.sheenTick?.remove(); scene.scene.start('FeatureScene'); }, inactive: () => { scene.sheenTick?.remove(); scene.scene.start('FeatureScene'); }, }); } else { scene.sheenTick?.remove(); scene.scene.start('FeatureScene'); } });
         }
       }
 
@@ -454,14 +373,12 @@ export function Game3() {
 
         showRound() {
           if (this.roundIndex >= this.rounds.length) {
-            let hist = [];
-            try {
-              hist = JSON.parse(localStorage.getItem('game3_history') || '[]');
-            } catch (e) {
-              hist = [];
-            }
-            hist.push(this.score);
-            localStorage.setItem('game3_history', JSON.stringify(hist.slice(-20)));
+            // Save score to database instead of localStorage
+            import('Utils/ProgressTracker').then(({ recordSession }) => {
+              recordSession(3, this.score).catch(error => {
+                console.error('Error saving score for Game 3:', error);
+              });
+            });
 
             this.scene.start('SummaryScene', {
               correct: this.score,
@@ -614,12 +531,16 @@ export function Game3() {
 
       class SummaryScene extends PhaserGame.Scene {
         constructor() { super({ key: 'SummaryScene' }); }
-        init(data) {
+        async init(data) {
           this.correct = data.correct || 0;
           this.total = data.total || 0;
+          
+          // Load history from database instead of localStorage
           try {
-            this.history = JSON.parse(localStorage.getItem('game3_history') || '[]');
+            const { getLastNSessions } = await import('Utils/ProgressTracker');
+            this.history = await getLastNSessions(3, 20);
           } catch (e) {
+            console.error('Error loading game history:', e);
             this.history = [];
           }
           this.localHistory = this.history.slice(-5);
@@ -628,8 +549,12 @@ export function Game3() {
           this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js');
         }
         create() {
-          // eslint-disable-next-line no-undef
-          WebFont.load({ google: { families: ['Fredoka One'] }, active: () => this.build() });
+          const WebFont = window.WebFont;
+          if (WebFont) {
+            WebFont.load({ google: { families: ['Fredoka One'] }, active: () => this.build() });
+          } else {
+            this.build();
+          }
         }
         build() {
           const W = this.scale.width; const H = this.scale.height;
@@ -668,22 +593,11 @@ export function Game3() {
         parent: container,
         transparent: true,
         scene: [PreloadScene, FeatureScene, SummaryScene],
-        scale: {
-          mode: PhaserGame.Scale.NONE,
-          width: container.clientWidth * ratio,
-          height: container.clientHeight * ratio,
-        },
-        callbacks: {
-          postBoot: (game) => {
-            game.canvas.style.width = `${container.clientWidth}px`;
-            game.canvas.style.height = `${container.clientHeight}px`;
-          },
-        },
+        scale: { mode: PhaserGame.Scale.NONE, width: container.clientWidth * ratio, height: container.clientHeight * ratio },
+        callbacks: { postBoot: (game) => { game.canvas.style.width = `${container.clientWidth}px`; game.canvas.style.height = `${container.clientHeight}px`; } },
       };
 
       phaserRef.current = new PhaserGame.Game(config);
-
-      // Expose a regeneration hook for SummaryUI Play Again
       phaserRef.current.reactHandleShuffle = () => {
         try { phaserRef.current.scene.stop('SummaryScene'); } catch {}
         try { phaserRef.current.scene.stop('FeatureScene'); } catch {}
@@ -692,8 +606,7 @@ export function Game3() {
 
       resizeObserverRef.current = new ResizeObserver(() => {
         if (!phaserRef.current) return;
-        const w = container.clientWidth;
-        const h = container.clientHeight;
+        const w = container.clientWidth; const h = container.clientHeight;
         phaserRef.current.scale.resize(w * ratio, h * ratio);
         phaserRef.current.canvas.style.width = `${w}px`;
         phaserRef.current.canvas.style.height = `${h}px`;
@@ -703,16 +616,29 @@ export function Game3() {
 
     return () => {
       mounted = false;
-      resizeObserverRef.current?.disconnect();
-      phaserRef.current?.destroy(true);
+      try { resizeObserverRef.current?.disconnect(); } catch {}
+      try { phaserRef.current?.destroy(true); } catch {}
     };
-  }, []);
+  }, [checking, allowed]);
+
+  // After hooks: handle conditional rendering
+  if (checking) return <GameLoadingScreen gameTitle="Find the Feature" />;
+  if (!allowed) return null;
 
   return (
     <div>
       <GameContainer>
         <div className="pt-24 w-full flex justify-center items-center">
-          <GameBoard ref={containerRef} />
+          <div style={{ width: '100%', maxWidth: 1100, margin: '0 auto', padding: '0 12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 28 }}>
+              <BackToGames />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <div style={{ width: '100%', maxWidth: '1000px', minWidth: '280px' }}>
+                <GameBoard ref={containerRef} />
+              </div>
+            </div>
+          </div>
         </div>
       </GameContainer>
     </div>

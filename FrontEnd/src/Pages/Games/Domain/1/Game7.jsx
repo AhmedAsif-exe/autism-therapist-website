@@ -7,6 +7,9 @@ import { getAllAssets as getAllFunctionAssets } from './AssetFunctionMapping';
 import { getAllFeatureAssets } from './AssetFeatureMapping';
 import { pickItemsFromType, getAllIconKeys } from './QuestionUtils';
 import { QUESTIONS_PER_RUN } from './GameConfig';
+import BackToGames from './BackToGames';
+import { useGameAccessGuard } from './useGameAccessGuard';
+import GameLoadingScreen from './GameLoadingScreen';
 
 // Game 7 — Drag & Drop (Function, Feature, Class)
 // - 20 trials, each with a prompt and 6 draggable items (3 correct + 3 incorrect)
@@ -94,11 +97,19 @@ const GameBoard = styled(Paper)(({ theme }) => ({
 }));
 
 export function Game7() {
+  const { allowed, checking } = useGameAccessGuard(1);
   const containerRef = useRef();
   const phaserRef = useRef();
   const resizeObserverRef = useRef();
 
   useLayoutEffect(() => {
+    // If still checking, or not allowed, ensure any existing instance is torn down and exit.
+    if (checking) return; // wait until guard resolved
+    if (!allowed) {
+      try { resizeObserverRef.current?.disconnect(); } catch {}
+      try { phaserRef.current?.destroy(true); } catch {}
+      return; // do not initialize Phaser
+    }
     let mounted = true;
     const container = containerRef.current;
     if (!container) return;
@@ -508,8 +519,13 @@ export function Game7() {
           // Reset locks for each new trial
           this.evalInProgress = false;
           this.roundLocked = false;
-          if (this.index >= this.trials.length) { let hist = []; try { hist = JSON.parse(localStorage.getItem('game7_history') || '[]'); } catch (e) { hist = []; }
-            hist.push(this.correctFirstTry); localStorage.setItem('game7_history', JSON.stringify(hist.slice(-20)));
+          if (this.index >= this.trials.length) { 
+            // Save score to database instead of localStorage
+            import('Utils/ProgressTracker').then(({ recordSession }) => {
+              recordSession(7, this.correctFirstTry).catch(error => {
+                console.error('Error saving score for Game 7:', error);
+              });
+            });
             this.scene.start('SummaryScene', { correct: this.correctFirstTry, total: this.trials.length }); return; }
           const trial = this.trials[this.index]; this.currentBgHue = trial.bg; this.drawBackground(this.currentBgHue);
           this.promptText.setText(trial.prompt); this.progressText.setText(`${this.index + 1} / ${this.trials.length}`);
@@ -700,7 +716,20 @@ export function Game7() {
 
       class SummaryScene extends PhaserGame.Scene {
         constructor() { super({ key: 'SummaryScene' }); }
-        init(data) { this.correct = data.correct || 0; this.total = data.total || 0; try { this.history = JSON.parse(localStorage.getItem('game7_history') || '[]'); } catch (e) { this.history = []; } this.localHistory = this.history.slice(-5); }
+        async init(data) { 
+          this.correct = data.correct || 0; 
+          this.total = data.total || 0; 
+          
+          // Load history from database instead of localStorage
+          try {
+            const { getLastNSessions } = await import('Utils/ProgressTracker');
+            this.history = await getLastNSessions(7, 20);
+          } catch (e) {
+            console.error('Error loading game history:', e);
+            this.history = [];
+          }
+          this.localHistory = this.history.slice(-5); 
+        }
         preload() { this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js'); }
         create() { /* eslint-disable no-undef */ WebFont.load({ google: { families: ['Fredoka One'] }, active: () => { const W = this.scale.width; const H = this.scale.height; buildSummaryUI(this, { correct: this.correct, total: this.total, history: this.localHistory, onRestart: () => { const fn = this.game?.reactHandleShuffle; if (typeof fn === 'function') { fn(); } else { try { this.scene.stop('SummaryScene'); } catch {} try { this.scene.stop('DragDropScene'); } catch {} this.scene.start('DragDropScene'); } }, texts: { heading: `You got ${this.correct} correct on first try!`, playAgain: 'Play Again' }, graph: { x: W / 2, y: H / 2 + 150, width: 400, height: 250, titleText: 'Progress Over Past 5 Attempts', entrance: { fromYOffset: 300, delay: 200 } }, renderHeading: true }); } }); /* eslint-enable */ }
       }
@@ -735,14 +764,31 @@ export function Game7() {
       resizeObserverRef.current.observe(container);
     });
 
-    return () => { mounted = false; resizeObserverRef.current?.disconnect(); phaserRef.current?.destroy(true); };
-  }, []);
+    return () => {
+      mounted = false;
+      try { resizeObserverRef.current?.disconnect(); } catch {}
+      try { phaserRef.current?.destroy(true); } catch {}
+    };
+  }, [checking, allowed]);
+
+  // After hooks: handle conditional rendering
+  if (checking) return <GameLoadingScreen />;
+  if (!allowed) return null;
 
   return (
     <div>
       <GameContainer>
         <div className="pt-24 w-full flex justify-center items-center">
-          <GameBoard ref={containerRef} />
+          <div style={{ width: '100%', maxWidth: 1100, margin: '0 auto', padding: '0 12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 28 }}>
+              <BackToGames />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <div style={{ width: '100%', maxWidth: '1000px', minWidth: '280px' }}>
+                <GameBoard ref={containerRef} />
+              </div>
+            </div>
+          </div>
         </div>
       </GameContainer>
     </div>

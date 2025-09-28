@@ -8,6 +8,9 @@ import { pickItemsFromType, getAllIconKeys, getAllKeysForType, itemsFor } from '
 import { getAllFeatureAssets } from './AssetFeatureMapping';
 import { getDimOverlayStyle } from './GameTheme';
 import { QUESTIONS_PER_RUN } from './GameConfig';
+import BackToGames from './BackToGames';
+import { useGameAccessGuard } from './useGameAccessGuard';
+import GameLoadingScreen from './GameLoadingScreen';
 
 // Game 4 — Feature Select-All (like Game 2 but by feature)
 // - 20 rounds
@@ -142,11 +145,19 @@ const GameBoard = styled(Paper)(({ theme }) => ({
 }));
 
 export function Game4() {
+  const { allowed, checking } = useGameAccessGuard(1);
   const containerRef = useRef();
   const phaserRef = useRef();
   const resizeObserverRef = useRef();
 
   useLayoutEffect(() => {
+    // If still checking, or not allowed, ensure any existing instance is torn down and exit.
+    if (checking) return; // wait until guard resolved
+    if (!allowed) {
+      try { resizeObserverRef.current?.disconnect(); } catch {}
+      try { phaserRef.current?.destroy(true); } catch {}
+      return; // do not initialize Phaser
+    }
     let mounted = true;
     const container = containerRef.current;
     if (!container) return;
@@ -200,7 +211,7 @@ export function Game4() {
               const t = (this.time.now % 1200) / 1200; const sheenWidth = Math.max(px(30), Math.min(px(80), w * 0.25));
               const sxRaw = barX - px(60) + (w + px(120)) * t; const startX = Math.max(barX, sxRaw); const endX = Math.min(barX + w, sxRaw + sheenWidth); const cw = endX - startX;
               if (cw > 0) {
-                barFill.fillStyle(0xffffff, 0.2);
+                barFill.fillStyle(0.2);
                 barFill.beginPath(); barFill.moveTo(startX, barY); barFill.lineTo(startX + Math.min(px(16), cw * 0.25), barY);
                 barFill.lineTo(startX + cw, barY + barH); barFill.lineTo(startX + Math.max(0, cw - Math.min(px(16), cw * 0.25)), barY + barH);
                 barFill.closePath(); barFill.fillPath();
@@ -561,10 +572,12 @@ export function Game4() {
 
         showRound() {
           if (this.roundIndex >= this.rounds.length) {
-            let hist = [];
-            try { hist = JSON.parse(localStorage.getItem('game4_history') || '[]'); } catch (e) { hist = []; }
-            hist.push(this.perfectRounds);
-            localStorage.setItem('game4_history', JSON.stringify(hist.slice(-20)));
+            // Save score to database instead of localStorage
+            import('Utils/ProgressTracker').then(({ recordSession }) => {
+              recordSession(4, this.perfectRounds).catch(error => {
+                console.error('Error saving score for Game 4:', error);
+              });
+            });
             this.scene.start('SummaryScene', { correct: this.perfectRounds, total: this.rounds.length });
             return;
           }
@@ -621,7 +634,8 @@ export function Game4() {
             }).setOrigin(0.5, 0).setShadow(2, 2, 'rgba(0,0,0,0.45)', 4);
 
             container.add([shadow, ring, sprite, label]);
-            container.meta = { itemName: opt.name, imageKey: opt.imagePath, sprite, ring, label, radius, idx };
+            // Store jitter so resize/layout preserves original offset (prevents visual jump)
+            container.meta = { itemName: opt.name, imageKey: opt.imagePath, sprite, ring, label, radius, idx, jx };
             container.setSize(imgSize + this.px(34), imgSize + label.height + this.px(26));
             container.setInteractive({ useHandCursor: true });
 
@@ -651,7 +665,9 @@ export function Game4() {
             const c = idx % cols;
             const cx = startX + c * cellW + cellW / 2;
             const cy = startY + r * cellH + cellH / 2;
-            container.x = cx;
+            // Reapply stored jitter to avoid jump after resize
+            const jx = container.meta.jx || 0;
+            container.x = cx + jx;
             container.y = cy;
             const { sprite, label } = container.meta;
             sprite.setDisplaySize(imgSize, imgSize);
@@ -664,10 +680,18 @@ export function Game4() {
 
       class SummaryScene extends PhaserGame.Scene {
         constructor() { super({ key: 'SummaryScene' }); }
-        init(data) {
+        async init(data) {
           this.correct = data.correct || 0;
           this.total = data.total || 0;
-          try { this.history = JSON.parse(localStorage.getItem('game4_history') || '[]'); } catch (e) { this.history = []; }
+          
+          // Load history from database instead of localStorage
+          try {
+            const { getLastNSessions } = await import('Utils/ProgressTracker');
+            this.history = await getLastNSessions(4, 20);
+          } catch (e) {
+            console.error('Error loading game history:', e);
+            this.history = [];
+          }
           this.localHistory = this.history.slice(-5);
         }
         preload() { this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js'); }
@@ -722,14 +746,31 @@ export function Game4() {
       resizeObserverRef.current.observe(container);
     });
 
-    return () => { mounted = false; resizeObserverRef.current?.disconnect(); phaserRef.current?.destroy(true); };
-  }, []);
+    return () => {
+      mounted = false;
+      try { resizeObserverRef.current?.disconnect(); } catch {}
+      try { phaserRef.current?.destroy(true); } catch {}
+    };
+  }, [checking, allowed]);
+
+  // After hooks: handle conditional rendering
+  if (checking) return <GameLoadingScreen gameTitle="Feature Quest" />;
+  if (!allowed) return null;
 
   return (
     <div>
       <GameContainer>
         <div className="pt-24 w-full flex justify-center items-center">
-          <GameBoard ref={containerRef} />
+          <div style={{ width: '100%', maxWidth: 1100, margin: '0 auto', padding: '0 12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 28 }}>
+              <BackToGames />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <div style={{ width: '100%', maxWidth: '1000px', minWidth: '280px' }}>
+                <GameBoard ref={containerRef} />
+              </div>
+            </div>
+          </div>
         </div>
       </GameContainer>
     </div>

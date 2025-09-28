@@ -5,6 +5,7 @@ import { buildProgressGraph } from "./ProgressGraph";
 import { buildSummaryUI } from "./SummaryUI";
 import { getDimOverlayStyle } from "./GameTheme";
 import { QUESTIONS_PER_RUN } from "./GameConfig";
+import BackToGames from './BackToGames';
 
 // Remove bespoke Game2 mappings and use shared QuestionUtils to avoid overlaps
 import {
@@ -759,17 +760,12 @@ export function Game2() {
 
         showRound() {
           if (this.roundIndex >= this.rounds.length) {
-            let h = [];
-
-            try {
-              h = JSON.parse(localStorage.getItem("game2_history") || "[]");
-            } catch (e) {
-              h = [];
-            }
-
-            h.push(this.correctFirstTry);
-
-            localStorage.setItem("game2_history", JSON.stringify(h.slice(-20)));
+            // Save score to database instead of localStorage
+            import('Utils/ProgressTracker').then(({ recordSession }) => {
+              recordSession(2, this.correctFirstTry).catch(error => {
+                console.error('Error saving score for Game 2:', error);
+              });
+            });
 
             this.scene.start("SummaryScene", {
               correct: this.correctFirstTry,
@@ -1092,15 +1088,16 @@ export function Game2() {
           super({ key: "SummaryScene" });
         }
 
-        init(data) {
+        async init(data) {
           this.correct = data.correct || 0;
           this.total = data.total || 0;
 
+          // Load history from database instead of localStorage
           try {
-            this.history = JSON.parse(
-              localStorage.getItem("game2_history") || "[]"
-            );
+            const { getLastNSessions } = await import('Utils/ProgressTracker');
+            this.history = await getLastNSessions(2, 20);
           } catch (e) {
+            console.error('Error loading game history:', e);
             this.history = [];
           }
 
@@ -1223,7 +1220,16 @@ export function Game2() {
     <div>
       <GameContainer>
         <div className="pt-24 w-full flex justify-center items-center">
-          <GameBoard ref={containerRef} />
+          <div style={{ width: '100%', maxWidth: 1100, margin: '0 auto', padding: '0 12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 28 }}>
+              <BackToGames />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <div style={{ width: '100%', maxWidth: '1000px', minWidth: '280px' }}>
+                <GameBoard ref={containerRef} />
+              </div>
+            </div>
+          </div>
         </div>
       </GameContainer>
     </div>

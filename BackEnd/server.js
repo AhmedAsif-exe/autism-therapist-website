@@ -12,6 +12,8 @@ const commentRoutes = require("./Routes/comments");
 const paymentRoutes = require("./Routes/gateway");
 const mailRoutes = require("./Routes/mail");
 const newsletterRoutes = require("./Routes/newsletter");
+const gamesAccessRoutes = require("./Routes/games");
+const scoresRoutes = require("./Routes/scores");
 const app = express();
 
 mongoose
@@ -53,5 +55,7 @@ app.use("/comments", commentRoutes);
 app.use("/gateway", paymentRoutes.normalRouter);
 app.use("/mail", mailRoutes);
 app.use("/newsletter", newsletterRoutes);
+app.use("/games", gamesAccessRoutes);
+app.use("/scores", scoresRoutes);
 const PORT = 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

@@ -5,6 +5,9 @@ import { buildSummaryUI } from './SummaryUI';
 import { itemsFor as qItemsFor, getAllKeysForType as qGetAllKeysForType, getAllIconKeys as qGetAllIconKeys } from './QuestionUtils';
 import { getDimOverlayStyle } from './GameTheme';
 import { QUESTIONS_PER_RUN } from './GameConfig';
+import BackToGames from './BackToGames';
+import { useGameAccessGuard } from './useGameAccessGuard';
+import GameLoadingScreen from './GameLoadingScreen';
 
 // Game 9 — Odd One Out
 // Show 4 items (3 belong to the same group, 1 does not). Click the odd one. Rounds = QUESTIONS_PER_RUN.
@@ -99,11 +102,19 @@ const GameBoard = styled(Paper)(({ theme }) => ({
 }));
 
 export function Game9() {
+  const { allowed, checking } = useGameAccessGuard(1);
   const containerRef = useRef();
   const phaserRef = useRef();
   const resizeObserverRef = useRef();
 
   useLayoutEffect(() => {
+    // If still checking, or not allowed, ensure any existing instance is torn down and exit.
+    if (checking) return; // wait until guard resolved
+    if (!allowed) {
+      try { resizeObserverRef.current?.disconnect(); } catch {}
+      try { phaserRef.current?.destroy(true); } catch {}
+      return; // do not initialize Phaser
+    }
     let mounted = true;
     const container = containerRef.current;
     if (!container) return;
@@ -285,8 +296,12 @@ export function Game9() {
 
         showRound() {
           if (this.roundIndex >= this.rounds.length) {
-            let hist = []; try { hist = JSON.parse(localStorage.getItem('game9_history') || '[]'); } catch (e) { hist = []; }
-            hist.push(this.score); localStorage.setItem('game9_history', JSON.stringify(hist.slice(-20)));
+            // Save score to database instead of localStorage
+            import('Utils/ProgressTracker').then(({ recordSession }) => {
+              recordSession(9, this.score).catch(error => {
+                console.error('Error saving score for Game 9:', error);
+              });
+            });
             this.scene.start('SummaryScene', { score: this.score, total: this.rounds.length }); return;
           }
           this.perRoundMistake = false;
@@ -451,7 +466,20 @@ export function Game9() {
 
       class SummaryScene extends PhaserGame.Scene {
         constructor() { super({ key: 'SummaryScene' }); }
-        init(data) { this.score = (data && (data.score ?? data.correct)) || 0; this.total = (data && data.total) || 0; try { this.history = JSON.parse(localStorage.getItem('game9_history') || '[]'); } catch (e) { this.history = []; } this.localHistory = this.history.slice(-5); }
+        async init(data) { 
+          this.score = (data && (data.score ?? data.correct)) || 0; 
+          this.total = (data && data.total) || 0; 
+          
+          // Load history from database instead of localStorage
+          try {
+            const { getLastNSessions } = await import('Utils/ProgressTracker');
+            this.history = await getLastNSessions(9, 20);
+          } catch (e) {
+            console.error('Error loading game history:', e);
+            this.history = [];
+          }
+          this.localHistory = this.history.slice(-5); 
+        }
         preload() { this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js'); }
         create() {
           const W = this.scale.width; const H = this.scale.height;
@@ -489,14 +517,31 @@ export function Game9() {
       resizeObserverRef.current.observe(container);
     });
 
-    return () => { mounted = false; resizeObserverRef.current?.disconnect(); phaserRef.current?.destroy(true); };
-  }, []);
+    return () => {
+      mounted = false;
+      try { resizeObserverRef.current?.disconnect(); } catch {}
+      try { phaserRef.current?.destroy(true); } catch {}
+    };
+  }, [checking, allowed]);
+
+  // After hooks: handle conditional rendering
+  if (checking) return <GameLoadingScreen />;
+  if (!allowed) return null;
 
   return (
     <div>
       <GameContainer>
         <div className="pt-24 w-full flex justify-center items-center">
-          <GameBoard ref={containerRef} />
+          <div style={{ width: '100%', maxWidth: 1100, margin: '0 auto', padding: '0 12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 28 }}>
+              <BackToGames />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <div style={{ width: '100%', maxWidth: '1000px', minWidth: '280px' }}>
+                <GameBoard ref={containerRef} />
+              </div>
+            </div>
+          </div>
         </div>
       </GameContainer>
     </div>
