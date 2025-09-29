@@ -24,11 +24,11 @@ mongoose
   .then(() => console.log("Mongo DB connected successfully"));
 
 app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
-app.use(
-  "/gateway/webhook",
-  express.raw({ type: "application/json" }),
-  paymentRoutes.webhookRouter
-);
+// app.use(
+//   "/gateway/webhook",
+//   express.raw({ type: "application/json" }),
+//   paymentRoutes.webhookRouter
+// );
 
 app.use(express.json()); // Now safe
 app.use(
@@ -38,7 +38,7 @@ app.use(
     saveUninitialized: false,
     store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI }),
     cookie: {
-      maxAge: 1000 * 60 * 60 * 2,
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 👈 7 days
     },
   })
 );
@@ -50,7 +50,7 @@ app.use(passport.session());
 // All other normal JSON routes
 app.use("/auth", authRoutes);
 app.use("/comments", commentRoutes);
-app.use("/gateway", paymentRoutes.normalRouter);
+app.use("/paypal", paymentRoutes);
 app.use("/mail", mailRoutes);
 app.use("/newsletter", newsletterRoutes);
 const PORT = 5000;

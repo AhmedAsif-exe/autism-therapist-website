@@ -13,10 +13,12 @@ const client = createClient({
   useCdn: false,
 });
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.hostinger.com",
+  port: 465, // or 587 if TLS
+  secure: true, // true for port 465, false for 587
   auth: {
-    user: process.env.EMAIL_USER, // your Gmail
-    pass: process.env.EMAIL_PASS, // your app password
+    user: process.env.EMAIL_USER, // must be your Hostinger email e.g. contact@abavirtual.net
+    pass: process.env.EMAIL_PASS, // the password you set in Hostinger for that mailbox
   },
 });
 function formatDate(isoString) {
@@ -32,7 +34,7 @@ router.post("/send", async (req, res) => {
 
     const mailOptions = {
       from: process.env.EMAIL_USER,
-      to: "ahmedaanasif@gmail.com", // 👈 where you want to receive the mails
+      to: "contact@abavirtual.net", // 👈 where you want to receive the mails
       subject: `${enquiryType}`,
       html: `
     <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">

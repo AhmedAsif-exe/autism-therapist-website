@@ -63,7 +63,7 @@ router.post("/logout", (req, res) => {
     });
   });
 });
-router.get("/me", (req, res) => {
+router.get("/me", async (req, res) => {
   if (req.isAuthenticated && req.isAuthenticated()) {
     const { name, email, pfp, _id, paidItems } = req.user;
     res.json({

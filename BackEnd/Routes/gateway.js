@@ -1,79 +1,97 @@
 const express = require("express");
-const Stripe = require("stripe");
+const paypal = require("@paypal/checkout-server-sdk");
 const User = require("../Schema/User");
-const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+const router = express.Router();
 
-const webhookRouter = express.Router();
-const normalRouter = express.Router();
-function callback(session) {
-  console.log(session);
+function ensureAuth(req, res, next) {
+  if (req.isAuthenticated && req.isAuthenticated()) {
+    return next();
+  }
+  res.status(401).json({ message: "Not authenticated" });
 }
-// Webhook route
-webhookRouter.post("/", (req, res) => {
-  const sig = req.headers["stripe-signature"];
-  let event;
+// --- PayPal Client Setup ---
+function paypalClient() {
+  const env = new paypal.core.SandboxEnvironment(
+    process.env.PAYPAL_CLIENT_ID,
+    process.env.PAYPAL_CLIENT_SECRET
+  );
+  // process.env.NODE_ENV === "production"
+  //   ? new paypal.core.LiveEnvironment(
+  //       process.env.PAYPAL_CLIENT_ID,
+  //       process.env.PAYPAL_CLIENT_SECRET
+  //     )
+  //   :
 
+  return new paypal.core.PayPalHttpClient(env);
+}
+
+// --- Create Order ---
+// --- Create Order ---
+router.post("/create-order", ensureAuth, async (req, res) => {
   try {
-    event = stripe.webhooks.constructEvent(
-      req.body,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET
-    );
-  } catch (err) {
-    console.error("Webhook signature verification failed:", err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
-  }
+    const { cart } = req.body;
 
-  if (event.type === "checkout.session.completed") {
-    const session = event.data.object;
-    console.log("✅ Payment Success Webhook Fired", session);
-    callback(session);
-  }
-
-  res.status(200).send("Received webhook");
-});
-
-// Regular payment route
-normalRouter.post("/create-checkout-session", async (req, res) => {
-  const { cart, user } = req.body;
-
-  try {
-    if (!cart?.length || !user) {
-      return res.status(400).json({ error: "Cart and user are required." });
+    if (!cart || !cart.length) {
+      return res.status(400).json({ error: "Cart cannot be empty" });
     }
 
-    const line_items = cart.map((item) => ({
-      price_data: {
-        currency: "usd",
-        product_data: {
-          name: item.title || "Resource",
-          description: `${item.category} - ${item.type}`,
-        },
-        unit_amount: Math.round((item.price || 1) * 100),
+    // Build items
+    const items = cart.map((item) => ({
+      name: item.title || "Item",
+      unit_amount: {
+        currency_code: "EUR",
+        value: (item.price || 0).toFixed(2),
       },
-      quantity: 1,
+      quantity: String(item.quantity || 1),
     }));
 
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
-      mode: "payment",
-      line_items,
-      success_url: process.env.FRONTEND_URL + "/success",
-      cancel_url: process.env.FRONTEND_URL + "/cancel",
-      metadata: {
-        userEmail: user.email,
-        userName: user.name,
-        userId: user._id,
+    // Calculate total from items
+    const total = items.reduce(
+      (sum, item) =>
+        sum + parseFloat(item.unit_amount.value) * parseInt(item.quantity),
+      0
+    );
+
+    const request = new paypal.orders.OrdersCreateRequest();
+    request.prefer("return=representation");
+    request.requestBody({
+      intent: "CAPTURE",
+      purchase_units: [
+        {
+          amount: {
+            currency_code: "EUR",
+            value: total.toFixed(2),
+            breakdown: {
+              item_total: {
+                currency_code: "EUR",
+                value: total.toFixed(2),
+              },
+            },
+          },
+          items,
+        },
+      ],
+      application_context: {
+        brand_name: "ABA Virtual",
+        landing_page: "LOGIN",
+        user_action: "PAY_NOW",
+        return_url: `${process.env.FRONTEND_URL}/success`,
+        cancel_url: `${process.env.FRONTEND_URL}/error`,
+        locale_code: "en-US", // enforce English
       },
     });
 
-    res.json({ id: session.id });
-  } catch (e) {
-    console.log(e);
+    const order = await paypalClient().execute(request);
+    res.status(200).json(order.result);
+  } catch (err) {
+    console.error("PayPal Create Order Error:", err);
+    res.status(500).json({ error: "Failed to create PayPal order" });
   }
 });
 
-normalRouter.post("/callback", async (req, res) => {
+// --- Capture Order ---
+router.post("/callback", async (req, res) => {
+  console.log(req.body);
   const { cart, user } = req.body;
   if (!cart?.length || !user) {
     return res.status(400).json({ error: "Cart and user are required." });
@@ -94,7 +112,5 @@ normalRouter.post("/callback", async (req, res) => {
     console.log(e);
   }
 });
-module.exports = {
-  webhookRouter,
-  normalRouter,
-};
+
+module.exports = router;
