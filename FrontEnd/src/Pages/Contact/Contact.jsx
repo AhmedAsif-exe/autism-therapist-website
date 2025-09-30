@@ -17,6 +17,7 @@ import {
 import gsap from "gsap";
 import { Instagram, LinkedIn, Email } from "@mui/icons-material";
 import { useState } from "react";
+import { toast } from "react-toastify";
 export const ContactInfoSection = () => {
   const [formData, setFormData] = useState({
     firstName: "",
@@ -87,7 +88,7 @@ export const ContactInfoSection = () => {
     try {
       const res = await api.post("mail/send", formData);
       if (res.data.success) {
-        alert("Message sent successfully!");
+        toast.success("Message sent successfully!");
         setFormData({
           firstName: "",
           lastName: "",
@@ -97,11 +98,11 @@ export const ContactInfoSection = () => {
           message: "",
         });
       } else {
-        alert("Failed to send message.");
+        toast.error("Failed to send message.");
       }
     } catch (err) {
       console.log(err);
-      alert("Error sending message.");
+      toast.error("Error sending message.");
     }
   };
   return (

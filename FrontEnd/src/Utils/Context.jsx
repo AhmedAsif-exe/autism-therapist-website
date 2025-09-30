@@ -13,7 +13,11 @@ const reducer = (state, action) => {
   let newState;
   switch (action.type) {
     case "ADD":
-      newState = [...state, action.item];
+      if (state.some((i) => i.id === action.item.id)) {
+        newState = state; // no change
+      } else {
+        newState = [...state, action.item];
+      }
       break;
     case "REMOVE":
       newState = state.filter((i) => i.id !== action.id);

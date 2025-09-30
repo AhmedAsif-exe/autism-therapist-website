@@ -10,6 +10,7 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { LinkedIn } from "@mui/icons-material";
 import api from "axiosInstance";
+import { toast } from "react-toastify";
 import InstagramIcon from "@mui/icons-material/Instagram";
 // import SitemarkIcon from "./SitemarkIcon";
 import { useState } from "react";
@@ -32,7 +33,7 @@ export default function Footer() {
   const handleSubscribe = async () => {
     // ✅ Basic client-side validation
     if (!email || !/\S+@\S+\.\S+/.test(email)) {
-      alert("Please enter a valid email address.");
+      toast.info("Please enter a valid email address.");
       return;
     }
 
@@ -42,20 +43,22 @@ export default function Footer() {
 
       if (res.data.success) {
         setEmail(""); // clear input
-        alert(res.data.message || "You’ve successfully subscribed!");
+        toast.success(res.data.message || "You’ve successfully subscribed!");
       } else {
-        alert(res.data.error || "Subscription failed. Please try again.");
+        toast.error(res.data.error || "Subscription failed. Please try again.");
       }
     } catch (err) {
       console.error("Subscription error:", err);
 
       // ✅ Handle specific error cases
       if (err.response) {
-        alert(err.response.data.error || "Server error, try again later.");
+        toast.error(
+          err.response.data.error || "Server error, try again later."
+        );
       } else if (err.request) {
-        alert("No response from server. Check your connection.");
+        toast.error("No response from server. Check your connection.");
       } else {
-        alert("Unexpected error occurred.");
+        toast.error("Unexpected error occurred.");
       }
     }
   };
