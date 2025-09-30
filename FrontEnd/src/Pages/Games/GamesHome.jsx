@@ -1,10 +1,11 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import PageTemplate from 'Utils/PageTemplate';
 import style from 'Utils/Card/Card.module.css';
 import { useProjectContext } from 'Utils/Context';
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Label } from 'recharts';
-import { getLastNSessions, getMetrics } from 'Utils/ProgressTracker';
+import DomainProgress from './Domain/1/DomainProgress';
+import BackToGames from './BackToGames';
 
 const gamesList = [
 	{
@@ -84,7 +85,7 @@ const gameColors = {
 };
 
 // New: Domains configuration for the Games menu
-const domains = [
+export const domains = [
   {
     id: 1,
     title: 'Function, Feature & Class Games',
@@ -101,15 +102,15 @@ const domains = [
   },
 ];
 
-const lockedLevels = [];
-//const lockedLevels = [4,5,6,7,8,9,10];
+// Lock all games from 3 onward (only games 1 & 2 are free)
+const lockedLevels = [3,4,5,6,7,8,9,10];
+//const lockedLevels = [];
 
-const GAMES_BUNDLE_ID = 'games-bundle-4-10';
-const GAMES_BUNDLE_TITLE = 'Games Bundle (Levels 4-10)';
+const GAMES_BUNDLE_ID = 'domain1-bundle-levels-3-10';
+const GAMES_BUNDLE_TITLE = 'Domain 1 Bundle (Levels 3-10)';
 const GAMES_BUNDLE_PRICE = 4.99;
 const GAMES_BUNDLE_BENEFITS = [
-	'Unlocks 7 additional games (Levels 4-10)',
-	'Access to new games as they are released',
+	'Unlocks 8 additional games (Levels 3-10)',
 	'One-time purchase, lifetime access',
 	'Enhances learning and engagement',
 ];
@@ -178,32 +179,41 @@ function MiniProgressChart({ history = [], max = 20, color = '#57c785' }) {
 
 export default function GamesHome() {
 	const navigate = useNavigate();
-	const { cart, dispatch } = useProjectContext();
+	const params = useParams();
+	const location = useLocation();
+	const { cart, dispatch, loggedIn, user } = useProjectContext();
 	const [modalOpen, setModalOpen] = useState(false);
 	const [modalLockedGame, setModalLockedGame] = useState(null);
 
   // View toggle: 'games' or 'progress'
   const [view, setView] = useState('games');
   // Reveal animations when switching views
-  const [progressReveal, setProgressReveal] = useState(false);
   const [gamesReveal, setGamesReveal] = useState(true);
 
-  useEffect(() => {
-    if (view === 'progress') {
-      setProgressReveal(false);
-      // delay to allow CSS transition from initial state
-      requestAnimationFrame(() => setProgressReveal(true));
-      setGamesReveal(false);
-    } else {
-      setGamesReveal(false);
-      requestAnimationFrame(() => setGamesReveal(true));
-      setProgressReveal(false);
-    }
-  }, [view]);
-
-  const [selectedGameId, setSelectedGameId] = useState(1);
-  // Domain selection for games view. When null, show domain cards list
+  // Keep a local state for selectedDomain but make it route-driven when a domainId param is present
   const [selectedDomain, setSelectedDomain] = useState(null);
+
+  // Handle access denied notification from game access guard
+  useEffect(() => {
+    if (location.state?.accessDenied) {
+      toast.warning('You need to purchase this game to access it!', {
+        position: 'top-center',
+        autoClose: 4000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      // Clear the state to prevent showing the notification again on refresh
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, location.pathname, navigate]);
+
+  useEffect(() => {
+    // If route contains a domainId param, reflect it in local state
+    const id = params?.domainId ? Number(params?.domainId) : null;
+    setSelectedDomain(id);
+  }, [params?.domainId]);
 
   // Ensure progress view is only available for a selected domain
   useEffect(() => {
@@ -220,14 +230,9 @@ export default function GamesHome() {
     return () => window.removeEventListener('focus', onFocus);
   }, []);
 
-  const LAST_N = 10;
-  const history = useMemo(() => getLastNSessions(selectedGameId, LAST_N), [selectedGameId, refreshKey]);
-  const metrics = useMemo(() => getMetrics(selectedGameId, LAST_N), [selectedGameId, refreshKey]);
-  const chartData = useMemo(() => history.map((v, i) => ({ name: `S${i + 1}`, value: v, idx: i + 1 })), [history]);
-  // Ensure numeric ticks for attempts on X axis
-  const xTicks = useMemo(() => chartData.map(d => d.idx), [chartData]);
-
 	const bundleInCart = cart.some(item => item.id === GAMES_BUNDLE_ID);
+	// Derive ownership from server-provided paidItems
+	const hasBundleOwnership = Array.isArray(user?.paidItems) && user.paidItems.includes(GAMES_BUNDLE_ID);
 
 	const handlePurchaseClick = (game) => {
 		setModalLockedGame(game);
@@ -236,19 +241,24 @@ export default function GamesHome() {
 
 	const handleAddToCart = () => {
 		if (!bundleInCart) {
-			dispatch({
-				type: 'ADD',
-				item: {
-					id: GAMES_BUNDLE_ID,
-					title: GAMES_BUNDLE_TITLE,
-					price: GAMES_BUNDLE_PRICE,
-				},
-			});
+			dispatch({ type: 'ADD', item: { id: GAMES_BUNDLE_ID, title: GAMES_BUNDLE_TITLE, price: GAMES_BUNDLE_PRICE } });
 		}
+		// Close immediately per new spec (cart does NOT unlock)
 		setModalOpen(false);
 	};
 
-  const currentColor = gameColors[selectedGameId] || '#f97544';
+	const handleCloseModal = () => setModalOpen(false);
+	const handleGoToCart = () => { navigate('/cart'); setModalOpen(false); };
+
+	// Re-add ESC key + scroll lock for modal
+	useEffect(() => {
+		if (!modalOpen) return;
+		const onKey = (e) => { if (e.key === 'Escape') setModalOpen(false); };
+		document.addEventListener('keydown', onKey);
+		const prevOverflow = document.body.style.overflow;
+		document.body.style.overflow = 'hidden';
+		return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = prevOverflow; };
+	}, [modalOpen]);
 
 	return (
 		<PageTemplate
@@ -258,7 +268,8 @@ export default function GamesHome() {
 		>
       {/* Toggle pill with animated slider - only show when a domain is selected */}
       {selectedDomain !== null && (
-        <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginTop: 12 }}>
+        // Keep equal spacing between the toggle, the "All Domains" button and the domain title
+        <div style={{ width: '100%', display: 'flex', justifyContent: 'center', margin: '12px 0 20px' }}>
           <div style={{ position: 'relative', background: '#e6edf2', borderRadius: 999, padding: 6, display: 'inline-flex', gap: 6, minWidth: 260 }}>
             <div
               aria-hidden
@@ -298,101 +309,7 @@ export default function GamesHome() {
       )}
 
       {selectedDomain !== null && view === 'progress' && (
-        <div style={{ width: '100%', background: '#f7f9fb', padding: '24px 16px', borderTop: '1px solid #e6edf2', borderBottom: '1px solid #e6edf2',
-          opacity: progressReveal ? 1 : 0, transform: `translateY(${progressReveal ? 0 : 8}px)`, transition: 'opacity 320ms ease, transform 360ms ease' }}>
-          <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-              <h2 style={{ margin: 0, color: '#265c7e', fontWeight: 800, fontSize: 22, fontFamily: 'Raleway, sans-serif', letterSpacing: 0.5 }}>Progress Dashboard</h2>
-              <div style={{ color: '#8AA3B5', fontSize: 13 }}>Last {LAST_N} sessions</div>
-            </div>
-
-            {/* Game selector chips */}
-            <div style={{ display: 'flex', gap: 10, rowGap: 10, flexWrap: 'wrap', paddingBottom: 6, marginBottom: 16, alignItems: 'stretch' }}>
-              {gamesList.map((g) => {
-                const active = selectedGameId === g.id;
-                const color = gameColors[g.id] || '#265c7e';
-                return (
-                  <button
-                    key={g.id}
-                    onClick={() => setSelectedGameId(g.id)}
-                    style={{
-                      display: 'inline-flex', alignItems: 'center', gap: 10, padding: '10px 16px',
-                      borderRadius: 999, border: `2px solid ${active ? color : '#e6edf2'}`, background: '#fff',
-                      color: active ? color : '#042539', cursor: 'pointer', boxShadow: active ? '0 6px 16px rgba(0,0,0,0.08)' : '0 2px 8px rgba(4,37,57,0.06)',
-                      transform: active ? 'scale(1.04)' : 'scale(1.0)', transition: 'transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, color 180ms ease',
-                      minWidth: 220, flex: '0 1 auto', flexShrink: 0, whiteSpace: 'nowrap'
-                    }}
-                    aria-pressed={active}
-                  >
-                    <span style={{ width: 12, height: 12, borderRadius: 999, background: color, boxShadow: active ? `0 0 0 4px ${color}22` : 'none' }} />
-                    <img src={g.img} alt={g.title} style={{ width: 24, height: 24 }} />
-                    <span style={{ fontWeight: 800, fontSize: 15 }}>{g.title}</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Big line chart area */}
-            <div style={{ background: '#fff', border: '1px solid #e6edf2', borderRadius: 16, padding: 16, boxShadow: '0 6px 18px rgba(4,37,57,0.06)',
-              opacity: progressReveal ? 1 : 0, transform: `translateY(${progressReveal ? 0 : 8}px)`, transition: 'opacity 360ms ease 60ms, transform 360ms ease 60ms' }}>
-              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 8 }}>
-                <div style={{ color: '#042539', fontWeight: 800, fontSize: 18 }}>{gamesList[selectedGameId - 1]?.title || `Game ${selectedGameId}`} Progress</div>
-                <div style={{ color: '#8AA3B5', fontSize: 12 }}>Best {metrics.best}/{metrics.maxPossible} • Avg {Math.round(metrics.average * 10) / 10}/{metrics.maxPossible}</div>
-              </div>
-              {chartData.length ? (
-                <div style={{ width: '100%', height: 340 }}>
-                  <ResponsiveContainer>
-                    <LineChart data={chartData} margin={{ top: 8, right: 16, bottom: 28, left: 84 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e6edf2" />
-                      <XAxis
-                        dataKey="idx"
-                        type="number"
-                        domain={[1, chartData.length || 1]}
-                        ticks={xTicks}
-                        allowDecimals={false}
-                        tick={{ fill: '#042539', fontSize: 12, fontWeight: 600 }}
-                        axisLine={{ stroke: '#e6edf2' }}
-                        tickLine={{ stroke: '#e6edf2' }}
-                        tickMargin={6}
-                        label={{ value: 'Number of attempts', position: 'insideBottom', offset: -10, fill: '#265c7e', fontSize: 12, fontWeight: 700 }}
-                      />
-                      <YAxis
-                        domain={[0, metrics.maxPossible]}
-                        allowDecimals={false}
-                        tick={{ fill: '#042539', fontSize: 12, fontWeight: 600 }}
-                        axisLine={{ stroke: '#e6edf2' }}
-                        tickLine={{ stroke: '#e6edf2' }}
-                        tickMargin={6}
-                      >
-                        <Label value="Frequency of correct attempts" angle={-90} position="outsideLeft" offset={22} style={{ fill: '#265c7e', fontSize: 12, fontWeight: 700 }} />
-                      </YAxis>
-                      <Tooltip
-                        contentStyle={{ background: '#fff', border: '1px solid #e6edf2', borderRadius: 12, boxShadow: '0 6px 18px rgba(4,37,57,0.08)' }}
-                        labelStyle={{ color: '#265c7e', fontWeight: 800 }}
-                        formatter={(v, _name, payload) => {
-                          const idx = payload?.payload?.idx;
-                          return [`${v} correct`, `Attempt ${idx}`];
-                        }}
-                      />
-                      {/* Updated: black dots for better contrast on white background and faster animation */}
-                      <Line type="linear" dataKey="value" stroke={currentColor} strokeWidth={4}
-                        strokeLinecap="square" strokeLinejoin="miter"
-                        dot={{ r: 4, stroke: '#000', strokeWidth: 2, fill: '#000' }}
-                        activeDot={{ r: 7, stroke: '#000', fill: '#000' }}
-                        isAnimationActive animationDuration={400} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              ) : (
-                <div style={{ color: '#8AA3B5', fontSize: 14, padding: '24px 8px' }}>No sessions yet for this game.</div>
-              )}
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 16, marginTop: 10, color: '#265c7e', fontSize: 13 }}>
-                <div>Completion: {metrics.completionRate}%</div>
-                <div>Sessions: {metrics.count}</div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <DomainProgress domainId={selectedDomain} />
       )}
 
       {view === 'games' && (
@@ -403,39 +320,63 @@ export default function GamesHome() {
               className="w-full flex flex-wrap justify-center gap-8 py-8"
               style={{ background: '#fff', opacity: gamesReveal ? 1 : 0, transform: `translateY(${gamesReveal ? 0 : 8}px)`, transition: 'opacity 320ms ease, transform 360ms ease' }}
             >
-              {domains.map((d) => {
-                const isAvailable = !!d.available;
-                return (
-                  <div
-                    key={d.id}
-                    className={`${style.card} domain-card-custom relative group`}
-                    onClick={() => isAvailable && setSelectedDomain(d.id)}
-                    style={{
-                      width: 300,
-                      height: 220,
-                      border: isAvailable ? '2.5px solid #f97544' : '2.5px dashed #cdd9e1',
-                      borderRadius: 22,
-                      boxShadow: isAvailable
-                        ? '0 6px 24px rgba(4,37,57,0.08), 0 1.5px 6px rgba(4,37,57,0.07)'
-                        : '0 2px 8px rgba(4,37,57,0.06)',
-                      padding: 24,
-                      background: isAvailable
-                        ? 'linear-gradient(135deg, #fff 60%, #f9f6f3 100%)'
-                        : 'linear-gradient(135deg, #f7f9fb 60%, #eff3f6 100%)',
-                      margin: 8,  
-                      opacity: isAvailable ? 1 : 0.7,
-                      cursor: isAvailable ? 'pointer' : 'default',
-                      position: 'relative',
-                      overflow: 'hidden',
-                      display: 'grid',
-                      gridTemplateRows: '120px 1fr',
-                      alignItems: 'stretch',
-                      justifyItems: 'center',
-                      transition: 'transform 200ms ease, box-shadow 200ms ease',
-                    }}
-                    onMouseEnter={(e) => { if (isAvailable) e.currentTarget.style.transform = 'translateY(-4px)'; }}
-                    onMouseLeave={(e) => { if (isAvailable) e.currentTarget.style.transform = 'translateY(0)'; }}
-                  >
+              {/* If the user is not logged in, show a CTA encouraging sign in before playing */}
+              {!loggedIn && (
+                <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: 18 }}>
+                  <div style={{ maxWidth: 920, width: '100%', background: '#fff6f2', border: '1px solid #f6d9cf', padding: 16, borderRadius: 12, display: 'flex', alignItems: 'center', gap: 16 }}>
+                    <div style={{ flex: '1 1 auto', color: '#265c7e', fontWeight: 700 }}>Sign in to play the games and save your progress</div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button
+                        onClick={() => navigate('/login')}
+                        className="px-4 py-2 rounded bg-[#f97544] text-white font-semibold"
+                        style={{ border: 'none', cursor: 'pointer' }}
+                      >
+                        Sign in
+                      </button>
+                      <button
+                        onClick={() => navigate('/signup')}
+                        className="px-4 py-2 rounded border border-[#f97544] text-[#f97544] font-semibold bg-white"
+                        style={{ cursor: 'pointer' }}
+                      >
+                        Create account
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+               {domains.map((d) => {
+                 const isAvailable = !!d.available;
+                 return (
+                   <div
+                     key={d.id}
+                     className={`${style.card} domain-card-custom relative group`}
+                     onClick={() => isAvailable && (loggedIn ? navigate(`/games/domain/${d.id}`) : navigate('/login'))}
+                     style={{
+                       width: 300,
+                       height: 220,
+                       border: isAvailable ? '2.5px solid #f97544' : '2.5px dashed #cdd9e1',
+                       borderRadius: 22,
+                       boxShadow: isAvailable
+                         ? '0 6px 24px rgba(4,37,57,0.08), 0 1.5px 6px rgba(4,37,57,0.07)'
+                         : '0 2px 8px rgba(4,37,57,0.06)',
+                       padding: 24,
+                       background: isAvailable
+                         ? 'linear-gradient(135deg, #fff 60%, #f9f6f3 100%)'
+                         : 'linear-gradient(135deg, #f7f9fb 60%, #eff3f6 100%)',
+                       margin: 8,  
+                       opacity: isAvailable ? 1 : 0.7,
+                       cursor: isAvailable ? 'pointer' : 'default',
+                       position: 'relative',
+                       overflow: 'hidden',
+                       display: 'grid',
+                       gridTemplateRows: '120px 1fr',
+                       alignItems: 'stretch',
+                       justifyItems: 'center',
+                       transition: 'transform 200ms ease, box-shadow 200ms ease',
+                     }}
+                     onMouseEnter={(e) => { if (isAvailable) e.currentTarget.style.transform = 'translateY(-4px)'; }}
+                     onMouseLeave={(e) => { if (isAvailable) e.currentTarget.style.transform = 'translateY(0)'; }}
+                   >
                     <div className={style['icon-title']} style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                       <img src={d.img} alt={d.title} style={{ maxHeight: 72, marginBottom: 6, borderRadius: 12, display: 'block' }} />
                       <h3 style={{ color: isAvailable ? '#f97544' : '#8AA3B5', fontWeight: 800, fontSize: 20, margin: 0, textAlign: 'center', fontFamily: 'Raleway, sans-serif', letterSpacing: 0.5 }}>{d.title}</h3>
@@ -451,161 +392,163 @@ export default function GamesHome() {
 
           {/* If Domain 1 selected, show its 10 games and a header */}
           {selectedDomain === 1 && (
-            <div style={{ width: '100%', paddingTop: 16 }}>
-              <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 8 }}>
-                  <button
-                    onClick={() => { setSelectedDomain(null); setView('games'); }}
-                    style={{ border: 'none', background: 'transparent', color: '#265c7e', cursor: 'pointer', fontWeight: 700, fontFamily: 'Raleway, sans-serif' }}
-                  >
-                    ← All Domains
-                  </button>
-                  <h2 style={{ margin: 0, color: '#265c7e', fontWeight: 800, fontSize: 22, textAlign: 'center', flex: 1, fontFamily: 'Raleway, sans-serif' }}>
-                    Function, Feature & Class games
-                  </h2>
-                  <div style={{ width: 100 }} />
+             <div style={{ width: '100%' }}>
+               <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+                 {/* All Domains button row (styled) placed below the Games/Progress toggle
+                     Use matching vertical spacing so the toggle, button and title are evenly spaced */}
+                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 0 40px ' }}>
+                   <BackToGames to="/games" label="All Domains" />
+                 </div>
+                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 20 }}>
+                    <h2 style={{ margin: 0, color: '#265c7e', fontWeight: 800, fontSize: 22, textAlign: 'center', fontFamily: 'Raleway, sans-serif' }}>
+                      Function, Feature & Class games
+                    </h2>
+                  </div>
                 </div>
-              </div>
 
-              <div
-                className="w-full flex flex-wrap justify-center gap-8 py-6"
-                style={{ background: '#fff', opacity: gamesReveal ? 1 : 0, transform: `translateY(${gamesReveal ? 0 : 8}px)`, transition: 'opacity 320ms ease, transform 360ms ease' }}
-              >
-                {gamesList.map((game) => {
-                  const isLocked = lockedLevels.includes(game.id);
-                  return (
-                    <div
-                      key={game.id}
-                      className={`${style.card} game-card-custom relative group`}
-                      onClick={() => !isLocked && navigate(`/games/${game.id}`)}
-                      style={{
-                        width: 260,
-                        height: 340,
-                        border: isLocked ? '2.5px solid #bbb' : `2.5px solid ${gameColors[game.id] || '#f97544'}`,
-                        borderRadius: 22,
-                        boxShadow: isLocked
-                          ? '0 2px 8px rgba(180,180,180,0.08)'
-                          : '0 6px 24px rgba(4,37,57,0.08), 0 1.5px 6px rgba(4,37,57,0.07)',
-                        padding: 28,
-                        background: isLocked
-                          ? 'linear-gradient(135deg, #f7f7f7 60%, #ededed 100%)'
-                          : 'linear-gradient(135deg, #fff 60%, #f9f6f3 100%)',
-                        margin: 8,
-                        opacity: isLocked ? 0.7 : 1,
-                        pointerEvents: 'auto',
-                        position: 'relative',
-                        overflow: 'hidden',
-                        display: 'grid',
-                        gridTemplateRows: '170px 1fr',
-                        alignItems: 'stretch',
-                        justifyItems: 'center',
-                        transition: 'transform 200ms ease, box-shadow 200ms ease',
-                        cursor: isLocked ? 'default' : 'pointer',
-                        transform: isLocked ? 'none' : 'translateZ(0)',
-                      }}
-                      onMouseEnter={(e) => { if (!isLocked) e.currentTarget.style.transform = 'translateY(-4px)'; }}
-                      onMouseLeave={(e) => { if (!isLocked) e.currentTarget.style.transform = 'translateY(0)'; }}
-                    >
-                      {/* Lock overlay for locked games */}
-                      {isLocked && (
-                        <div style={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          width: '100%',
-                          height: '100%',
-                          background: 'rgba(255,255,255,0.7)',
-                          zIndex: 2,
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}>
-                          <img src="/Games/icons/lock.png" alt="Locked" style={{ width: 48, height: 48, marginBottom: 8, opacity: 0.85 }} />
-                          <span style={{ color: '#888', fontWeight: 600, fontSize: 18 }}>Locked</span>
-                          <button
-                            className="mt-4 px-4 py-2 rounded bg-[#f97544] text-white font-semibold hover:bg-[#265c7e] transition-colors"
-                            style={{ fontSize: 16, marginTop: 16, cursor: 'pointer' }}
-                            onClick={e => { e.stopPropagation(); handlePurchaseClick(game); }}
-                          >
-                            Purchase
-                          </button>
-                        </div>
-                      )}
-                      <div className={style['icon-title']} style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                        <img src={game.img} alt={game.title} style={{ maxHeight: 90, marginBottom: 8, borderRadius: 12, display: 'block', marginLeft: 'auto', marginRight: 'auto' }} />
-                        <h3 style={{ color: isLocked ? '#bbb' : (gameColors[game.id] || '#f97544'), fontWeight: 800, fontSize: 22, margin: 0, textAlign: 'center', fontFamily: 'Raleway, sans-serif', letterSpacing: 0.5 }}>{game.title}</h3>
-                      </div>
-                      <p className={style['card-body']} style={{ marginTop: 10, color: isLocked ? '#bbb' : '#265c7e', fontSize: 16, textAlign: 'center', fontWeight: 500, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{game.description}</p>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </React.Fragment>
+                <div
+                  className="w-full flex flex-wrap justify-center gap-8 py-6"
+                  style={{ background: '#fff', opacity: gamesReveal ? 1 : 0, transform: `translateY(${gamesReveal ? 0 : 8}px)`, transition: 'opacity 320ms ease, transform 360ms ease' }}
+                >
+                  {gamesList.map((game) => {
+                   // Locked now depends ONLY on ownership, not cart presence
+                   const isLocked = lockedLevels.includes(game.id) && !hasBundleOwnership;
+                   return (
+                     <div
+                       key={game.id}
+                       className={`${style.card} game-card-custom relative group`}
+                       onClick={() => !isLocked && (loggedIn ? navigate(`/games/domain/1/${game.id}`, { state: { backTo: selectedDomain ? `/games/domain/${selectedDomain}` : '/games' } }) : navigate('/login'))}
+                        style={{
+                          width: 260,
+                          height: 340,
+                          border: isLocked ? '2.5px solid #bbb' : `2.5px solid ${gameColors[game.id] || '#f97544'}`,
+                          borderRadius: 22,
+                          boxShadow: isLocked
+                            ? '0 2px 8px rgba(180,180,180,0.08)'
+                            : '0 6px 24px rgba(4,37,57,0.08), 0 1.5px 6px rgba(4,37,57,0.07)',
+                          padding: 28,
+                          background: isLocked
+                            ? 'linear-gradient(135deg, #f7f7f7 60%, #ededed 100%)'
+                            : 'linear-gradient(135deg, #fff 60%, #f9f6f3 100%)',
+                          margin: 8,
+                          opacity: isLocked ? 0.7 : 1,
+                          pointerEvents: 'auto',
+                          position: 'relative',
+                          overflow: 'hidden',
+                          display: 'grid',
+                          gridTemplateRows: '170px 1fr',
+                          alignItems: 'stretch',
+                          justifyItems: 'center',
+                          transition: 'transform 200ms ease, box-shadow 200ms ease',
+                          cursor: isLocked ? 'default' : 'pointer',
+                          transform: isLocked ? 'none' : 'translateZ(0)',
+                        }}
+                        onMouseEnter={(e) => { if (!isLocked) e.currentTarget.style.transform = 'translateY(-4px)'; }}
+                        onMouseLeave={(e) => { if (!isLocked) e.currentTarget.style.transform = 'translateY(0)'; }}
+                      >
+                       {/* Lock overlay for locked games */}
+                       {isLocked && (
+                         <div style={{
+                           position: 'absolute',
+                           top: 0,
+                           left: 0,
+                           width: '100%',
+                           height: '100%',
+                           background: 'rgba(255,255,255,0.7)',
+                           zIndex: 2,
+                           display: 'flex',
+                           flexDirection: 'column',
+                           alignItems: 'center',
+                           justifyContent: 'center',
+                         }}>
+                           <img src="/Games/icons/lock.png" alt="Locked" style={{ width: 48, height: 48, marginBottom: 8, opacity: 0.85 }} />
+                           <span style={{ color: '#888', fontWeight: 600, fontSize: 18 }}>Locked</span>
+                           <button
+                             className="mt-4 px-4 py-2 rounded bg-[#f97544] text-white font-semibold hover:bg-[#265c7e] transition-colors"
+                             style={{ fontSize: 16, marginTop: 16, cursor: 'pointer' }}
+                             onClick={e => { e.stopPropagation(); handlePurchaseClick(game); }}
+                           >
+                             Purchase
+                           </button>
+                         </div>
+                       )}
+                       <div className={style['icon-title']} style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                         <img src={game.img} alt={game.title} style={{ maxHeight: 90, marginBottom: 8, borderRadius: 12, display: 'block', marginLeft: 'auto', marginRight: 'auto' }} />
+                         <h3 style={{ color: isLocked ? '#bbb' : (gameColors[game.id] || '#f97544'), fontWeight: 800, fontSize: 22, margin: 0, textAlign: 'center', fontFamily: 'Raleway, sans-serif', letterSpacing: 0.5 }}>{game.title}</h3>
+                       </div>
+                       <p className={style['card-body']} style={{ marginTop: 10, color: isLocked ? '#bbb' : '#265c7e', fontSize: 16, textAlign: 'center', fontWeight: 500, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{game.description}</p>
+                     </div>
+                   );
+                 })}
+               </div>
+             </div>
+           )}
+          </React.Fragment>
       )}
-			{/* Purchase Modal */}
-			{modalOpen && (
+
+      {/* Purchase Modal (restyled) */}
+      {modalOpen && (
 				<div
-					style={{
-						position: 'fixed',
-						top: 0,
-						left: 0,
-						width: '100vw',
-						height: '100vh',
-						background: 'rgba(0,0,0,0.35)',
-						zIndex: 1000,
-						display: 'flex',
-						alignItems: 'center',
-						justifyContent: 'center',
-					}}
-					onClick={() => setModalOpen(false)}
+					role="dialog"
+					aria-modal="true"
+					aria-labelledby="purchase-modal-title"
+					aria-describedby="purchase-modal-desc"
+					onClick={handleCloseModal}
+					style={{ position: 'fixed', inset: 0, background: 'rgba(15,30,44,0.65)', backdropFilter: 'blur(5px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, overflowY: 'auto', padding: '32px 18px' }}
 				>
 					<div
+						onClick={(e) => e.stopPropagation()}
 						style={{
-							background: '#fff',
-							borderRadius: 18,
-							boxShadow: '0 8px 32px rgba(4,37,57,0.18)',
-							padding: 32,
-							minWidth: 320,
-							maxWidth: 400,
-							position: 'relative',
-							display: 'flex',
-							flexDirection: 'column',
-							alignItems: 'center',
-              transform: 'scale(1)',
-              animation: 'popIn 200ms ease'
+							width: '100%', maxWidth: 560, borderRadius: 24, position: 'relative',
+							fontFamily: 'Fredoka One, sans-serif', // unified game font
+							background: 'linear-gradient(135deg,#ffffff 0%,#fff8f5 50%,#ffece6 100%)', // soft light gradient
+							boxShadow: '0 20px 50px -12px rgba(4,37,57,0.32), 0 4px 16px rgba(4,37,57,0.16)',
+							padding: '42px 46px 48px',
+							display: 'flex', flexDirection: 'column', gap: 34,
 						}}
-						onClick={e => e.stopPropagation()}
 					>
-						<img src="/Games/icons/lock.png" alt="Locked" style={{ width: 56, height: 56, marginBottom: 12, opacity: 0.9 }} />
-						<h2 style={{ color: '#f97544', fontWeight: 700, fontSize: 24, marginBottom: 8, textAlign: 'center' }}>
-							Unlock All Games!
-						</h2>
-						<ul style={{ color: '#265c7e', fontSize: 16, marginBottom: 16, textAlign: 'left', paddingLeft: 20 }}>
-							{GAMES_BUNDLE_BENEFITS.map((b, i) => (
-								<li key={i} style={{ marginBottom: 4 }}>{b}</li>
-							))}
-						</ul>
-						<div style={{ fontWeight: 600, fontSize: 20, color: '#265c7e', marginBottom: 18 }}>
-							Price: <span style={{ color: '#f97544' }}>${GAMES_BUNDLE_PRICE}</span>
+						<div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'none' }} />
+
+						<header style={{ textAlign: 'center', padding: '0 6px' }}>
+							<h3 id="purchase-modal-title" style={{ margin: 0, fontSize: 36, fontWeight: 900, letterSpacing: 0.5, color: '#f9644d', textShadow: '0 1px 4px rgba(4,37,57,0.10)' }}>{GAMES_BUNDLE_TITLE}</h3>
+							<p id="purchase-modal-desc" style={{ margin: '14px auto 0', maxWidth: 520, fontSize: 19, lineHeight: 1.45, fontWeight: 600, color: '#265c7e' }}>Unlock levels 3–10 permanently. One purchase, lifetime access.</p>
+						</header>
+
+						<section>
+							<ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 16 }}>
+								{GAMES_BUNDLE_BENEFITS.map((b,i) => (
+									<li key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, background: '#fafafa', padding: '14px 18px', borderRadius: 18, border: '2px solid #f3c9b8', boxShadow: '0 2px 6px rgba(4,37,57,0.06)' }}>
+										<span style={{ width: 34, height: 34, borderRadius: 12, background: '#f97544', color: '#fff', fontSize: 18, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(249,117,68,0.32)' }}>{i+1}</span>
+										<span style={{ fontSize: 17, fontWeight: 600, color: '#265c7e', lineHeight: 1.35 }}>{b}</span>
+									</li>
+								))}
+							</ul>
+						</section>
+
+						<div style={{ textAlign: 'center', display: 'grid', gap: 20 }}>
+							<div style={{ fontSize: 19, fontWeight: 700, color: '#265c7e' }}>Price <span style={{ color: '#f9644d', fontSize: 34, fontWeight: 900 }}>${GAMES_BUNDLE_PRICE.toFixed(2)}</span></div>
+							{!hasBundleOwnership && !bundleInCart && (
+								<button
+									onClick={handleAddToCart}
+									style={{ margin: '0 auto', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 12, padding: '18px 42px', borderRadius: 26, border: '3px solid #f3c9b8', background: 'linear-gradient(135deg,#ffffff,#fff8f3)', color: '#f9644d', fontSize: 22, fontWeight: 900, cursor: 'pointer', boxShadow: '0 8px 18px rgba(4,37,57,0.12), 0 1px 3px rgba(4,37,57,0.15)', transition: 'all 150ms ease' }}
+									onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
+									onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
+									>Add Bundle to Cart</button>
+							)}
+							{bundleInCart && !hasBundleOwnership && (
+								<div style={{ fontSize: 17, fontWeight: 700, color: '#f9644d' }}>Bundle added to cart. Complete checkout to unlock.</div>
+							)}
+							{hasBundleOwnership && (
+								<div style={{ fontSize: 18, fontWeight: 700, color: '#57c785' }}>Bundle owned ✔ All games unlocked</div>
+							)}
+							<button
+								onClick={handleCloseModal}
+								style={{ margin: '2px auto 0', background: 'transparent', border: 'none', color: '#265c7e', fontSize: 16, fontWeight: 600, cursor: 'pointer', textDecoration: 'underline', opacity: 0.85 }}
+								onMouseEnter={(e) => { e.currentTarget.style.opacity = 1; }}
+								onMouseLeave={(e) => { e.currentTarget.style.opacity = 0.85; }}
+							>Maybe Later</button>
+							{/* Removed redundant unlock notice */}
 						</div>
-						<button
-							className="px-6 py-2 rounded bg-[#f97544] text-white font-semibold hover:bg-[#265c7e] transition-colors"
-							style={{ fontSize: 18, marginBottom: 8, cursor: bundleInCart ? 'not-allowed' : 'pointer', opacity: bundleInCart ? 0.7 : 1 }}
-							onClick={handleAddToCart}
-							disabled={bundleInCart}
-						>
-							{bundleInCart ? 'Already in Cart' : 'Add to Cart'}
-						</button>
-						<button
-							className="mt-2 text-[#265c7e] underline hover:text-[#f97544]"
-							style={{ fontSize: 15, background: 'none', border: 'none', cursor: 'pointer' }}
-							onClick={() => setModalOpen(false)}
-						>
-							Cancel
-						</button>
 					</div>
 				</div>
 			)}

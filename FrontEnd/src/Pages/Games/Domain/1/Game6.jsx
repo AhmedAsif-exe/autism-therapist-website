@@ -4,6 +4,7 @@ import { styled } from "@mui/material/styles";
 import { buildSummaryUI } from "./SummaryUI";
 import { getDimOverlayStyle } from "./GameTheme";
 import { QUESTIONS_PER_RUN } from "./GameConfig";
+import GameLoadingScreen from './GameLoadingScreen';
 
 // Use QuestionUtils for dataset and preloading
 import {
@@ -13,6 +14,8 @@ import {
   pickItemsFromType,
 } from "./QuestionUtils";
 import { getAllClassAssets, convertToGame6Format } from "./AssetClassMapping";
+import BackToGames from './BackToGames';
+import { useGameAccessGuard } from './useGameAccessGuard';
 
 // Game 6 — MCQ Clickable Classes (Select-All by class)
 // - Show a class (e.g., Vehicles) and 8 item images
@@ -181,12 +184,20 @@ const GameBoard = styled(Paper)(({ theme }) => ({
 }));
 
 export function Game6() {
+  const { allowed, checking } = useGameAccessGuard(1);
   const containerRef = useRef();
   const phaserRef = useRef();
   const resizeObserverRef = useRef();
   const listenersRef = useRef({ update: null });
 
   useLayoutEffect(() => {
+    // If still checking, or not allowed, ensure any existing instance is torn down and exit.
+    if (checking) return; // wait until guard resolved
+    if (!allowed) {
+      try { resizeObserverRef.current?.disconnect(); } catch {}
+      try { phaserRef.current?.destroy(true); } catch {}
+      return; // do not initialize Phaser
+    }
     let mounted = true;
     const container = containerRef.current;
     if (!container) return;
@@ -872,18 +883,12 @@ export function Game6() {
 
         showRound() {
           if (this.roundIndex >= this.rounds.length) {
-            // Save perfect rounds to history and show summary
-            let hist = [];
-            try {
-              hist = JSON.parse(localStorage.getItem("game6_history") || "[]");
-            } catch (e) {
-              hist = [];
-            }
-            hist.push(this.correctFirstTry);
-            localStorage.setItem(
-              "game6_history",
-              JSON.stringify(hist.slice(-20))
-            );
+            // Save score to database instead of localStorage
+            import('Utils/ProgressTracker').then(({ recordSession }) => {
+              recordSession(6, this.correctFirstTry).catch(error => {
+                console.error('Error saving score for Game 6:', error);
+              });
+            });
 
             this.scene.start("SummaryScene", {
               correct: this.correctFirstTry,
@@ -1125,14 +1130,16 @@ export function Game6() {
         constructor() {
           super({ key: "SummaryScene" });
         }
-        init(data) {
+        async init(data) {
           this.correct = data.correct || 0;
           this.total = data.total || 0;
+          
+          // Load history from database instead of localStorage
           try {
-            this.history = JSON.parse(
-              localStorage.getItem("game6_history") || "[]"
-            );
+            const { getLastNSessions } = await import('Utils/ProgressTracker');
+            this.history = await getLastNSessions(6, 20);
           } catch (e) {
+            console.error('Error loading game history:', e);
             this.history = [];
           }
           this.localHistory = this.history.slice(-5);
@@ -1240,24 +1247,28 @@ export function Game6() {
           window.visualViewport.removeEventListener("resize", fn);
         window.removeEventListener("resize", fn);
       }
-      phaserRef.current?.destroy(true);
+      try { phaserRef.current?.destroy(true); } catch {}
     };
-  }, []);
+  }, [checking, allowed]);
+
+  // After hooks: handle conditional rendering
+  if (checking) return <GameLoadingScreen />;
+  if (!allowed) return null;
 
   return (
     <div>
       <GameContainer>
-        {/* Place board fully below fixed navbar and prevent scrollbars */}
-        <div
-          className="w-full flex justify-center items-center"
-          style={{
-            height: "calc(100vh - 96px)",
-            marginTop: "96px",
-            overflow: "hidden",
-            boxSizing: "border-box",
-          }}
-        >
-          <GameBoard ref={containerRef} />
+        <div className="pt-24 w-full flex justify-center items-center">
+          <div style={{ width: '100%', maxWidth: 1100, margin: '0 auto', padding: '0 12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 28 }}>
+              <BackToGames />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <div style={{ width: '100%', maxWidth: '1000px', minWidth: '280px' }}>
+                <GameBoard ref={containerRef} />
+              </div>
+            </div>
+          </div>
         </div>
       </GameContainer>
     </div>

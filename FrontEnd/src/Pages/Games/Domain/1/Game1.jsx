@@ -11,6 +11,7 @@ import { FUNCTION_ASSET_MAPPINGS, getAllFunctions, getAssetsForFunction } from '
 import { pickMCQUniqueForType } from './QuestionUtils';
 import { getDimOverlayStyle } from './GameTheme';
 import { QUESTIONS_PER_RUN } from './GameConfig';
+import BackToGames from './BackToGames';
 
 // Generate questions from function mappings
 function generateQuestions() {
@@ -438,14 +439,12 @@ export function ReceptiveFunctionGame() {
         showQuestion() {
           // Remove noisy logs
           if (this.qIndex >= QUESTIONS_PER_RUN) { // End after configured number of questions
-            let h = [];
-            try {
-              h = JSON.parse(localStorage.getItem('game1_history') || '[]');
-            } catch (e) {
-              h = [];
-            }
-            h.push(this.totalCorrect);
-            localStorage.setItem('game1_history', JSON.stringify(h.slice(-20)));
+            // Save score to database instead of localStorage
+            import('Utils/ProgressTracker').then(({ recordSession }) => {
+              recordSession(1, this.totalCorrect).catch(error => {
+                console.error('Error saving score for Game 1:', error);
+              });
+            });
 
             this.scene.start('SummaryScene', {
               correct: this.totalCorrect,
@@ -635,13 +634,16 @@ export function ReceptiveFunctionGame() {
           super({ key: 'SummaryScene' });
         }
 
-        init(data) {
+        async init(data) {
           this.correct = data.correct || 0;
           this.total = data.total || 0;
           
+          // Load history from database instead of localStorage
           try {
-            this.history = JSON.parse(localStorage.getItem('game1_history') || '[]');
+            const { getLastNSessions } = await import('Utils/ProgressTracker');
+            this.history = await getLastNSessions(1, 20);
           } catch (e) {
+            console.error('Error loading game history:', e);
             this.history = [];
           }
           
@@ -743,12 +745,17 @@ export function ReceptiveFunctionGame() {
   return (
     <div>
       <GameContainer>
-        {/* Make sure the Phaser board fits fully within the viewport without scrollbars */}
-        <div
-          className="w-full flex justify-center items-center"
-          style={{ paddingTop: '2rem', overflow: 'hidden' }}
-        >
-          <GameBoard ref={containerRef} />
+        <div className="pt-24 w-full flex justify-center items-center">
+          <div style={{ width: '100%', maxWidth: 1100, margin: '0 auto', padding: '0 12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 28 }}>
+              <BackToGames />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <div style={{ width: '100%', maxWidth: '1000px', minWidth: '280px' }}>
+                <GameBoard ref={containerRef} />
+              </div>
+            </div>
+          </div>
         </div>
       </GameContainer>
     </div>

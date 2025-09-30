@@ -6,6 +6,9 @@ import { getAllClasses, getAssetsForClass } from './AssetClassMapping';
 import { getAllFunctions, getAssetsForFunction } from './AssetFunctionMapping';
 import { getAllFeatures, getAssetsForFeature } from './AssetFeatureMapping';
 import { pickItemsFromType, getAllIconKeys as getPreloadIconKeys, getAllKeysForType, itemsFor } from './QuestionUtils';
+import BackToGames from './BackToGames';
+import { useGameAccessGuard } from './useGameAccessGuard';
+import GameLoadingScreen from './GameLoadingScreen';
 
 // Game 10 — Random Rotation (Time Trial)
 // Mix of question types from Games 1–9. Answer as many as possible before the timer ends.
@@ -132,11 +135,19 @@ const GameBoard = styled(Paper)(({ theme }) => ({
 }));
 
 export function Game10() {
+  const { allowed, checking } = useGameAccessGuard(1);
   const containerRef = useRef();
   const phaserRef = useRef();
   const resizeObserverRef = useRef();
 
   useLayoutEffect(() => {
+    // If still checking, or not allowed, ensure any existing instance is torn down and exit.
+    if (checking) return; // wait until guard resolved
+    if (!allowed) {
+      try { resizeObserverRef.current?.disconnect(); } catch {}
+      try { phaserRef.current?.destroy(true); } catch {}
+      return; // do not initialize Phaser
+    }
     let mounted = true;
     const container = containerRef.current;
     if (!container) return;
@@ -289,6 +300,22 @@ export function Game10() {
           this.drawTimer();
           this.positionTopBar();
           this.positionPrompt();
+          // Capture initial layout snapshot to avoid first-frame jump after assets load
+          this._initialLayoutApplied = true;
+          this._lockInitialPositions = () => {
+            try {
+              if (this._initialLayoutApplied) {
+                // Freeze current prompt & button positions as baseline
+                this._frozenTopY = {
+                  score: this.scoreText?.y,
+                  help: this.helpBtn?.y,
+                  audio: this.audioBtn?.y,
+                  prompt: this.promptText?.y,
+                };
+              }
+            } catch {}
+          };
+          this._lockInitialPositions();
 
           // Resize handling
           this.onResizeHandler = () => {
@@ -450,10 +477,12 @@ export function Game10() {
         }
 
         endSession() {
-          try {
-            let hist = []; try { hist = JSON.parse(localStorage.getItem('game10_history') || '[]'); } catch {}
-            hist.push(this.score); localStorage.setItem('game10_history', JSON.stringify(hist.slice(-20)));
-          } catch {}
+          // Save score to database instead of localStorage
+          import('Utils/ProgressTracker').then(({ recordSession }) => {
+            recordSession(10, this.score).catch(error => {
+              console.error('Error saving score for Game 10:', error);
+            });
+          });
           this.scene.start('SummaryScene', { score: this.score });
         }
 
@@ -615,7 +644,11 @@ export function Game10() {
             const minCss2 = Math.min(wC2, hC2); const imgCss2 = Math.max(100, Math.min(minCss2 * 0.34, safeH2 / d2 * 0.45));
             img.setPosition(W2/2, safeTop2 + safeH2 * 0.34); img.setDisplaySize(Math.round(imgCss2 * d2), Math.round(imgCss2 * d2)); baseScaleX = img.scaleX; baseScaleY = img.scaleY;
 
-            const cellW2 = safeW2 * 0.25; const gap2 = Math.max(this.px(8), (safeW2 - (cellW2 * 3)) / 4); const y2 = Math.min(safeBottom2 - this.px(42), (safeTop2 + safeH2 * 0.76)); const startX2 = safeLeft2 + gap2 + cellW2 / 2;
+            // ensure cellW2 and gap2 are declared here to avoid no-undef
+            const cellW2 = safeW2 * 0.25;
+            const gap2 = Math.max(this.px(8), (safeW2 - (cellW2 * 3)) / 4);
+            const y2 = Math.min(safeBottom2 - this.px(42), (safeTop2 + safeH2 * 0.76));
+            const startX2 = safeLeft2 + (gap2 + cellW2 / 2);
 
             // Refit text to new width and recompute uniform height
             buttons.forEach((b) => { if (!b || !b.text || !b.text.scene) return; b.text.setFontSize(Math.round(optFontCss * d2)); try { b.text.setResolution(d2); } catch {} const maxW = cellW2 - padX * 2; const scale = maxW / Math.max(1, b.text.width); if (scale < 1) { let newPx = Math.max(Math.round(12 * d2), Math.floor((optFontCss * d2) * scale)); b.text.setFontSize(newPx); let guard = 0; while (b.text.width > maxW && newPx > Math.round(12 * d2) && guard < 8) { newPx -= 1; b.text.setFontSize(newPx); guard++; } } });
@@ -795,7 +828,7 @@ export function Game10() {
           try { zoneLabel.setResolution(dpr); } catch {}
           const zoneRect = new PhaserGame.Geom.Rectangle(zoneX - zoneW/2, zoneY - zoneH/2, zoneW, zoneH);
 
-          const items = []; let placed = 0; const need = round.items.filter(i => i.correct).length;
+          const items = []; const placedItems = []; const need = round.items.filter(i => i.correct).length;
 
           const makeDraggable = (x, y, imageKey, correct) => {
             const img = this.add.image(0,0,imageKey).setOrigin(0.5); img.setDisplaySize(size*0.78, size*0.78);
@@ -806,22 +839,32 @@ export function Game10() {
             ct.on('drag', (pointer, dragX, dragY) => { ct.x = dragX; ct.y = dragY; });
             ct.on('dragend', () => {
               const cx = ct.x, cy = ct.y;
-              if (PhaserGame.Geom.Rectangle.Contains(zoneRect, cx, cy)) {
-                if (correct && !ct.meta.inZone) {
-                  ct.meta.inZone = true; placed += 1; this.tweens.add({ targets: ct, scale: 1, duration: 150 });
-                  // Snap into zone on a simple grid
-                  const col = (placed - 1) % 5; const row = Math.floor((placed - 1) / 5);
-                  const cellW = Math.min(size * 0.9, zoneW / 6); const cellH = Math.min(size * 0.9, zoneH / 3);
-                  const offsetX = (col - 2) * (cellW * 1.1);
-                  const offsetY = (row - 0) * (cellH * 1.1) - cellH * 0.4;
-                  this.tweens.add({ targets: ct, x: zoneX + offsetX, y: zoneY + offsetY, duration: 220, ease: 'Sine.easeOut' });
-                  if (placed >= need) { this.playSfx(choice(this.correctAudioFiles)); this.score += 1; this.scoreText.setText(String(this.score)); this.time.delayedCall(600, () => this.nextRound()); }
+              const wasInZone = ct.meta.inZone;
+              const inNow = PhaserGame.Geom.Rectangle.Contains(zoneRect, cx, cy);
+              if (inNow) {
+                if (correct) {
+                  if (!ct.meta.inZone) { // newly added
+                    ct.meta.inZone = true;
+                    placedItems.push(ct);
+                  }
+                  // Always layout (allows re-drop after removal)
+                  this.tweens.add({ targets: ct, scale: 1, duration: 150 });
+                  layoutPlacedItems();
+                  if (placedItems.length >= need) { this.playSfx(choice(this.correctAudioFiles)); this.score += 1; this.scoreText.setText(String(this.score)); this.time.delayedCall(600, () => this.nextRound()); }
                 } else {
-                  // Wrong item dropped
-                  this.playSfx(choice(this.wrongAudioFiles)); this.tweens.add({ targets: ct, x: '+=6', duration: 60, yoyo: true, repeat: 2, onComplete: () => { this.tweens.add({ targets: ct, x: ct.meta.homeX, y: ct.meta.homeY, duration: 200, ease: 'Sine.easeOut' }); } });
+                  // Wrong item dropped inside zone
+                  this.playSfx(choice(this.wrongAudioFiles));
+                  this.tweens.add({ targets: ct, x: '+=6', duration: 60, yoyo: true, repeat: 2, onComplete: () => { this.tweens.add({ targets: ct, x: ct.meta.homeX, y: ct.meta.homeY, duration: 200, ease: 'Sine.easeOut' }); this.tweens.add({ targets: ct, scale: 1, duration: 150 }); } });
                 }
               } else {
-                // Return home
+                // Dropped outside the zone
+                if (wasInZone) {
+                  // Remove from placed collection and reflow others
+                  ct.meta.inZone = false;
+                  const idx = placedItems.indexOf(ct);
+                  if (idx >= 0) placedItems.splice(idx, 1);
+                  layoutPlacedItems();
+                }
                 this.tweens.add({ targets: ct, scale: 1, duration: 150 });
                 this.tweens.add({ targets: ct, x: ct.meta.homeX, y: ct.meta.homeY, duration: 200, ease: 'Sine.easeOut' });
               }
@@ -829,15 +872,29 @@ export function Game10() {
             return ct;
           };
 
+          // Helper to (re)layout placed correct items in the zone grid
+          const layoutPlacedItems = () => {
+            placedItems.forEach((c, idx) => {
+              if (!c || !c.scene) return;
+              const col = idx % 5; const row = Math.floor(idx / 5);
+              const cellW = Math.min(size * 0.9, zoneW / 6); const cellH = Math.min(size * 0.9, zoneH / 3);
+              const offsetX = (col - 2) * (cellW * 1.1);
+              const offsetY = (row - 0) * (cellH * 1.1) - cellH * 0.4;
+              this.tweens.add({ targets: c, x: zoneX + offsetX, y: zoneY + offsetY, duration: 220, ease: 'Sine.easeOut' });
+            });
+          };
+
           round.items.forEach((it, idx) => { const x = startX + idx * (areaW / count); items.push(makeDraggable(x, centerY, it.img, it.correct)); });
 
           this.layoutRound = () => {
-            const W2 = this.scale.width; const H2 = this.scale.height; const safeLeft2 = this.px(16); const safeRight2 = W2 - this.px(16); const safeTop2 = Math.max((this.promptText ? (this.promptText.y + this.promptText.height / 2) : 0), (this._timerMeta && this._timerMeta.barH != null) ? (this._timerMeta.y + this._timerMeta.barH / 2) : 0, this.helpBtn ? (this.helpBtn.y + this.helpBtn.meta.height / 2) : 0, this.audioBtn ? (this.audioBtn.y + this.audioBtn.meta.height / 2) : 0) + this.px(12); const safeBottom2 = H2 - this.px(16); const safeW2 = Math.max(0, safeRight2 - safeLeft2); const safeH2 = Math.max(0, safeBottom2 - safeTop2); const areaW2 = safeW2 * 0.96; const centerY2 = safeTop2 + safeH2 * 0.40; const startX2 = safeLeft2 + (areaW2 / count) * 0.5;
+            const W2 = this.scale.width; const H2 = this.scale.height; const safeLeft2 = this.px(16); const safeRight2 = W2 - this.px(16); const safeTop2 = Math.max((this.promptText ? (this.promptText.y + this.promptText.height / 2) : 0), (this._timerMeta && this._timerMeta.barH != null) ? (this._timerMeta.y + this._timerMeta.barH / 2) : 0, this.helpBtn ? (this.helpBtn.y + this.helpBtn.meta.height / 2) : 0, this.audioBtn ? (this.audioBtn.y + this.audioBtn.meta.height / 2) : 0) + this.px(12); const safeBottom2 = H2 - this.px(16); const safeW2 = Math.max(0, safeRight2 - safeLeft2); const safeH2 = Math.max(0, safeBottom2 - safeTop2); const areaW2 = safeW2 * 0.96; const centerY2 = safeTop2 + safeH2 * 0.5; const startX2 = safeLeft2 + (areaW2 / count) * 0.5;
             let zoneW2 = Math.min(W2 * 0.7, W2 - this.px(80)); let zoneH2 = Math.max(this.px(100), Math.min(this.px(180), H2 * 0.22)); let zoneY2 = safeBottom2 - this.px(70) - zoneH2/2; const zoneX2 = W2/2;
+            zoneW = zoneW2; zoneH = zoneH2; zoneY = zoneY2; // update live metrics used by layoutPlacedItems
             zoneG.clear(); zoneG.fillStyle(0xffffff, 0.25); zoneG.fillRoundedRect(zoneX2 - zoneW2/2, zoneY2 - zoneH2/2, zoneW2, zoneH2, this.px(14)); zoneG.lineStyle(this.px(4), 0x042539, 1); zoneG.strokeRoundedRect(zoneX2 - zoneW2/2, zoneY2 - zoneH2/2, zoneW2, zoneH2, this.px(14));
             zoneLabel.setPosition(zoneX2, zoneY2);
             PhaserGame.Geom.Rectangle.SetTo(zoneRect, zoneX2 - zoneW2/2, zoneY2 - zoneH2/2, zoneW2, zoneH2);
             items.forEach((c, i) => { if (!c || !c.scene) return; if (!c.meta.inZone) { c.meta.homeX = startX2 + i * (areaW2 / count); c.meta.homeY = centerY2; this.tweens.add({ targets: c, x: c.meta.homeX, y: c.meta.homeY, duration: 200, ease: 'Sine.easeOut' }); } });
+            layoutPlacedItems();
           };
 
           this.activeRoundCleanup = () => { [zoneG, zoneLabel].forEach(el => { try { el.destroy(); } catch {} }); items.forEach(c => { try { c.destroy(); } catch {} }); };
@@ -846,7 +903,19 @@ export function Game10() {
 
       class SummaryScene extends PhaserGame.Scene {
         constructor() { super({ key: 'SummaryScene' }); }
-        init(data) { this.score = (data && (data.score ?? data.correct)) || 0; try { this.history = JSON.parse(localStorage.getItem('game10_history') || '[]'); } catch (e) { this.history = []; } this.localHistory = this.history.slice(-5); }
+        async init(data) { 
+          this.score = (data && (data.score ?? data.correct)) || 0; 
+          
+          // Load history from database instead of localStorage
+          try {
+            const { getLastNSessions } = await import('Utils/ProgressTracker');
+            this.history = await getLastNSessions(10, 20);
+          } catch (e) {
+            console.error('Error loading game history:', e);
+            this.history = [];
+          }
+          this.localHistory = this.history.slice(-5); 
+        }
         preload() { this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js'); }
         create() {
           const W = this.scale.width; const H = this.scale.height;
@@ -898,14 +967,31 @@ export function Game10() {
       phaserRef.current.events?.once?.('destroy', cleanup);
     });
 
-    return () => { mounted = false; resizeObserverRef.current?.disconnect(); phaserRef.current?.destroy(true); };
-  }, []);
+    return () => {
+      mounted = false;
+      try { resizeObserverRef.current?.disconnect(); } catch {}
+      try { phaserRef.current?.destroy(true); } catch {}
+    };
+  }, [checking, allowed]);
+
+  // After hooks: handle conditional rendering
+  if (checking) return <GameLoadingScreen />;
+  if (!allowed) return null;
 
   return (
     <div>
       <GameContainer>
         <div className="pt-24 w-full flex justify-center items-center">
-          <GameBoard ref={containerRef} />
+          <div style={{ width: '100%', maxWidth: 1100, margin: '0 auto', padding: '0 12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 28 }}>
+              <BackToGames />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <div style={{ width: '100%', maxWidth: '1000px', minWidth: '280px' }}>
+                <GameBoard ref={containerRef} />
+              </div>
+            </div>
+          </div>
         </div>
       </GameContainer>
     </div>
