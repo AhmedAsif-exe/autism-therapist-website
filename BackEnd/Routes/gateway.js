@@ -2,6 +2,21 @@ const express = require("express");
 const paypal = require("@paypal/checkout-server-sdk");
 const User = require("../Schema/User");
 const router = express.Router();
+const cron = require("node-cron");
+
+cron.schedule("0 0 * * *", async () => {
+  // Runs every day at midnight
+  const users = await User.find();
+  const oneYear = 365 * 24 * 60 * 60 * 1000;
+  const now = Date.now();
+
+  for (const user of users) {
+    user.paidItems = user.paidItems.filter(
+      (item) => now - new Date(item.purchasedAt).getTime() < oneYear
+    );
+    await user.save();
+  }
+});
 
 function ensureAuth(req, res, next) {
   if (req.isAuthenticated && req.isAuthenticated()) {
@@ -93,23 +108,31 @@ router.post("/create-order", ensureAuth, async (req, res) => {
 router.post("/callback", async (req, res) => {
   console.log(req.body);
   const { cart, user } = req.body;
+
   if (!cart?.length || !user) {
     return res.status(400).json({ error: "Cart and user are required." });
   }
+
   try {
     const userInfo = await User.findById(user._id);
 
-    const newItemIds = cart.map((item) => item.id);
+    // Filter out already owned items
+    const existingIds = userInfo.paidItems.map((item) => item.id);
 
-    const updatedPaidItems = [
-      ...new Set([...userInfo.paidItems, ...newItemIds]),
-    ];
-    console.log(userInfo);
-    userInfo.paidItems = updatedPaidItems;
+    const newItems = cart
+      .filter((item) => !existingIds.includes(item.id))
+      .map((item) => ({
+        id: item.id,
+        purchasedAt: new Date(),
+      }));
+
+    userInfo.paidItems.push(...newItems);
     await userInfo.save();
+
     res.status(200).json({ message: "Paid items updated successfully" });
   } catch (e) {
-    console.log(e);
+    console.error(e);
+    res.status(500).json({ error: "Something went wrong" });
   }
 });
 

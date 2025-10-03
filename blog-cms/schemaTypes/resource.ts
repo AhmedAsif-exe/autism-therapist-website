@@ -1,0 +1,64 @@
+import {defineType, defineField} from 'sanity'
+import type {StringRule, NumberRule} from 'sanity'
+
+export default defineType({
+  name: 'resource',
+  title: 'Resource',
+  type: 'document',
+  fields: [
+    defineField({
+      name: 'title',
+      title: 'Title',
+      type: 'string',
+      validation: (rule: StringRule) => rule.required(),
+    }),
+    defineField({
+      name: 'category',
+      title: 'Category',
+      type: 'string',
+      options: {
+        list: [
+          {title: 'Downloadable', value: 'Downloadable'},
+          {title: 'Training', value: 'Training'},
+        ],
+        layout: 'radio',
+      },
+    }),
+    defineField({
+      name: 'type',
+      title: 'Type',
+      type: 'string',
+      options: {
+        list: [
+          {title: 'PDF', value: 'PDF'},
+          {title: 'PPT', value: 'PPT'},
+          {title: 'Short Video', value: 'Short Video'},
+          {title: 'Long Video', value: 'Long Video'},
+        ],
+      },
+    }),
+    defineField({
+      name: 'price',
+      title: 'Price (USD)',
+      type: 'number',
+      validation: (rule: NumberRule) => rule.min(0),
+    }),
+    defineField({
+      name: 'url',
+      title: 'File/Video URL',
+      type: 'string',
+      description: 'Cloud storage link, PayPal item ID, or video identifier',
+    }),
+    defineField({
+      name: 'image',
+      title: 'Preview Image',
+      type: 'url',
+      description: 'Direct link to preview image (e.g., CDN or S3)',
+    }),
+    defineField({
+      name: 'description',
+      title: 'Description',
+      type: 'text',
+    }),
+  ],
+})

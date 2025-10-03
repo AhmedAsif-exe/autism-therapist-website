@@ -6,7 +6,12 @@ const userSchema = new mongoose.Schema({
   password: String,
   name: String,
   pfp: { type: String, default: null }, // URL to profile picture (e.g., from Google)
-  paidItems: [{ type: String, default: null }],
+  paidItems: [
+    {
+      id: String,
+      purchasedAt: { type: Date, default: Date.now },
+    },
+  ],
 });
 
 module.exports = mongoose.model("User", userSchema);
