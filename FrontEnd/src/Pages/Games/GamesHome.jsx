@@ -255,7 +255,7 @@ export default function GamesHome() {
   const bundleInCart = cart.some((item) => item.id === GAMES_BUNDLE_ID);
   // Derive ownership from server-provided paidItems
   const hasBundleOwnership =
-    Array.isArray(user?.paidItems) && user.paidItems.includes(GAMES_BUNDLE_ID);
+    Array.isArray(user?.paidItems) && user.paidItems.some(item => item?.id === GAMES_BUNDLE_ID);
 
   const handlePurchaseClick = (game) => {
     setModalLockedGame(game);

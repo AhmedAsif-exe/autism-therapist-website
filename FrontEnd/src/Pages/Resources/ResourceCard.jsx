@@ -42,7 +42,7 @@ export default function ResourceCard({ resource, category }) {
   const bundleInCart = cart.some((item) => item.id === resource.id);
   // Derive ownership from server-provided paidItems
   const hasBundleOwnership =
-    Array.isArray(user?.paidItems) && user.paidItems.includes(resource.id);
+    Array.isArray(user?.paidItems) && user.paidItems.some(item => item?.id === resource.id);
 
   const handlePurchaseClick = (game) => {
     setModalLockedGame(game);
