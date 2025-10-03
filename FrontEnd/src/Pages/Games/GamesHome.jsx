@@ -630,7 +630,7 @@ export default function GamesHome() {
                         boxShadow: isLocked
                           ? "0 2px 8px rgba(180,180,180,0.08)"
                           : "0 6px 24px rgba(4,37,57,0.08), 0 1.5px 6px rgba(4,37,57,0.07)",
-                        padding: 28,
+                        padding: 20,
                         background: isLocked
                           ? "linear-gradient(135deg, #f7f7f7 60%, #ededed 100%)"
                           : "linear-gradient(135deg, #fff 60%, #f9f6f3 100%)",
@@ -639,10 +639,9 @@ export default function GamesHome() {
                         pointerEvents: "auto",
                         position: "relative",
                         overflow: "hidden",
-                        display: "grid",
-                        gridTemplateRows: "170px 1fr",
-                        alignItems: "stretch",
-                        justifyItems: "center",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "space-between",
                         transition:
                           "transform 200ms ease, box-shadow 200ms ease",
                         cursor: isLocked ? "default" : "pointer",
@@ -657,113 +656,147 @@ export default function GamesHome() {
                           e.currentTarget.style.transform = "translateY(0)";
                       }}
                     >
-                      {/* Lock overlay for locked games */}
+                      {/* Lock indicator at the top */}
                       {isLocked && (
                         <div
                           style={{
                             position: "absolute",
-                            top: 0,
-                            left: 0,
-                            width: "100%",
-                            height: "100%",
-                            background: "rgba(255,255,255,0.7)",
-                            zIndex: 2,
+                            top: 16,
+                            right: 16,
                             display: "flex",
-                            flexDirection: "column",
                             alignItems: "center",
-                            justifyContent: "center",
+                            gap: 6,
+                            background: "rgba(255,255,255,0.9)",
+                            padding: "4px 8px",
+                            borderRadius: 12,
+                            backdropFilter: "blur(4px)",
+                            zIndex: 3,
                           }}
                         >
                           <img
                             src="/Games/icons/lock.png"
                             alt="Locked"
                             style={{
-                              width: 48,
-                              height: 48,
-                              marginBottom: 8,
-                              opacity: 0.85,
+                              width: 16,
+                              height: 16,
+                              opacity: 0.8,
                             }}
                           />
                           <span
                             style={{
                               color: "#888",
                               fontWeight: 600,
-                              fontSize: 18,
+                              fontSize: 12,
                             }}
                           >
                             Locked
                           </span>
-                          <button
-                            className="mt-4 px-4 py-2 rounded bg-[#f97544] text-white font-semibold hover:bg-[#265c7e] transition-colors"
+                        </div>
+                      )}
+
+                      {/* Main content area */}
+                      <div style={{ 
+                        flex: "1 1 auto", 
+                        display: "flex", 
+                        flexDirection: "column", 
+                        alignItems: "center",
+                        justifyContent: "center",
+                        padding: isLocked ? "10px 0 16px 0" : "32px 0 20px 0",
+                        minHeight: isLocked ? "auto" : "240px"
+                      }}>
+                        <div
+                          className={style["icon-title"]}
+                          style={{
+                            width: "100%",
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            marginBottom: isLocked ? 12 : 20,
+                          }}
+                        >
+                          <img
+                            src={game.img}
+                            alt={game.title}
                             style={{
-                              fontSize: 16,
-                              marginTop: 16,
+                              maxHeight: isLocked ? 70 : 85,
+                              marginBottom: isLocked ? 12 : 16,
+                              borderRadius: 12,
+                              display: "block",
+                              marginLeft: "auto",
+                              marginRight: "auto",
+                            }}
+                          />
+                          <h3
+                            style={{
+                              color: isLocked
+                                ? "#bbb"
+                                : gameColors[game.id] || "#f97544",
+                              fontWeight: 800,
+                              fontSize: isLocked ? 18 : 20,
+                              margin: 0,
+                              textAlign: "center",
+                              fontFamily: "Raleway, sans-serif",
+                              letterSpacing: 0.5,
+                            }}
+                          >
+                            {game.title}
+                          </h3>
+                        </div>
+                        <p
+                          className={style["card-body"]}
+                          style={{
+                            color: isLocked ? "#bbb" : "#265c7e",
+                            fontSize: isLocked ? 13 : 14,
+                            textAlign: "center",
+                            fontWeight: 500,
+                            display: "-webkit-box",
+                            WebkitLineClamp: isLocked ? 3 : 4,
+                            WebkitBoxOrient: "vertical",
+                            overflow: "hidden",
+                            lineHeight: 1.4,
+                            margin: 0,
+                            maxWidth: "100%",
+                            padding: "0 8px",
+                          }}
+                        >
+                          {game.description}
+                        </p>
+                      </div>
+
+                      {/* Purchase button at the bottom for locked games */}
+                      {isLocked && (
+                        <div style={{ marginTop: 16, width: "100%" }}>
+                          <button
+                            className="w-full py-3 rounded-lg font-semibold transition-all duration-200"
+                            style={{
+                              fontSize: 14,
                               cursor: "pointer",
+                              border: "none",
+                              background: "rgba(249, 117, 68, 0.8)",
+                              color: "white",
+                              opacity: 0.85,
+                              transform: "translateY(0)",
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.opacity = "1";
+                              e.target.style.background = "#f97544";
+                              e.target.style.transform = "translateY(-1px)";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.opacity = "0.85";
+                              e.target.style.background = "rgba(249, 117, 68, 0.8)";
+                              e.target.style.transform = "translateY(0)";
                             }}
                             onClick={(e) => {
                               e.stopPropagation();
                               handlePurchaseClick(game);
                             }}
                           >
-                            Purchase
+                            Purchase Bundle to Unlock
                           </button>
                         </div>
                       )}
-                      <div
-                        className={style["icon-title"]}
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <img
-                          src={game.img}
-                          alt={game.title}
-                          style={{
-                            maxHeight: 90,
-                            marginBottom: 8,
-                            borderRadius: 12,
-                            display: "block",
-                            marginLeft: "auto",
-                            marginRight: "auto",
-                          }}
-                        />
-                        <h3
-                          style={{
-                            color: isLocked
-                              ? "#bbb"
-                              : gameColors[game.id] || "#f97544",
-                            fontWeight: 800,
-                            fontSize: 22,
-                            margin: 0,
-                            textAlign: "center",
-                            fontFamily: "Raleway, sans-serif",
-                            letterSpacing: 0.5,
-                          }}
-                        >
-                          {game.title}
-                        </h3>
-                      </div>
-                      <p
-                        className={style["card-body"]}
-                        style={{
-                          marginTop: 10,
-                          color: isLocked ? "#bbb" : "#265c7e",
-                          fontSize: 16,
-                          textAlign: "center",
-                          fontWeight: 500,
-                          display: "-webkit-box",
-                          WebkitLineClamp: 3,
-                          WebkitBoxOrient: "vertical",
-                          overflow: "hidden",
-                        }}
-                      >
-                        {game.description}
-                      </p>
                     </div>
                   );
                 })}
