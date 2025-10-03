@@ -105,7 +105,7 @@ const VideoPlayer = () => {
   useEffect(() => {
     if (!user || !id) return;
     const foundIndex = sampleResources.findIndex((item) => item.id === id);
-    if (!user.paidItems.includes(id) || foundIndex < 0) {
+    if (!user.paidItems.some(item => item?.id === id) || foundIndex < 0) {
       navigate("/");
       return;
     }

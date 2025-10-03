@@ -10,7 +10,7 @@ function ensureAuth(req, res, next) {
 
 // Helper: determine if user owns Domain 1 bundle
 function hasDomain1Bundle(user) {
-  return Array.isArray(user.paidItems) && user.paidItems.includes('domain1-bundle-levels-3-10');
+  return Array.isArray(user.paidItems) && user.paidItems.some(item => item.id === 'domain1-bundle-levels-3-10');
 }
 
 // GET /games/access/:domainId/:gameId  -> { allowed: boolean }
@@ -72,7 +72,7 @@ async function addDomain1BundleToUser(email) {
     const bundleItem = 'domain1-bundle-levels-3-10';
     
     // Check if already has the bundle
-    if (user.paidItems.includes(bundleItem)) {
+    if (user.paidItems.some(item => item.id === bundleItem)) {
       return {
         success: true,
         message: 'User already owns the Domain 1 bundle',
@@ -81,7 +81,7 @@ async function addDomain1BundleToUser(email) {
     }
     
     // Add the bundle
-    user.paidItems.push(bundleItem);
+    user.paidItems.push({ id: bundleItem, purchasedAt: new Date() });
     await user.save();
     
     return {
