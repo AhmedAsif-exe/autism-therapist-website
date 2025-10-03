@@ -1,5 +1,7 @@
 // src/Utils/Queries/fetchAllBlogs.js
 import { gql } from "@apollo/client";
+
+// ---- BLOG QUERIES ----
 export const ALL_BLOGS = gql`
   {
     allBlog {
@@ -8,7 +10,6 @@ export const ALL_BLOGS = gql`
       categories
       authors {
         name
-
         image {
           asset {
             url
@@ -55,6 +56,41 @@ export const BLOGS = gql`
         contentRaw
       }
       _createdAt
+    }
+  }
+`;
+
+// ---- RESOURCE QUERIES ----
+export const ALL_RESOURCES = gql`
+  {
+    allResource {
+      _id
+      title
+      category
+      type
+      price
+      url
+      image
+      description
+    }
+  }
+`;
+
+export const RESOURCE = gql`
+  query GetResource($id: ID!) {
+    Resource(id: $id) {
+      _id
+      title
+      category
+      type
+      price
+      url
+      image {
+        asset {
+          url
+        }
+      }
+      description
     }
   }
 `;

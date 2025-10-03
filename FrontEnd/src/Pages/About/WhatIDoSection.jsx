@@ -71,7 +71,7 @@ export default function WhatIDoSection({
           } ml:min-h-[500px] min-h-[300px] rounded-[5px] bg-cover bg-no-repeat`}
           style={{
             backgroundImage: `url(${src})`,
-            backgroundPosition: "center",
+            backgroundPosition: !reverse ? "top" : "center",
           }}
         />
         <div

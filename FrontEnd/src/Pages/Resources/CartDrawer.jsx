@@ -31,17 +31,17 @@ export default function CartDrawer() {
           </Badge>
         </IconButton>
       </div>
-      <Menu 
-        open={open && anchorEl !== null && cart.length > 0} 
-        onClose={handleClose} 
+      <Menu
+        open={open && anchorEl !== null && cart.length > 0}
+        onClose={handleClose}
         anchorEl={anchorEl}
         anchorOrigin={{
-          vertical: 'top',
-          horizontal: 'left',
+          vertical: "top",
+          horizontal: "left",
         }}
         transformOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right',
+          vertical: "bottom",
+          horizontal: "right",
         }}
       >
         <div className="w-[250px] bg-white shadow-lg p-4 rounded-xl border">
@@ -58,7 +58,7 @@ export default function CartDrawer() {
               </li>
             ))}
           </ul>
-          <p className="mt-4 font-bold">Total: ${total}</p>
+          <p className="mt-4 font-bold">Total: €{total}</p>
           <button
             className="mt-2 w-full bg-green-500 text-white py-2 rounded hover:bg-green-600"
             onClick={async () => await initiateCheckoutSession(cart, user)}

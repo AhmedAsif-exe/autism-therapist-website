@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { BLOGS } from "Utils/Queries/Blog";
 import PortableBlockRenderer from "./PortableBlockRenderer";
 import { Container, Typography, Box, Chip, Divider } from "@mui/material";
@@ -64,7 +64,7 @@ function AuthorIntro({ authors }) {
 export default function BlogPage() {
   const { id } = useParams();
   const { data, loading, error } = useQuery(BLOGS, { variables: { id } });
-
+  console.log(data?.Blog?.section);
   return (
     <Container maxWidth={"100%"} sx={{ py: 4, p: 0 }}>
       {!loading && (
@@ -111,6 +111,22 @@ export default function BlogPage() {
                 </Typography>
               )}
               <PortableBlockRenderer value={section.contentRaw} />
+              {data.Blog._id === "7ae86701-6bec-402b-a89a-b84106983a1a" && (
+                <Typography
+                  paragraph
+                  sx={{ textAlign: "left" }}
+                  fontSize={"20px"}
+                >
+                  Head on to our
+                  <a
+                    href="/68df8bcb-8cd8-8322-ab79-1f42281f485e"
+                    style={{ color: "#f97544" }}
+                  >
+                    page
+                  </a>{" "}
+                  to explore our products!
+                </Typography>
+              )}
             </Box>
           ))}
 

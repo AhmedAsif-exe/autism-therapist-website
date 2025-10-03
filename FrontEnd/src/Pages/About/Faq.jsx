@@ -8,9 +8,9 @@ const faqData = [
       <p className="text-md text-start text-[#265c7e]">
         I’m most responsive on my email:{" "}
         <strong>
-          <i>contact@abavirtual.com </i>
+          <i>contact@abavirtual.net </i>
         </strong>
-        and also on other platforms. For more info, please visit the{" "}
+        and also on other platforms. For more info, please visit the
         <a
           href="/contact"
           className="hover:cursor-pointer underline text-[#f97544]"

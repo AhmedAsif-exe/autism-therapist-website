@@ -42,8 +42,8 @@ export default function MainContent() {
   const { data, loading, error } = useQuery(ALL_BLOGS);
   const [search, setSearch] = useState("");
   const filteredData = data
-    ? data.allBlog.filter((blog) =>
-        blog.title.toLowerCase().includes(search.toLowerCase())
+    ? data?.allBlog?.filter((blog) =>
+        blog?.title?.toLowerCase()?.includes(search?.toLowerCase())
       )
     : [];
   console.log(filteredData);

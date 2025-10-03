@@ -28,8 +28,8 @@ export const ContactInfoSection = () => {
     message: "",
   });
   const contactInfo = {
-    phone: "faiza.qasps",
-    email: "contact@aba.virtual",
+    phone: "aba.virtual",
+    email: "contact@abavirtual.net",
     address: "http://www.linkedin.com/in/faiza-faizan-b-s-qasp-s-509b03206",
   };
 
@@ -143,7 +143,9 @@ export const ContactInfoSection = () => {
                 <Instagram sx={{ color: "white" }} />
               </ListItemAvatar>{" "}
               <ListItemText className="text-white">
-                {contactInfo.phone}
+                <a href="https://www.instagram.com/aba.virtual?igsh=YWczcGhsaW5tcDlm">
+                  {contactInfo.phone}
+                </a>
               </ListItemText>
             </ListItem>
             <ListItem>

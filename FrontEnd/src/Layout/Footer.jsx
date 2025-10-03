@@ -253,7 +253,7 @@ export default function Footer() {
             aria-label="Instagram"
             sx={{ alignSelf: "center" }}
           >
-            <a href="https://www.instagram.com/faiza.qasps/">
+            <a href="https://www.instagram.com/aba.virtual/">
               <InstagramIcon />
             </a>
           </IconButton>
