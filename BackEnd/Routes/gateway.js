@@ -135,5 +135,12 @@ router.post("/callback", async (req, res) => {
     res.status(500).json({ error: "Something went wrong" });
   }
 });
+router.get("/:file", (req, res) => {
+  const file = req.params.file;
+  console.log(file);
+  const filePath = `/var/www/protected/${file}`;
+  // const filePath = "C:/Users/LENOVO/Downloads/FFC-features.pdf";
+  res.download(filePath); // sets headers for download
+});
 
 module.exports = router;

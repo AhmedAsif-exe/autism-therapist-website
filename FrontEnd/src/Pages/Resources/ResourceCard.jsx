@@ -2,7 +2,7 @@ import { Button, CardMedia, styled, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useProjectContext } from "Utils/Context";
-
+import api from "axiosInstance";
 const GAMES_BUNDLE_PRICE = 4.99;
 const GAMES_BUNDLE_BENEFITS = [
   "One-time purchase, a year of access",
@@ -23,19 +23,30 @@ export default function ResourceCard({ resource, category }) {
   const [isPaid, setIsPaid] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalLockedGame, setModalLockedGame] = useState(null);
-
-  const onClickHandler = () => {
+  console.log(resource);
+  const onClickHandler = async () => {
     if (resource.category !== "Downloadable")
       navigate(`/resources/${resource.id}`);
     else {
-      const url = resource.url;
+      try {
+        const res = await api.get(`/paypal/${resource.url}`, {
+          responseType: "blob", // important for file download
+        });
 
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${resource.title}.${resource.type.toLowerCase()}`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+        // Convert blob into downloadable link
+        const blob = new Blob([res.data], {
+          type: res.headers["content-type"],
+        });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `${resource.title}`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+      } catch (err) {
+        console.error("Download failed:", err);
+      }
     }
   };
   console.log(resource, cart);
