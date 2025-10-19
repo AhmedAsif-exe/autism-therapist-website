@@ -108,11 +108,12 @@ const lockedLevels = [3, 4, 5, 6, 7, 8, 9, 10];
 
 const GAMES_BUNDLE_ID = "domain1-bundle-levels-3-10";
 const GAMES_BUNDLE_TITLE = "Domain 1 Bundle (Levels 3-10)";
-const GAMES_BUNDLE_PRICE = 25;
+const GAMES_BUNDLE_PRICE = 25.0;
+const INDIVIDUAL_GAME_PRICE = 3.5;
 const GAMES_BUNDLE_BENEFITS = [
-  "Unlocks 8 additional games (Levels 3-10)",
+  "Unlocks all 8 games (Levels 3-10)",
   "One-time purchase, a year of access",
-  "Enhances learning and engagement",
+  "Best value - save €3 compared to buying individually",
 ];
 
 // Mini chart component to avoid heavy dependencies
@@ -258,13 +259,51 @@ export default function GamesHome() {
     Array.isArray(user?.paidItems) &&
     user.paidItems.some((item) => item?.id === GAMES_BUNDLE_ID);
 
+  // Check if user owns an individual game
+  const hasIndividualGame = (gameId) => {
+    const gameItemId = `domain1-game-${gameId}`;
+    return (
+      Array.isArray(user?.paidItems) &&
+      user.paidItems.some((item) => item?.id === gameItemId)
+    );
+  };
+
+  // Check if user has access to a game (either through bundle or individual purchase)
+  const hasGameAccess = (gameId) => {
+    return hasBundleOwnership || hasIndividualGame(gameId);
+  };
+
+  // Check if user owns an individual game
+  const hasIndividualGame = (gameId) => {
+    const gameItemId = `domain1-game-${gameId}`;
+    return (
+      Array.isArray(user?.paidItems) &&
+      user.paidItems.some((item) => item?.id === gameItemId)
+    );
+  };
+
+  // Check if user has access to a game (either through bundle or individual purchase)
+  const hasGameAccess = (gameId) => {
+    return hasBundleOwnership || hasIndividualGame(gameId);
+  };
+
   const handlePurchaseClick = (game) => {
     setModalLockedGame(game);
     setModalOpen(true);
   };
 
-  const handleAddToCart = () => {
+  const handleAddBundleToCart = () => {
     if (!bundleInCart) {
+      // Remove all individual games from cart before adding bundle
+      gamesList.forEach((game) => {
+        const gameItemId = `domain1-game-${game.id}`;
+        dispatch({
+          type: "REMOVE",
+          id: gameItemId,
+        });
+      });
+
+      // Add bundle to cart
       dispatch({
         type: "ADD",
         item: {
@@ -274,7 +313,32 @@ export default function GamesHome() {
         },
       });
     }
-    // Close immediately per new spec (cart does NOT unlock)
+    setModalOpen(false);
+  };
+
+  const handleAddIndividualGameToCart = () => {
+    if (!modalLockedGame) return;
+
+    // Prevent adding individual game if bundle is in cart
+    if (bundleInCart) {
+      toast.info("Bundle is already in cart!");
+      setModalOpen(false);
+      return;
+    }
+
+    const gameItemId = `domain1-game-${modalLockedGame.id}`;
+    const gameInCart = cart.some((item) => item.id === gameItemId);
+
+    if (!gameInCart) {
+      dispatch({
+        type: "ADD",
+        item: {
+          id: gameItemId,
+          title: `${modalLockedGame.title} (Game ${modalLockedGame.id})`,
+          price: INDIVIDUAL_GAME_PRICE,
+        },
+      });
+    }
     setModalOpen(false);
   };
 
@@ -602,9 +666,9 @@ export default function GamesHome() {
                 }}
               >
                 {gamesList.map((game) => {
-                  // Locked now depends ONLY on ownership, not cart presence
+                  // Locked now depends on ownership (bundle OR individual game)
                   const isLocked =
-                    lockedLevels.includes(game.id) && !hasBundleOwnership;
+                    lockedLevels.includes(game.id) && !hasGameAccess(game.id);
                   return (
                     <div
                       key={game.id}
@@ -631,7 +695,7 @@ export default function GamesHome() {
                         boxShadow: isLocked
                           ? "0 2px 8px rgba(180,180,180,0.08)"
                           : "0 6px 24px rgba(4,37,57,0.08), 0 1.5px 6px rgba(4,37,57,0.07)",
-                        padding: 28,
+                        padding: 20,
                         background: isLocked
                           ? "linear-gradient(135deg, #f7f7f7 60%, #ededed 100%)"
                           : "linear-gradient(135deg, #fff 60%, #f9f6f3 100%)",
@@ -640,10 +704,9 @@ export default function GamesHome() {
                         pointerEvents: "auto",
                         position: "relative",
                         overflow: "hidden",
-                        display: "grid",
-                        gridTemplateRows: "170px 1fr",
-                        alignItems: "stretch",
-                        justifyItems: "center",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "space-between",
                         transition:
                           "transform 200ms ease, box-shadow 200ms ease",
                         cursor: isLocked ? "default" : "pointer",
@@ -658,113 +721,150 @@ export default function GamesHome() {
                           e.currentTarget.style.transform = "translateY(0)";
                       }}
                     >
-                      {/* Lock overlay for locked games */}
+                      {/* Lock indicator at the top */}
                       {isLocked && (
                         <div
                           style={{
                             position: "absolute",
-                            top: 0,
-                            left: 0,
-                            width: "100%",
-                            height: "100%",
-                            background: "rgba(255,255,255,0.7)",
-                            zIndex: 2,
+                            top: 16,
+                            right: 16,
                             display: "flex",
-                            flexDirection: "column",
                             alignItems: "center",
-                            justifyContent: "center",
+                            gap: 6,
+                            background: "rgba(255,255,255,0.9)",
+                            padding: "4px 8px",
+                            borderRadius: 12,
+                            backdropFilter: "blur(4px)",
+                            zIndex: 3,
                           }}
                         >
                           <img
                             src="/Games/icons/lock.png"
                             alt="Locked"
                             style={{
-                              width: 48,
-                              height: 48,
-                              marginBottom: 8,
-                              opacity: 0.85,
+                              width: 16,
+                              height: 16,
+                              opacity: 0.8,
                             }}
                           />
                           <span
                             style={{
                               color: "#888",
                               fontWeight: 600,
-                              fontSize: 18,
+                              fontSize: 12,
                             }}
                           >
                             Locked
                           </span>
-                          <button
-                            className="mt-4 px-4 py-2 rounded bg-[#f97544] text-white font-semibold hover:bg-[#265c7e] transition-colors"
+                        </div>
+                      )}
+
+                      {/* Main content area */}
+                      <div
+                        style={{
+                          flex: "1 1 auto",
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          padding: isLocked ? "10px 0 16px 0" : "32px 0 20px 0",
+                          minHeight: isLocked ? "auto" : "240px",
+                        }}
+                      >
+                        <div
+                          className={style["icon-title"]}
+                          style={{
+                            width: "100%",
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            marginBottom: isLocked ? 12 : 20,
+                          }}
+                        >
+                          <img
+                            src={game.img}
+                            alt={game.title}
                             style={{
-                              fontSize: 16,
-                              marginTop: 16,
+                              maxHeight: isLocked ? 70 : 85,
+                              marginBottom: isLocked ? 12 : 16,
+                              borderRadius: 12,
+                              display: "block",
+                              marginLeft: "auto",
+                              marginRight: "auto",
+                            }}
+                          />
+                          <h3
+                            style={{
+                              color: isLocked
+                                ? "#bbb"
+                                : gameColors[game.id] || "#f97544",
+                              fontWeight: 800,
+                              fontSize: isLocked ? 18 : 20,
+                              margin: 0,
+                              textAlign: "center",
+                              fontFamily: "Raleway, sans-serif",
+                              letterSpacing: 0.5,
+                            }}
+                          >
+                            {game.title}
+                          </h3>
+                        </div>
+                        <p
+                          className={style["card-body"]}
+                          style={{
+                            color: isLocked ? "#bbb" : "#265c7e",
+                            fontSize: isLocked ? 13 : 14,
+                            textAlign: "center",
+                            fontWeight: 500,
+                            display: "-webkit-box",
+                            WebkitLineClamp: isLocked ? 3 : 4,
+                            WebkitBoxOrient: "vertical",
+                            overflow: "hidden",
+                            lineHeight: 1.4,
+                            margin: 0,
+                            maxWidth: "100%",
+                            padding: "0 8px",
+                          }}
+                        >
+                          {game.description}
+                        </p>
+                      </div>
+
+                      {/* Purchase button at the bottom for locked games */}
+                      {isLocked && (
+                        <div style={{ marginTop: 16, width: "100%" }}>
+                          <button
+                            className="w-full py-3 rounded-lg font-semibold transition-all duration-200"
+                            style={{
+                              fontSize: 14,
                               cursor: "pointer",
+                              border: "none",
+                              background: "rgba(249, 117, 68, 0.8)",
+                              color: "white",
+                              opacity: 0.85,
+                              transform: "translateY(0)",
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.opacity = "1";
+                              e.target.style.background = "#f97544";
+                              e.target.style.transform = "translateY(-1px)";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.opacity = "0.85";
+                              e.target.style.background =
+                                "rgba(249, 117, 68, 0.8)";
+                              e.target.style.transform = "translateY(0)";
                             }}
                             onClick={(e) => {
                               e.stopPropagation();
                               handlePurchaseClick(game);
                             }}
                           >
-                            Purchase
+                            Purchase to Unlock
                           </button>
                         </div>
                       )}
-                      <div
-                        className={style["icon-title"]}
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <img
-                          src={game.img}
-                          alt={game.title}
-                          style={{
-                            maxHeight: 90,
-                            marginBottom: 8,
-                            borderRadius: 12,
-                            display: "block",
-                            marginLeft: "auto",
-                            marginRight: "auto",
-                          }}
-                        />
-                        <h3
-                          style={{
-                            color: isLocked
-                              ? "#bbb"
-                              : gameColors[game.id] || "#f97544",
-                            fontWeight: 800,
-                            fontSize: 22,
-                            margin: 0,
-                            textAlign: "center",
-                            fontFamily: "Raleway, sans-serif",
-                            letterSpacing: 0.5,
-                          }}
-                        >
-                          {game.title}
-                        </h3>
-                      </div>
-                      <p
-                        className={style["card-body"]}
-                        style={{
-                          marginTop: 10,
-                          color: isLocked ? "#bbb" : "#265c7e",
-                          fontSize: 16,
-                          textAlign: "center",
-                          fontWeight: 500,
-                          display: "-webkit-box",
-                          WebkitLineClamp: 3,
-                          WebkitBoxOrient: "vertical",
-                          overflow: "hidden",
-                        }}
-                      >
-                        {game.description}
-                      </p>
                     </div>
                   );
                 })}
@@ -799,7 +899,7 @@ export default function GamesHome() {
             onClick={(e) => e.stopPropagation()}
             style={{
               width: "100%",
-              maxWidth: 560,
+              maxWidth: 600,
               borderRadius: 24,
               position: "relative",
               fontFamily: "Fredoka One, sans-serif", // unified game font
@@ -811,6 +911,7 @@ export default function GamesHome() {
               display: "flex",
               flexDirection: "column",
               gap: 34,
+              overflowY: "auto",
             }}
           >
             <div
@@ -827,144 +928,307 @@ export default function GamesHome() {
                 id="purchase-modal-title"
                 style={{
                   margin: 0,
-                  fontSize: 36,
+                  fontSize: 25,
                   fontWeight: 900,
                   letterSpacing: 0.5,
                   color: "#f9644d",
                   textShadow: "0 1px 4px rgba(4,37,57,0.10)",
                 }}
               >
-                {GAMES_BUNDLE_TITLE}
+                Purchase to Unlock
               </h3>
               <p
                 id="purchase-modal-desc"
                 style={{
-                  margin: "14px auto 0",
+                  margin: "10px auto 0",
                   maxWidth: 520,
-                  fontSize: 19,
-                  lineHeight: 1.45,
+                  fontSize: 20,
+                  lineHeight: 1.4,
                   fontWeight: 600,
                   color: "#265c7e",
                 }}
               >
-                Unlock levels 3–10 permanently. One purchase, a year of access.
+                {modalLockedGame &&
+                  `Unlock ${modalLockedGame.title} or get all games with the bundle!`}
               </p>
             </header>
 
-            <section>
-              <ul
-                style={{
-                  listStyle: "none",
-                  margin: 0,
-                  padding: 0,
-                  display: "grid",
-                  gap: 16,
-                }}
-              >
-                {GAMES_BUNDLE_BENEFITS.map((b, i) => (
-                  <li
-                    key={i}
+            <section style={{ display: "grid", gap: 12 }}>
+              {/* Individual Game Purchase Option */}
+              {modalLockedGame &&
+                !hasIndividualGame(modalLockedGame.id) &&
+                !hasBundleOwnership &&
+                !bundleInCart && (
+                  <div
                     style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 14,
-                      background: "#fafafa",
-                      padding: "14px 18px",
-                      borderRadius: 18,
-                      border: "2px solid #f3c9b8",
-                      boxShadow: "0 2px 6px rgba(4,37,57,0.06)",
+                      background: "#fff",
+                      border: "2px solid #57c785",
+                      borderRadius: 12,
+                      padding: "16px 20px",
+                      boxShadow: "0 2px 8px rgba(87,199,133,0.15)",
                     }}
                   >
-                    <span
+                    <div
                       style={{
-                        width: 34,
-                        height: 34,
-                        borderRadius: 12,
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginBottom: 10,
+                      }}
+                    >
+                      <h4
+                        style={{
+                          margin: 0,
+                          fontSize: 16,
+                          fontWeight: 800,
+                          color: "#265c7e",
+                        }}
+                      >
+                        Single Game
+                      </h4>
+                      <div
+                        style={{
+                          fontSize: 20,
+                          fontWeight: 900,
+                          color: "#57c785",
+                        }}
+                      >
+                        €{INDIVIDUAL_GAME_PRICE.toFixed(2)}
+                      </div>
+                    </div>
+                    <p
+                      style={{
+                        margin: "0 0 12px",
+                        fontSize: 16,
+                        color: "#265c7e",
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      Unlock just {modalLockedGame.title} (Game{" "}
+                      {modalLockedGame.id})
+                    </p>
+                    {!cart.some(
+                      (item) => item.id === `domain1-game-${modalLockedGame.id}`
+                    ) ? (
+                      <button
+                        onClick={handleAddIndividualGameToCart}
+                        style={{
+                          width: "100%",
+                          padding: "10px 18px",
+                          borderRadius: 10,
+                          border: "none",
+                          background: "#57c785",
+                          color: "#fff",
+                          fontSize: 14,
+                          fontWeight: 800,
+                          cursor: "pointer",
+                          boxShadow: "0 2px 6px rgba(87,199,133,0.25)",
+                          transition: "all 150ms ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = "translateY(-2px)";
+                          e.currentTarget.style.boxShadow =
+                            "0 4px 10px rgba(87,199,133,0.35)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = "translateY(0)";
+                          e.currentTarget.style.boxShadow =
+                            "0 2px 6px rgba(87,199,133,0.25)";
+                        }}
+                      >
+                        Add to Cart
+                      </button>
+                    ) : (
+                      <div
+                        style={{
+                          fontSize: 14,
+                          fontWeight: 700,
+                          color: "#57c785",
+                          textAlign: "center",
+                        }}
+                      >
+                        ✓ Added to cart
+                      </div>
+                    )}
+                  </div>
+                )}
+
+              {/* Bundle Purchase Option */}
+              {!hasBundleOwnership && (
+                <div
+                  style={{
+                    background: "#fff",
+                    border: "2px solid #f97544",
+                    borderRadius: 12,
+                    padding: "16px 20px",
+                    boxShadow: "0 2px 8px rgba(249,117,68,0.15)",
+                    position: "relative",
+                  }}
+                >
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: -10,
+                      right: 16,
+                      background: "#f97544",
+                      color: "#fff",
+                      padding: "3px 10px",
+                      borderRadius: 8,
+                      fontSize: 13,
+                      fontWeight: 800,
+                      letterSpacing: 0.3,
+                    }}
+                  >
+                    BEST VALUE
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginBottom: 10,
+                    }}
+                  >
+                    <h4
+                      style={{
+                        margin: 0,
+                        fontSize: 16,
+                        fontWeight: 800,
+                        color: "#265c7e",
+                      }}
+                    >
+                      Full Bundle
+                    </h4>
+                    <div
+                      style={{
+                        fontSize: 20,
+                        fontWeight: 900,
+                        color: "#f97544",
+                      }}
+                    >
+                      €{GAMES_BUNDLE_PRICE.toFixed(2)}
+                    </div>
+                  </div>
+                  <ul
+                    style={{
+                      listStyle: "none",
+                      margin: "0 0 12px",
+                      padding: 0,
+                      display: "grid",
+                      gap: 6,
+                    }}
+                  >
+                    {GAMES_BUNDLE_BENEFITS.map((b, i) => (
+                      <li
+                        key={i}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                          fontSize: 16,
+                          color: "#265c7e",
+                          lineHeight: 1.3,
+                        }}
+                      >
+                        <span
+                          style={{
+                            color: "#f97544",
+                            fontSize: 14,
+                            fontWeight: 800,
+                          }}
+                        >
+                          ✓
+                        </span>
+                        {b}
+                      </li>
+                    ))}
+                  </ul>
+                  {!bundleInCart ? (
+                    <button
+                      onClick={handleAddBundleToCart}
+                      style={{
+                        width: "100%",
+                        padding: "10px 18px",
+                        borderRadius: 10,
+                        border: "none",
                         background: "#f97544",
                         color: "#fff",
-                        fontSize: 18,
+                        fontSize: 14,
                         fontWeight: 800,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        boxShadow: "0 2px 6px rgba(249,117,68,0.32)",
+                        cursor: "pointer",
+                        boxShadow: "0 2px 6px rgba(249,117,68,0.25)",
+                        transition: "all 150ms ease",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = "translateY(-2px)";
+                        e.currentTarget.style.boxShadow =
+                          "0 4px 10px rgba(249,117,68,0.35)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = "translateY(0)";
+                        e.currentTarget.style.boxShadow =
+                          "0 2px 6px rgba(249,117,68,0.25)";
                       }}
                     >
-                      {i + 1}
-                    </span>
-                    <span
+                      Add Bundle to Cart
+                    </button>
+                  ) : (
+                    <div
                       style={{
-                        fontSize: 17,
-                        fontWeight: 600,
-                        color: "#265c7e",
-                        lineHeight: 1.35,
+                        fontSize: 14,
+                        fontWeight: 700,
+                        color: "#f97544",
+                        textAlign: "center",
                       }}
                     >
-                      {b}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-
-            <div style={{ textAlign: "center", display: "grid", gap: 20 }}>
-              <div style={{ fontSize: 19, fontWeight: 700, color: "#265c7e" }}>
-                Price{" "}
-                <span
-                  style={{ color: "#f9644d", fontSize: 34, fontWeight: 900 }}
-                >
-                  €{GAMES_BUNDLE_PRICE.toFixed(2)}
-                </span>
-              </div>
-              {!hasBundleOwnership && !bundleInCart && (
-                <button
-                  onClick={handleAddToCart}
-                  style={{
-                    margin: "0 auto",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 12,
-                    padding: "18px 42px",
-                    borderRadius: 26,
-                    border: "3px solid #f3c9b8",
-                    background: "linear-gradient(135deg,#ffffff,#fff8f3)",
-                    color: "#f9644d",
-                    fontSize: 22,
-                    fontWeight: 900,
-                    cursor: "pointer",
-                    boxShadow:
-                      "0 8px 18px rgba(4,37,57,0.12), 0 1px 3px rgba(4,37,57,0.15)",
-                    transition: "all 150ms ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                  }}
-                >
-                  Add Bundle to Cart
-                </button>
-              )}
-              {bundleInCart && !hasBundleOwnership && (
-                <div
-                  style={{ fontSize: 17, fontWeight: 700, color: "#f9644d" }}
-                >
-                  Bundle added to cart. Complete checkout to unlock.
+                      ✓ Bundle added to cart
+                    </div>
+                  )}
                 </div>
               )}
+
+              {/* Already owned messages */}
+              {modalLockedGame &&
+                hasIndividualGame(modalLockedGame.id) &&
+                !hasBundleOwnership && (
+                  <div
+                    style={{
+                      fontSize: 14,
+                      fontWeight: 700,
+                      color: "#57c785",
+                      textAlign: "center",
+                      padding: "14px",
+                      background: "#f0fdf4",
+                      borderRadius: 10,
+                      border: "2px solid #57c785",
+                    }}
+                  >
+                    ✔ You own this game! Redirecting to play...
+                  </div>
+                )}
               {hasBundleOwnership && (
                 <div
-                  style={{ fontSize: 18, fontWeight: 700, color: "#57c785" }}
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 700,
+                    color: "#57c785",
+                    textAlign: "center",
+                    padding: "14px",
+                    background: "#f0fdf4",
+                    borderRadius: 10,
+                    border: "2px solid #57c785",
+                  }}
                 >
-                  Bundle owned ✔ All games unlocked
+                  ✔ Bundle owned! All games unlocked
                 </div>
               )}
+            </section>
+
+            <div style={{ textAlign: "center" }}>
               <button
                 onClick={handleCloseModal}
                 style={{
-                  margin: "2px auto 0",
+                  margin: "0 auto",
                   background: "transparent",
                   border: "none",
                   color: "#265c7e",
@@ -983,7 +1247,6 @@ export default function GamesHome() {
               >
                 Maybe Later
               </button>
-              {/* Removed redundant unlock notice */}
             </div>
           </div>
         </div>
