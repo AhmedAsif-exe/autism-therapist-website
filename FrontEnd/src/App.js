@@ -50,7 +50,7 @@ function App() {
                   <div className="t:px-0 px-[25px]">
                     <Expertise />
                   </div>
-                  {/* <ResourcesPreview /> */}
+                  <ResourcesPreview />
                   <Contact />
                   {/* <GamesHome /> */}
                 </>
@@ -66,7 +66,10 @@ function App() {
             {/* Domain listing route */}
             <Route path="/games/domain/:domainId" element={<GamesHome />} />
             {/* Domain 1 specific game routes (canonical) */}
-            <Route path="/games/domain/1/1" element={<ReceptiveFunctionGame />} />
+            <Route
+              path="/games/domain/1/1"
+              element={<ReceptiveFunctionGame />}
+            />
             <Route path="/games/domain/1/2" element={<Game2 />} />
             <Route path="/games/domain/1/3" element={<Game3 />} />
             <Route path="/games/domain/1/4" element={<Game4 />} />

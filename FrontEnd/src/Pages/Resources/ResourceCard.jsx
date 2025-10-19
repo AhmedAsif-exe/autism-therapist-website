@@ -17,7 +17,7 @@ const StyledTypography = styled(Typography)({
   textOverflow: "ellipsis",
   textAlign: "left",
 });
-export default function ResourceCard({ resource, category }) {
+export default function ResourceCard({ resource, category, preview = false }) {
   const { dispatch, user, cart } = useProjectContext();
   const navigate = useNavigate();
   const [isPaid, setIsPaid] = useState(false);
@@ -53,11 +53,17 @@ export default function ResourceCard({ resource, category }) {
   const bundleInCart = cart.some((item) => item.id === resource.id);
   // Derive ownership from server-provided paidItems
   const hasBundleOwnership =
-    Array.isArray(user?.paidItems) && user.paidItems.some(item => item?.id === resource.id);
+    Array.isArray(user?.paidItems) &&
+    user.paidItems.some((item) => item?.id === resource.id);
 
   const handlePurchaseClick = (game) => {
-    setModalLockedGame(game);
-    setModalOpen(true);
+    if (!preview) {
+      setModalLockedGame(game);
+      setModalOpen(true);
+    } else {
+      window.scrollTo(0, 0);
+      navigate(`/resources`);
+    }
   };
 
   const handleAddToCart = () => {
@@ -88,7 +94,7 @@ export default function ResourceCard({ resource, category }) {
             <CardMedia
               component="img"
               alt="green iguana"
-              image={resource.image}
+              image={resource.image.asset.url}
               sx={{
                 aspectRatio: "16 / 9",
                 borderBottom: "1px solid",
@@ -118,7 +124,7 @@ export default function ResourceCard({ resource, category }) {
                 textAlign: "start",
               }}
             >
-              €{resource.price} ONLY
+              €{resource.price.toFixed(2)} ONLY
             </p>
           </div>
           {!isPaid ? (
@@ -150,7 +156,7 @@ export default function ResourceCard({ resource, category }) {
           )}
         </div>
       )}
-      {modalOpen && (
+      {modalOpen && !preview && (
         <div
           role="dialog"
           aria-modal="true"
@@ -165,7 +171,7 @@ export default function ResourceCard({ resource, category }) {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            zIndex: 9999,
+            zIndex: 2147483647,
             overflowY: "auto",
             padding: "32px 18px",
           }}

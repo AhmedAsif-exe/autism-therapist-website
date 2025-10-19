@@ -22,7 +22,7 @@ const Resources = () => {
     id: _id,
     ...rest,
   }));
-
+  console.log(resources);
   return (
     <PageTemplate
       title="Resources"

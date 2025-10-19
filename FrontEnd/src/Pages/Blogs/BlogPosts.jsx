@@ -73,9 +73,8 @@ function Author({ authors, _id }) {
     <Box
       sx={{
         display: "flex",
-        flexDirection: "row",
-        gap: 2,
-        alignItems: "center",
+        flexDirection: { xs: "column", sm: "row" }, // column on extra small, row on small+
+        alignItems: { xs: "start", sm: "center" },
         justifyContent: "space-between",
         padding: "16px",
         color: "#265c7e",
@@ -86,33 +85,35 @@ function Author({ authors, _id }) {
           display: "flex",
           flexDirection: "row",
           gap: 1,
-          alignItems: "center",
+          alignItems: { xs: "start", sm: "center" },
         }}
       >
         <Avatar
           key={authors?.name}
           alt={authors?.name}
-          src={authors?.image?.asset?.url || `/static/images/avatar/${1}.jpg`} // path relative to `public`
+          src={authors?.image?.asset?.url || `/static/images/avatar/${1}.jpg`}
           sx={{ width: 24, height: 24, backgroundColor: "#265c7e" }}
         />
 
-        <Typography variant="caption"> {authors?.name}</Typography>
+        <Typography variant="caption">{authors?.name}</Typography>
       </Box>
 
       <Link
         variant="contained"
         sx={{
-          borderRadius: "9999px", // oval shape
-          textTransform: "none", // keep "Read More" casing
-          paddingX: 3, // horizontal padding
-          paddingY: 1, // vertical padding
-          backgroundColor: "#10B981", // emerald green
+          borderRadius: "9999px",
+          textTransform: "none",
+          px: 3,
+          py: 1,
+          backgroundColor: "#10B981",
           "&:hover": {
-            backgroundColor: "#059669", // darker emerald on hove
+            backgroundColor: "#059669",
           },
+          width: { xs: "100%", sm: "auto" }, // full width on small screens
           color: "white",
           fontStyle: "normal",
           textDecoration: "none",
+          mt: { xs: 2, sm: 0 }, // add spacing on small screens when stacked
         }}
         href={`/blogs/${_id}`}
       >
@@ -150,7 +151,7 @@ const BlogPosts = ({ data }) => {
                   {blog.categories}
                 </Tag>
                 <Typography variant="caption">
-                  {formatDate(blog._createdAt)}
+                  {formatDate(blog.publishedAt)}
                 </Typography>
               </Box>
               <BlogTitle variant="h6" component="div">

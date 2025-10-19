@@ -46,7 +46,6 @@ export default function MainContent() {
         blog?.title?.toLowerCase()?.includes(search?.toLowerCase())
       )
     : [];
-  console.log(filteredData);
 
   return (
     <PageTemplate

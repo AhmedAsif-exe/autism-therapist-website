@@ -52,9 +52,20 @@ export default defineType({
     defineField({
       name: 'image',
       title: 'Preview Image',
-      type: 'url',
-      description: 'Direct link to preview image (e.g., CDN or S3)',
+      type: 'image',
+      options: {
+        hotspot: true,
+      },
+      fields: [
+        {
+          name: 'alt',
+          title: 'Alt Text',
+          type: 'string',
+          description: 'Important for accessibility and SEO',
+        },
+      ],
     }),
+
     defineField({
       name: 'description',
       title: 'Description',

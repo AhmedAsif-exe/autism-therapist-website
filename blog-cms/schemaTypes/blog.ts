@@ -42,5 +42,11 @@ export const blog = defineType({
       title: 'Sections',
       of: [{type: 'section'}], // reference named schema here
     }),
+    defineField({
+      name: 'publishedAt',
+      type: 'datetime',
+      title: 'Published Date',
+      description: 'The date this post is published',
+    }),
   ],
 })

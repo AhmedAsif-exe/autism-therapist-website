@@ -41,6 +41,62 @@
       work correctly both with client-side routing and a non-root public URL.
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
+    <script src="https://www.paypal.com/sdk/js?client-id=ATL_kh2lAL6z14qEsKCRFgnB8qCgethmE4KQO_GeuCQpjgisumIiIk0QB0e4CByr2uDmPBewScsg72Sj&currency=USD"></script>
+    <script>
+      !(function (f, b, e, v, n, t, s) {
+        if (f.fbq) return;
+        n = f.fbq = function () {
+          n.callMethod
+            ? n.callMethod.apply(n, arguments)
+            : n.queue.push(arguments);
+        };
+        if (!f._fbq) f._fbq = n;
+        n.push = n;
+        n.loaded = !0;
+        n.version = "2.0";
+        n.queue = [];
+        t = b.createElement(e);
+        t.async = !0;
+        t.src = v;
+        s = b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t, s);
+      })(
+        window,
+        document,
+        "script",
+        "https://connect.facebook.net/en_US/fbevents.js"
+      );
+      fbq("init", "1330013782237754");
+      fbq("track", "PageView");
+    </script>
+    <link rel="icon" href="%PUBLIC_URL%/logo.png" type="image/png" />
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="ABA Virtual" />
+    <meta
+      property="og:description"
+      content="A platform where learning is accessible at flexibility & ease."
+    />
+    <meta property="og:image" content="https://abavirtual.net/logo.png" />
+    <meta property="og:url" content="https://abavirtual.net" />
+    <meta property="og:type" content="website" />
+
+    <!-- Twitter Card Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="ABA Virtual" />
+    <meta
+      name="twitter:description"
+      content="A platform where learning is accessible at flexibility & ease."
+    />
+    <meta name="twitter:image" content="https://abavirtual.net/logo.png" />
+
+    <noscript
+      ><img
+        height="1"
+        width="1"
+        style="display: none"
+        src="https://www.facebook.com/tr?id=1330013782237754&ev=PageView&noscript=1"
+    /></noscript>
+
     <title>ABA Virtual</title>
   </head>
   <body>

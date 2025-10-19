@@ -7,37 +7,55 @@ import { useEffect } from "react";
 import ResourceCard from "Pages/Resources/ResourceCard";
 const sampleResources = [
   {
-    id: "res001",
-    title: "Understanding Autism - Beginner's Guide",
     category: "Downloadable",
+    description:
+      "A guide book to teach class of items receptively & expressively",
+    id: "0063aeaf-3355-42f2-9533-31482f8aa7f9",
+    image: {
+      __typename: "Image",
+      asset: {
+        url: "https://cdn.sanity.io/images/1dbkj11i/production/d70828d778da3cb2bc0c7725d924f17b7a13193f-1280x720.png",
+      },
+    },
+    price: 11.5,
+    title: "FFC- Class Guide book",
     type: "PDF",
-    price: 5,
-    url: "Invoice-1_byyplx",
-    image: "https://picsum.photos/800/450?random=1",
-    description:
-      "This beginner's guide provides a clear and accessible introduction to autism spectrum disorder. It explains the characteristics, challenges, and strengths of individuals on the spectrum using real-life examples. Whether you're a parent just starting your journey or a caregiver looking to understand more, this guide offers compassionate insights and practical advice to build empathy and awareness. Ideal for anyone new to the topic.",
+    url: "FFC-class.pdf",
+    __typename: "Resource",
   },
   {
-    id: "res002",
-    title: "Daily Routine Visuals Pack",
     category: "Downloadable",
-    type: "PPT",
-    price: 7,
-    url: "Invoice-1_byyplx",
-    image: "https://picsum.photos/800/450?random=2",
     description:
-      "Designed to support structure and predictability, this pack includes a wide variety of editable visual routine cards suitable for daily activities. From morning hygiene to bedtime routines, each visual is easy to customize and print. These aids can help reduce anxiety, improve independence, and create a smoother flow to the day for children with autism. Great for home, school, or therapy settings.",
+      "A guide book to teach features of items receptively & expressively",
+    id: "66a24624-06f8-4b54-9357-1f6a8f267545",
+    image: {
+      __typename: "Image",
+      asset: {
+        url: "https://cdn.sanity.io/images/1dbkj11i/production/aac080c9392de42cebcb1d2a72c9635b3ef85a0f-1280x720.png",
+      },
+    },
+    price: 11.5,
+    title: "FFC- Feature Guide Book",
+    type: "PDF",
+    url: "FFC-features.pdf",
+    __typename: "Resource",
   },
   {
-    id: "res003",
-    title: "Positive Reinforcement Basics",
-    category: "Training",
-    type: "Short Video",
-    price: 8,
-    url: "zyqdtjjaeohr8ey1ifu9",
-    image: "https://picsum.photos/800/450?random=3",
+    category: "Downloadable",
     description:
-      "This short, focused training video introduces the fundamental principles of positive reinforcement and how they apply to behavior management in autism therapy. Learn how to identify desired behaviors, choose effective rewards, and implement a consistent reinforcement system. The video includes real-life examples and tips for parents and educators to apply immediately in daily interactions.",
+      "A guide book to teach functions of items receptively & expressively",
+    id: "c10906d4-bc72-482e-b5c1-d11e097f7bd6",
+    image: {
+      __typename: "Image",
+      asset: {
+        url: "https://cdn.sanity.io/images/1dbkj11i/production/429e54d6d43f72baef43801144c86d2db261b690-1280x720.png",
+      },
+    },
+    price: 11.5,
+    title: "FFC- Function Guide Book",
+    type: "PDF",
+    url: "FFC-function.pdf",
+    __typename: "Resource",
   },
 ];
 
@@ -82,7 +100,7 @@ const ResourcesPreview = () => {
         </p>
         <div className="grid grid-cols-1 my-16 ml:grid-cols-2 t:grid-cols-3 gap-8 max-w-[1440px] mx-auto">
           {sampleResources.map((r) => (
-            <ResourceCard resource={r} />
+            <ResourceCard resource={r} preview={true} />
           ))}
         </div>
       </div>

@@ -58,7 +58,7 @@ export default function CartDrawer() {
               </li>
             ))}
           </ul>
-          <p className="mt-4 font-bold">Total: €{total}</p>
+          <p className="mt-4 font-bold">Total: €{total.toFixed(2)}</p>
           <button
             className="mt-2 w-full bg-green-500 text-white py-2 rounded hover:bg-green-600"
             onClick={async () => await initiateCheckoutSession(cart, user)}

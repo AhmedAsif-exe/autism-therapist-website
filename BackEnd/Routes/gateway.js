@@ -26,15 +26,17 @@ function ensureAuth(req, res, next) {
 }
 // --- PayPal Client Setup ---
 function paypalClient() {
-  const env = new paypal.core.SandboxEnvironment(
+  // const env = new paypal.core.SandboxEnvironment(
+  //   process.env.PAYPAL_CLIENT_ID,
+  //   process.env.PAYPAL_CLIENT_SECRET
+  // );
+  // process.env.NODE_ENV === "production"
+  //   ?
+  //
+  const env = new paypal.core.LiveEnvironment(
     process.env.PAYPAL_CLIENT_ID,
     process.env.PAYPAL_CLIENT_SECRET
   );
-  // process.env.NODE_ENV === "production"
-  //   ? new paypal.core.LiveEnvironment(
-  //       process.env.PAYPAL_CLIENT_ID,
-  //       process.env.PAYPAL_CLIENT_SECRET
-  //     )
   //   :
 
   return new paypal.core.PayPalHttpClient(env);

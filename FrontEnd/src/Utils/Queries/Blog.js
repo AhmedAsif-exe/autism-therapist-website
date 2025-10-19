@@ -22,7 +22,7 @@ export const ALL_BLOGS = gql`
           url
         }
       }
-      _createdAt
+      publishedAt
     }
   }
 `;
@@ -55,7 +55,7 @@ export const BLOGS = gql`
         subheading
         contentRaw
       }
-      _createdAt
+      publishedAt
     }
   }
 `;
@@ -70,7 +70,11 @@ export const ALL_RESOURCES = gql`
       type
       price
       url
-      image
+      image {
+        asset {
+          url
+        }
+      }
       description
     }
   }

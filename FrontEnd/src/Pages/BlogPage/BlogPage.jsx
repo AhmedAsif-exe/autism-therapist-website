@@ -122,7 +122,7 @@ export default function BlogPage() {
                     href="/68df8bcb-8cd8-8322-ab79-1f42281f485e"
                     style={{ color: "#f97544" }}
                   >
-                    page
+                    {" page"}
                   </a>{" "}
                   to explore our products!
                 </Typography>

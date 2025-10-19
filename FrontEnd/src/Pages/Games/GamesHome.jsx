@@ -108,7 +108,7 @@ const lockedLevels = [3, 4, 5, 6, 7, 8, 9, 10];
 
 const GAMES_BUNDLE_ID = "domain1-bundle-levels-3-10";
 const GAMES_BUNDLE_TITLE = "Domain 1 Bundle (Levels 3-10)";
-const GAMES_BUNDLE_PRICE = 4.99;
+const GAMES_BUNDLE_PRICE = 25;
 const GAMES_BUNDLE_BENEFITS = [
   "Unlocks 8 additional games (Levels 3-10)",
   "One-time purchase, a year of access",
@@ -255,7 +255,8 @@ export default function GamesHome() {
   const bundleInCart = cart.some((item) => item.id === GAMES_BUNDLE_ID);
   // Derive ownership from server-provided paidItems
   const hasBundleOwnership =
-    Array.isArray(user?.paidItems) && user.paidItems.some(item => item?.id === GAMES_BUNDLE_ID);
+    Array.isArray(user?.paidItems) &&
+    user.paidItems.some((item) => item?.id === GAMES_BUNDLE_ID);
 
   const handlePurchaseClick = (game) => {
     setModalLockedGame(game);

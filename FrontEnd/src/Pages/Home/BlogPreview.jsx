@@ -10,16 +10,17 @@ const blogsData = [
     description:
       "Discover how research explores teaching functional living skills and its effectiveness via ABA on Telehealth",
     categories: "Review ",
-    authors: ["Faiza Faizan"],
-    _createdAt: "2025-08-30T22:44:04Z",
+    authors: ["Faiza Faizan (B.S., QASP-S)"],
+    _createdAt: "2025-10-01T15:44:04Z",
   },
   {
     _id: "f343b270-f9ba-4c9f-9f15-6cdea337cc8a",
     title: "WHY ABA VIRTUAL",
-    description: "This is a blog",
+    description:
+      "Read on what pooled into the idea of creating ABA Virtual as a public platform.",
     categories: "Intro",
-    authors: ["Faiza Faizan"],
-    _createdAt: "2025-07-22T15:13:05Z",
+    authors: ["Faiza Faizan (B.S., QASP-S)"],
+    _createdAt: "2025-10-01T15:13:05Z",
   },
 ];
 // Dummy avatar import path assumes avatars are in /public/static/images/avatar/
@@ -33,7 +34,7 @@ const BlogFooter = ({ authors = [], _id }) => {
             <Avatar
               key={index}
               alt={authorName}
-              src={`/static/images/avatar/${index + 1}.jpg`}
+              src={`https://cdn.sanity.io/images/1dbkj11i/production/1be929c07d15e406b4204dca88a103eb7aa5fa2b-2955x1478.jpg`}
               sx={{
                 width: 24,
                 height: 24,
