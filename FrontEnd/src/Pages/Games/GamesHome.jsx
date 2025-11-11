@@ -273,20 +273,6 @@ export default function GamesHome() {
     return hasBundleOwnership || hasIndividualGame(gameId);
   };
 
-  // Check if user owns an individual game
-  const hasIndividualGame = (gameId) => {
-    const gameItemId = `domain1-game-${gameId}`;
-    return (
-      Array.isArray(user?.paidItems) &&
-      user.paidItems.some((item) => item?.id === gameItemId)
-    );
-  };
-
-  // Check if user has access to a game (either through bundle or individual purchase)
-  const hasGameAccess = (gameId) => {
-    return hasBundleOwnership || hasIndividualGame(gameId);
-  };
-
   const handlePurchaseClick = (game) => {
     setModalLockedGame(game);
     setModalOpen(true);
