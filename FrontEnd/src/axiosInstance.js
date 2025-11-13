@@ -5,9 +5,9 @@ export async function logout() {
   await api.post("/auth/logout").finally(() => {
     // Clear local state or redirect
 
-    if (window.location.pathname !== "/login") {
-      window.location.href = "/login";
-    }
+    // if (window.location.pathname !== "/login") {
+    //   window.location.href = "/login";
+    // }
     localStorage.removeItem("user");
   });
 }

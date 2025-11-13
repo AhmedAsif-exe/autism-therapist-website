@@ -143,22 +143,26 @@ export default function AppAppBar() {
 
             {loggedIn ? (
               <Box
+                width={"140px"}
                 sx={{
                   display: { xs: "none", md: "flex" },
                   gap: 1,
+                  justifyContent: "flex-end",
                   alignItems: "center",
                 }}
               >
-                
-                <Button
+                <IconButton
                   sx={{ padding: 0 }}
                   onClick={async () => {
                     await logout();
                     toast.success("Logged Out Successfully");
+                    if (window.location.pathname !== "/login") {
+                      window.location.href = "/login";
+                    }
                   }}
                 >
                   {<Avatar src={user.pfp} />}
-                </Button>
+                </IconButton>
               </Box>
             ) : (
               <Box
@@ -240,7 +244,6 @@ export default function AppAppBar() {
                     About
                   </Button>
                 </MenuItem>
-               
                 <MenuItem>
                   <Button
                     variant="text"

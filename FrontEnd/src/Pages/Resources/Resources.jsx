@@ -22,14 +22,14 @@ const Resources = () => {
     id: _id,
     ...rest,
   }));
-  console.log(resources);
+  console.log(error);
   return (
     <PageTemplate
       title="Resources"
       subtitle="Explored curated resources designed to support growth, promote learning & strengthen potentials."
       src={resourcesImg}
     >
-      <div className="ml:p-6">
+      <div className="ml:px-6">
         <Filter
           handleClick={handleClick}
           tags={["All", "My-Learning", "Training", "Downloadable"]}

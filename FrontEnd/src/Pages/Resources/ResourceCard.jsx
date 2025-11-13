@@ -1,39 +1,61 @@
-import { Button, CardMedia, styled, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
+import {
+  Button,
+  Collapse,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  IconButton,
+} from "@mui/material";
+import { CheckCircle, ExpandMore, ExpandLess } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useProjectContext } from "Utils/Context";
 import api from "axiosInstance";
-const GAMES_BUNDLE_PRICE = 4.99;
-const GAMES_BUNDLE_BENEFITS = [
-  "One-time purchase, a year of access",
-  "Enhances learning and engagement",
-];
 
-const StyledTypography = styled(Typography)({
-  display: "-webkit-box",
-  WebkitBoxOrient: "vertical",
-  WebkitLineClamp: 3,
-  overflow: "hidden",
-  textOverflow: "ellipsis",
-  textAlign: "left",
-});
 export default function ResourceCard({ resource, category, preview = false }) {
   const { dispatch, user, cart } = useProjectContext();
   const navigate = useNavigate();
   const [isPaid, setIsPaid] = useState(false);
+  const [showMore, setShowMore] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
-  const [modalLockedGame, setModalLockedGame] = useState(null);
-  console.log(resource);
+  const bundleInCart = cart.some((item) => item.id === resource.id);
+
+  const hasBundleOwnership =
+    Array.isArray(user?.paidItems) &&
+    user.paidItems.some((item) => item?.id === resource.id);
+
+  useEffect(() => {
+    if (user)
+      setIsPaid(user.paidItems.some((item) => item?.id === resource.id));
+  }, [user]);
+
+  const handleAddToCart = () => {
+    if (!bundleInCart) {
+      dispatch({
+        type: "ADD",
+        item: { id: resource.id, title: resource.title, price: resource.price },
+      });
+    }
+    setModalOpen(false);
+  };
+
+  const handlePurchaseClick = () => {
+    if (!preview) setModalOpen(true);
+    else {
+      window.scrollTo(0, 0);
+      navigate(`/resources`);
+    }
+  };
+
   const onClickHandler = async () => {
     if (resource.category !== "Downloadable")
       navigate(`/resources/${resource.id}`);
     else {
       try {
         const res = await api.get(`/paypal/${resource.url}`, {
-          responseType: "blob", // important for file download
+          responseType: "blob",
         });
-
-        // Convert blob into downloadable link
         const blob = new Blob([res.data], {
           type: res.headers["content-type"],
         });
@@ -49,120 +71,119 @@ export default function ResourceCard({ resource, category, preview = false }) {
       }
     }
   };
-  console.log(resource, cart);
-  const bundleInCart = cart.some((item) => item.id === resource.id);
-  // Derive ownership from server-provided paidItems
-  const hasBundleOwnership =
-    Array.isArray(user?.paidItems) &&
-    user.paidItems.some((item) => item?.id === resource.id);
 
-  const handlePurchaseClick = (game) => {
-    if (!preview) {
-      setModalLockedGame(game);
-      setModalOpen(true);
-    } else {
-      window.scrollTo(0, 0);
-      navigate(`/resources`);
-    }
-  };
+  if (category === "My-Learning" && !isPaid) return null;
 
-  const handleAddToCart = () => {
-    if (!bundleInCart) {
-      dispatch({
-        type: "ADD",
-        item: {
-          id: resource.id,
-          title: resource.title,
-          price: resource.price,
-        },
-      });
-    }
-    // Close immediately per new spec (cart does NOT unlock)
-    setModalOpen(false);
-  };
-
-  const handleCloseModal = () => setModalOpen(false);
-  useEffect(() => {
-    if (user)
-      setIsPaid(user.paidItems.some((item) => item?.id === resource.id));
-  }, [user]);
   return (
     <>
-      {(category !== "My-Learning" || isPaid) && (
-        <div className="rounded-xl shadow-md bg-white flex flex-col justify-between">
-          <div>
-            <CardMedia
-              component="img"
-              alt="green iguana"
-              image={resource.image.asset.url}
-              sx={{
-                aspectRatio: "16 / 9",
-                borderBottom: "1px solid",
-                borderColor: "divider",
-              }}
-            />
-            <h2 className="text-lg font-semibold text-[#f97544] mt-2">
-              {resource.title}
-            </h2>
-            <p className="text-sm text-emerald-500">
-              {resource.category} — {resource.type}
-            </p>{" "}
-            <StyledTypography
-              className="p-4 pt-4"
-              variant="body2"
-              color="text.secondary"
-              gutterBottom
+      {/* Card */}
+      <div className="bg-white rounded-2xl shadow-lg flex flex-col overflow-hidden hover:shadow-xl transition-shadow duration-300">
+        <img
+          src={resource.image.asset.url}
+          alt={resource.title}
+          className="aspect-video object-cover border-b border-gray-200"
+        />
+
+        <div className="p-4 flex flex-col flex-grow">
+          <h2 className="text-lg font-bold text-[#f97544] line-clamp-1">
+            {resource.title}
+          </h2>
+          <p className="text-sm text-emerald-600">
+            {resource.category} — {resource.type}
+          </p>
+
+          <p className="text-gray-600 text-sm mt-2 line-clamp-3">
+            {resource.description}
+          </p>
+
+          {/* See More */}
+          <div className="mt-2">
+            <button
+              onClick={() => setShowMore(!showMore)}
+              className="flex items-center text-[#f97544] text-sm font-semibold hover:underline"
             >
-              {resource.description}{" "}
-            </StyledTypography>
-            <p
-              className="font-bold my-1 "
-              style={{
-                color: "#f97544",
-                fontSize: "20px",
-                margin: "10px",
-                textAlign: "start",
-              }}
-            >
-              €{resource.price.toFixed(2)} ONLY
-            </p>
+              {showMore ? "See Less" : "See More"}
+              {showMore ? (
+                <ExpandLess fontSize="small" />
+              ) : (
+                <ExpandMore fontSize="small" />
+              )}
+            </button>
+
+            <Collapse in={showMore} timeout="auto" unmountOnExit>
+              <List dense className="mt-2 space-y-1">
+                {resource?.perks?.map((item, i) => (
+                  <ListItem
+                    key={i}
+                    className="bg-green-50 rounded-lg shadow-sm"
+                    sx={{ py: 0.5 }}
+                  >
+                    <ListItemIcon sx={{ minWidth: 36 }}>
+                      <CheckCircle className="text-emerald-500" />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={item}
+                      primaryTypographyProps={{
+                        fontWeight: 500,
+                        color: "green.800",
+                        variant: "body2",
+                      }}
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            </Collapse>
           </div>
+
+          {/* Price */}
+          <p className="text-lg font-bold text-[#f97544] mt-auto">
+            €{resource.price?.toFixed(2) ?? "0.00"} ONLY
+          </p>
+
+          {/* Buttons */}
           {!isPaid ? (
             <Button
               onClick={handlePurchaseClick}
               fullWidth
               sx={{
-                padding: "10px 0",
+                mt: 1.5,
+                py: 1,
                 backgroundColor: "#265c7e",
                 color: "white",
-                fontWeight: "700",
+                fontWeight: 700,
+                borderRadius: 2,
+                "&:hover": { backgroundColor: "#1e4e6a" },
               }}
             >
               Add To Cart
             </Button>
           ) : (
             <Button
-              fullWidth
               onClick={onClickHandler}
+              fullWidth
               sx={{
-                padding: "10px 0",
+                mt: 1.5,
+                py: 1,
                 backgroundColor: "#265c7e",
                 color: "white",
-                fontWeight: "700",
+                fontWeight: 700,
+                borderRadius: 2,
+                "&:hover": { backgroundColor: "#1e4e6a" },
               }}
             >
               {resource.category === "Downloadable" ? "Download" : "Watch"}
             </Button>
           )}
         </div>
-      )}
-      {modalOpen && !preview && (
+      </div>
+      {/* Modal */}
+      {modalOpen && (
         <div
           role="dialog"
           aria-modal="true"
           aria-labelledby="purchase-modal-title"
           aria-describedby="purchase-modal-desc"
-          onClick={handleCloseModal}
+          onClick={() => setModalOpen(false)}
           style={{
             position: "fixed",
             inset: 0,
@@ -183,8 +204,8 @@ export default function ResourceCard({ resource, category, preview = false }) {
               maxWidth: 560,
               borderRadius: 24,
               position: "relative",
-              fontFamily: "Fredoka One, sans-serif", // unified game font
-              background: "#265c7e", // soft light gradient
+              fontFamily: "Fredoka One, sans-serif",
+              background: "#265c7e",
               boxShadow:
                 "0 20px 50px -12px rgba(4,37,57,0.32), 0 4px 16px rgba(4,37,57,0.16)",
               padding: "42px 46px 48px",
@@ -193,6 +214,7 @@ export default function ResourceCard({ resource, category, preview = false }) {
               gap: 34,
             }}
           >
+            {" "}
             <div
               style={{
                 position: "absolute",
@@ -200,9 +222,9 @@ export default function ResourceCard({ resource, category, preview = false }) {
                 pointerEvents: "none",
                 background: "none",
               }}
-            />
-
+            />{" "}
             <header style={{ textAlign: "center", padding: "0 6px" }}>
+              {" "}
               <h3
                 id="purchase-modal-title"
                 style={{
@@ -214,8 +236,9 @@ export default function ResourceCard({ resource, category, preview = false }) {
                   textShadow: "0 1px 4px rgba(4,37,57,0.10)",
                 }}
               >
-                {resource.title}
-              </h3>
+                {" "}
+                {resource.title}{" "}
+              </h3>{" "}
               <p
                 id="purchase-modal-desc"
                 style={{
@@ -227,12 +250,13 @@ export default function ResourceCard({ resource, category, preview = false }) {
                   color: "#59d6adff",
                 }}
               >
+                {" "}
                 Unlock resources to enhance learning. One purchase, a year of
-                access.
-              </p>
-            </header>
-
+                access.{" "}
+              </p>{" "}
+            </header>{" "}
             <section>
+              {" "}
               <ul
                 style={{
                   listStyle: "none",
@@ -242,7 +266,11 @@ export default function ResourceCard({ resource, category, preview = false }) {
                   gap: 16,
                 }}
               >
-                {GAMES_BUNDLE_BENEFITS.map((b, i) => (
+                {" "}
+                {[
+                  "One-time purchase, a year of access",
+                  "Enhances learning and engagement",
+                ].map((b, i) => (
                   <li
                     key={i}
                     style={{
@@ -256,6 +284,7 @@ export default function ResourceCard({ resource, category, preview = false }) {
                       boxShadow: "0 2px 6px rgba(4,37,57,0.06)",
                     }}
                   >
+                    {" "}
                     <span
                       style={{
                         width: 34,
@@ -271,8 +300,9 @@ export default function ResourceCard({ resource, category, preview = false }) {
                         boxShadow: "0 2px 6px rgba(249,117,68,0.32)",
                       }}
                     >
-                      {i + 1}
-                    </span>
+                      {" "}
+                      {i + 1}{" "}
+                    </span>{" "}
                     <span
                       style={{
                         fontSize: 17,
@@ -281,20 +311,22 @@ export default function ResourceCard({ resource, category, preview = false }) {
                         lineHeight: 1.35,
                       }}
                     >
-                      {b}
-                    </span>
+                      {" "}
+                      {b}{" "}
+                    </span>{" "}
                   </li>
-                ))}
-              </ul>
-            </section>
-
+                ))}{" "}
+              </ul>{" "}
+            </section>{" "}
             <div style={{ textAlign: "center", display: "grid", gap: 20 }}>
+              {" "}
               <div style={{ fontSize: 25, fontWeight: 700, color: "white" }}>
+                {" "}
                 Price{" "}
                 <span style={{ color: "white", fontSize: 34, fontWeight: 900 }}>
-                  €{resource.price}
-                </span>
-              </div>
+                  €{resource.price?.toFixed(2) ?? "0.00"}
+                </span>{" "}
+              </div>{" "}
               {!hasBundleOwnership && !bundleInCart && (
                 <button
                   onClick={handleAddToCart}
@@ -323,25 +355,28 @@ export default function ResourceCard({ resource, category, preview = false }) {
                     e.currentTarget.style.transform = "translateY(0)";
                   }}
                 >
-                  Buy
+                  {" "}
+                  Buy{" "}
                 </button>
-              )}
+              )}{" "}
               {bundleInCart && !hasBundleOwnership && (
                 <div
                   style={{ fontSize: 17, fontWeight: 700, color: "#f9644d" }}
                 >
-                  Bundle added to cart. Complete checkout to unlock.
+                  {" "}
+                  Bundle added to cart. Complete checkout to unlock.{" "}
                 </div>
-              )}
+              )}{" "}
               {hasBundleOwnership && (
                 <div
                   style={{ fontSize: 18, fontWeight: 700, color: "#57c785" }}
                 >
-                  Bundle owned ✔ All resources unlocked
+                  {" "}
+                  Bundle owned ✔ All resources unlocked{" "}
                 </div>
-              )}
+              )}{" "}
               <button
-                onClick={handleCloseModal}
+                onClick={() => setModalOpen(false)}
                 style={{
                   margin: "2px auto 0",
                   background: "transparent",
@@ -360,13 +395,14 @@ export default function ResourceCard({ resource, category, preview = false }) {
                   e.currentTarget.style.opacity = 0.85;
                 }}
               >
-                Maybe Later
-              </button>
-              {/* Removed redundant unlock notice */}
-            </div>
-          </div>
+                {" "}
+                Maybe Later{" "}
+              </button>{" "}
+              {/* Removed redundant unlock notice */}{" "}
+            </div>{" "}
+          </div>{" "}
         </div>
-      )}
+      )}{" "}
     </>
   );
 }

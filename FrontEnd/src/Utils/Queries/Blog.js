@@ -70,6 +70,7 @@ export const ALL_RESOURCES = gql`
       type
       price
       url
+      perks
       image {
         asset {
           url

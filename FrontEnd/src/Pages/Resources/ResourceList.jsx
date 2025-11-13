@@ -10,7 +10,7 @@ export default function ResourceList({ resources, category, type }) {
   );
   console.log(resources);
   return (
-    <div className="grid grid-cols-1 ml:grid-cols-2 t:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 ml:grid-cols-2 t:grid-cols-3 gap-4 items-start">
       {filtered.map((res) => (
         <ResourceCard key={res.id} resource={res} category={category} />
       ))}

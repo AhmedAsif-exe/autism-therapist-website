@@ -71,5 +71,12 @@ export default defineType({
       title: 'Description',
       type: 'text',
     }),
+    defineField({
+      name: 'perks',
+      title: 'Perks',
+      type: 'array',
+      of: [{type: 'string'}],
+      description: 'List the benefits of this resource',
+    }),
   ],
 })

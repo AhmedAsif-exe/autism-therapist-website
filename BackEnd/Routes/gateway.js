@@ -3,6 +3,7 @@ const paypal = require("@paypal/checkout-server-sdk");
 const User = require("../Schema/User");
 const router = express.Router();
 const cron = require("node-cron");
+const Stripe = require("stripe");
 
 cron.schedule("0 0 * * *", async () => {
   // Runs every day at midnight
@@ -17,6 +18,8 @@ cron.schedule("0 0 * * *", async () => {
     await user.save();
   }
 });
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 function ensureAuth(req, res, next) {
   if (req.isAuthenticated && req.isAuthenticated()) {
@@ -103,6 +106,38 @@ router.post("/create-order", ensureAuth, async (req, res) => {
   } catch (err) {
     console.error("PayPal Create Order Error:", err);
     res.status(500).json({ error: "Failed to create PayPal order" });
+  }
+});
+router.post("/create-stripe-session", ensureAuth, async (req, res) => {
+  try {
+    const { cart } = req.body;
+    if (!cart || !cart.length) {
+      return res.status(400).json({ error: "Cart cannot be empty" });
+    }
+
+    const line_items = cart.map((item) => ({
+      price_data: {
+        currency: "eur",
+        product_data: {
+          name: item.title || "Item",
+        },
+        unit_amount: Math.round((item.price || 0) * 100), // cents
+      },
+      quantity: item.quantity || 1,
+    }));
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      line_items,
+      success_url: `${process.env.FRONTEND_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.FRONTEND_URL}/error`,
+      billing_address_collection: "auto",
+    });
+
+    res.json({ url: session.url });
+  } catch (err) {
+    console.error("Stripe session error:", err);
+    res.status(500).json({ error: "Failed to create Stripe checkout session" });
   }
 });
 

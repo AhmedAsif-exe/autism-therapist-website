@@ -1,27 +1,33 @@
 import api, { checkAuthStatus } from "axiosInstance";
 
-export const initiateCheckoutSession = async (cart, user) => {
+export const initiateCheckoutSession = async (
+  cart,
+  user,
+  method = "paypal"
+) => {
   try {
-    const { data } = await api.post("/paypal/create-order", { cart });
-
-    if (data?.links) {
-      const approvalUrl =
-        data.links.find((link) => link.rel === "approve").href +
-        "&locale.x=en_US";
-
-      window.location.href = approvalUrl;
+    let res;
+    if (method === "stripe") {
+      res = await api.post("/paypal/create-stripe-session", { cart });
+      if (res.data?.url) {
+        window.location.href = res.data.url;
+      }
     } else {
-      console.error("No PayPal approval link found", data);
+      // Default: PayPal
+      const { data } = await api.post("/paypal/create-order", { cart });
+      const approvalUrl =
+        data.links?.find((link) => link.rel === "approve")?.href +
+        "&locale.x=en_US";
+      if (approvalUrl) window.location.href = approvalUrl;
     }
   } catch (err) {
     if (err.response?.status === 401) {
       window.location.href = "/login";
     } else {
-      console.error("Error initiating checkout session:", err);
+      console.error("Checkout error:", err);
     }
   }
 };
-
 export async function successCallback(cart, user) {
   try {
     console.log("Calling payment success callback for user:", user?.email);
