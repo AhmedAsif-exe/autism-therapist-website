@@ -92,7 +92,7 @@ export default function ResourceCard({ resource, category, preview = false }) {
             {resource.category} — {resource.type}
           </p>
 
-          <p className="text-gray-600 text-sm mt-2 line-clamp-3">
+          <p className="text-gray-600 text-sm mt-2 line-clamp-2">
             {resource.description}
           </p>
 

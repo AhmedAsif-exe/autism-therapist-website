@@ -1,202 +1,279 @@
 import { useEffect, useRef, useState } from "react";
-import Hls from "hls.js";
 import { useNavigate, useParams } from "react-router-dom";
-import { Box, Typography, Divider, Collapse, Button } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Divider,
+  Collapse,
+  Button,
+  Chip,
+} from "@mui/material";
 import { useProjectContext } from "Utils/Context";
 import Comments from "Utils/Comments";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
-const sampleResources = [
-  {
-    id: "res001",
-    title: "Understanding Autism - Beginner's Guide",
-    category: "Downloadable",
-    type: "PDF",
-    price: 5,
-    url: "zyqdtjjaeohr8ey1ifu9",
-    description:
-      "This beginner's guide provides a clear and accessible introduction to autism spectrum disorder. It explains the characteristics, challenges, and strengths of individuals on the spectrum using real-life examples. Whether you're a parent just starting your journey or a caregiver looking to understand more, this guide offers compassionate insights and practical advice to build empathy and awareness. Ideal for anyone new to the topic.",
-  },
-  {
-    id: "res002",
-    title: "Daily Routine Visuals Pack",
-    category: "Downloadable",
-    type: "PPT",
-    price: 7,
-    url: "zyqdtjjaeohr8ey1ifu9",
-    description:
-      "Designed to support structure and predictability, this pack includes a wide variety of editable visual routine cards suitable for daily activities. From morning hygiene to bedtime routines, each visual is easy to customize and print. These aids can help reduce anxiety, improve independence, and create a smoother flow to the day for children with autism. Great for home, school, or therapy settings.",
-  },
-  {
-    id: "res003",
-    title: "Positive Reinforcement Basics",
-    category: "Training",
-    type: "Short Video",
-    price: 8,
-    url: "zyqdtjjaeohr8ey1ifu9",
-    description:
-      "This short, focused training video introduces the fundamental principles of positive reinforcement and how they apply to behavior management in autism therapy. Learn how to identify desired behaviors, choose effective rewards, and implement a consistent reinforcement system. The video includes real-life examples and tips for parents and educators to apply immediately in daily interactions.",
-  },
-  {
-    id: "res004",
-    title: "Managing Meltdowns – Practical Training",
-    category: "Training",
-    type: "Long Video",
-    price: 12,
-    url: "How_NOT_To_Order_At_An_Indian_Restaurant_-_Trevor_Noah_From_I_Wish_You_Would_on_Netflix_rp3vnz",
-    description:
-      "This in-depth video course walks viewers through the emotional and sensory causes behind meltdowns and how to respond with empathy and effectiveness. It includes strategies like creating calm-down zones, using sensory tools, and de-escalation techniques. Ideal for therapists, teachers, and parents, the training empowers caregivers to prevent and manage meltdowns proactively, without shame or punishment.",
-  },
-  {
-    id: "res005",
-    title: "Social Stories Template Kit",
-    category: "Downloadable",
-    type: "PDF",
-    price: 6,
-    url: "zyqdtjjaeohr8ey1ifu9",
-    description:
-      "This printable template pack helps parents and therapists create custom social stories for children with autism. Each template is designed to teach social norms and behaviors through relatable, first-person narratives. Topics include going to school, sharing with others, visiting new places, and more. Social stories help reduce anxiety by preparing children for situations they may find confusing or overwhelming.",
-  },
-  {
-    id: "res006",
-    title: "Communication Aids Collection",
-    category: "Downloadable",
-    type: "PPT",
-    price: 10,
-    url: "zyqdtjjaeohr8ey1ifu9",
-    description:
-      "This downloadable set of augmentative and alternative communication (AAC) resources includes symbol boards, emotion charts, and choice boards. Created for non-verbal or minimally verbal individuals, it empowers children to express needs, make choices, and engage socially. The PowerPoint format allows easy customization for specific vocabularies and routines, making it a must-have toolkit for classrooms and therapy sessions.",
-  },
-  {
-    id: "res007",
-    title: "Early Intervention Overview",
-    category: "Training",
-    type: "Short Video",
-    price: 6,
-    url: "zyqdtjjaeohr8ey1ifu9",
-    description:
-      "This brief but impactful video highlights the importance of early intervention in autism treatment. It explains how early diagnosis and support during critical developmental windows can lead to better outcomes in communication, behavior, and social skills. The content is designed for parents and professionals new to early intervention and provides guidance on where to begin and what to expect.",
-  },
-  {
-    id: "res008",
-    title: "Advanced Therapy Techniques",
-    category: "Training",
-    type: "Long Video",
-    price: 15,
-    url: "zyqdtjjaeohr8ey1ifu9",
-    description:
-      "This comprehensive training video explores advanced strategies used in behavioral and developmental autism therapies. Techniques include task analysis, shaping complex behaviors, generalization across settings, and integrating technology in sessions. Designed for experienced therapists and educators, it offers research-backed tools and demonstrations to elevate intervention quality and individual outcomes.",
-  },
-];
+import src from "Assets/Images/logo-removebg-preview.png";
+import { Facebook, Twitter, Instagram, LinkedIn } from "@mui/icons-material";
+import { useQuery } from "@apollo/client";
+import { RESOURCE } from "Utils/Queries/Blog";
 
-const VideoPlayer = () => {
+const COLORS = {
+  orange: "#f97544",
+  navy: "#265c7e",
+  teal: "#16b981",
+};
+
+function AuthorIntro({ authors }) {
+  const author = authors?.[0];
+
+  if (!author) return null;
+
+  return (
+    <section className="py-16 px-6">
+      <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-12">
+        {/* LEFT — TEXT */}
+        <div className="flex-1 text-center md:text-left">
+          <h1
+            className="text-4xl font-bold"
+            style={{ color: "#265c7e" }} // Navy
+          >
+            About the Author
+          </h1>
+
+          {author.description?.map((d, i) => (
+            <p
+              key={i}
+              className="mt-5 text-lg leading-relaxed"
+              style={{ color: "#374151" }}
+            >
+              {d}
+            </p>
+          ))}
+        </div>
+
+        {/* RIGHT — AUTHOR CARD */}
+        <div
+          className="flex flex-col items-center p-6 rounded-2xl shadow-xl w-full md:w-80"
+          style={{
+            background: "white",
+            borderTop: "6px solid #f97544", // Orange highlight
+          }}
+        >
+          <img
+            src={author.image.asset.url}
+            alt={author.name}
+            className="w-48 h-48 rounded-full object-cover shadow-md"
+          />
+
+          <h3
+            className="mt-4 text-2xl font-semibold"
+            style={{ color: "#265c7e" }} // Navy
+          >
+            {author.name}
+          </h3>
+
+          {/* Social Icons */}
+          <div className="flex gap-4 mt-3 text-gray-600 text-xl">
+            {author.facebook && (
+              <a
+                href={author.facebook}
+                aria-label="Facebook"
+                className="hover:text-[#16b981]"
+              >
+                <Facebook />
+              </a>
+            )}
+            {author.twitter && (
+              <a
+                href={author.twitter}
+                aria-label="Twitter"
+                className="hover:text-[#16b981]"
+              >
+                <Twitter />
+              </a>
+            )}
+            {author.instagram && (
+              <a
+                href={author.instagram}
+                aria-label="Instagram"
+                className="hover:text-[#16b981]"
+              >
+                <Instagram />
+              </a>
+            )}
+            {author.linkedIn && (
+              <a
+                href={author.linkedIn}
+                aria-label="LinkedIn"
+                className="hover:text-[#16b981]"
+              >
+                <LinkedIn />
+              </a>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export default function VideoPlayer() {
   const videoRef = useRef(null);
   const { id } = useParams();
   const { user } = useProjectContext();
-  const navigate = useNavigate();
-  const [index, setIndex] = useState(null);
 
   const [expanded, setExpanded] = useState(false);
 
-  const handleToggle = () => {
-    setExpanded((prev) => !prev);
-  };
+  const handleToggle = () => setExpanded((p) => !p);
+  const { loading, data } = useQuery(RESOURCE, { variables: { id } });
 
   useEffect(() => {
-    if (!user || !id) return;
-    const foundIndex = sampleResources.findIndex((item) => item.id === id);
-    if (!user.paidItems.some(item => item?.id === id) || foundIndex < 0) {
-      navigate("/");
-      return;
-    }
-
-    setIndex(foundIndex);
-  }, [user, id, navigate]);
-
-  useEffect(() => {
-    if (index === null) return;
-
     const video = videoRef.current;
     if (!video) return;
-    const cloud_name = process.env.REACT_APP_CLOUD_NAME;
-    const videoUrl = `https://res.cloudinary.com/${cloud_name}/video/upload/v1749477051/${sampleResources[index].url}.mp4`;
-
-    // if (Hls.isSupported()) {
-    //   const hls = new Hls();
-    //   hls.loadSource(videoUrl);
-    //   hls.attachMedia(video);
-    // } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-    //   console.log(videoUrl)
+    const videoUrl = `${process.env.REACT_APP_BACKEND_URI}paypal/videos/stream/${data.Resource.url}`;
     video.src = videoUrl;
-    // }
-  }, [index]);
+  }, [loading, data]);
+  useEffect(() => {
+    if (!user || !data?.Resource || !Array.isArray(user.paidItems)) return;
+
+    const hasAccess = user.paidItems.some(
+      (item) => item.id === data.Resource._id
+    );
+
+    if (!hasAccess) {
+      window.location.href = "/login";
+    }
+  }, [user, data]);
 
   return (
     <>
-      {index !== null && sampleResources[index] && (
-        <Box maxWidth="lg" mx="auto" p={1}>
-          <Box sx={{ padding: "30px 0px", paddingTop: "100px" }}>
-            <video
-              ref={videoRef}
-              controls
-              style={{
-                height: "80vh",
-                width: "100%",
-                borderRadius: "12px",
-                backgroundColor: "black",
-              }}
-            />
-          </Box>
-          <Box mt={1}>
-            <Typography variant="h4" textAlign={"left"} gutterBottom>
-              {sampleResources[index].title}
-            </Typography>
-            <Collapse
-              in={expanded}
-              collapsedSize={40}
-              timeout={500}
+      <div
+        style={{
+          position: "fixed",
+          inset: 0,
+          backgroundImage: `url(${src})`,
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "center",
+          backgroundSize: "100%",
+          filter: "blur(2px)",
+          opacity: 0.12,
+          zIndex: -1,
+          pointerEvents: "none",
+        }}
+      ></div>
+      {data && (
+        <Box
+          sx={{
+            position: "relative",
+            minHeight: "100vh",
+            paddingTop: "100px",
+            paddingBottom: "40px",
+          }}
+        >
+          <Box
+            sx={{
+              position: "relative",
+              zIndex: 2,
+              maxWidth: "1200px",
+              margin: "auto",
+              px: 2,
+            }}
+          >
+            <Box
               sx={{
+                borderRadius: "14px",
                 overflow: "hidden",
-                position: "relative",
-                transition: "all 0.5s ease",
-                "&::after": !expanded
-                  ? {
-                      content: '""',
-                      display: "block",
-                      height: "60px",
-                      background:
-                        "linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%)",
-                      mt: "-60px",
-                      pointerEvents: "none",
-                      transition: "opacity 0.3s ease-in-out",
-                    }
-                  : {},
+                background: COLORS.navy,
+                boxShadow: "0px 4px 18px rgba(0,0,0,0.25)",
+              }}
+              onContextMenu={(e) => e.preventDefault()} // ⛔ Disable right-click here
+            >
+              <video
+                controlsList="nodownload" // ⛔ removes download button
+                ref={videoRef}
+                controls
+                style={{
+                  width: "100%",
+                  height: "70vh",
+                  background: "black",
+                }}
+              />
+            </Box>
+
+            <Typography
+              variant="h4"
+              fontWeight="bold"
+              sx={{
+                mt: 3,
+                color: COLORS.navy,
               }}
             >
-              <Typography
-                variant="body1"
-                textAlign={"left"}
-                color="textSecondary"
-              >
-                {sampleResources[index].description}
-              </Typography>
-            </Collapse>{" "}
+              {data.Resource.title}
+            </Typography>
+
+            <Box sx={{ mt: 1, display: "flex", gap: 1 }}>
+              <Chip
+                label={data.Resource.category}
+                sx={{ background: COLORS.orange, color: "#fff" }}
+              />
+              <Chip
+                label={data.Resource.type}
+                sx={{ background: COLORS.teal, color: "#fff" }}
+              />
+              <Chip
+                label={`€ ${data.Resource.price.toFixed(2)}`}
+                sx={{
+                  background: COLORS.navy,
+                  color: "#fff",
+                  fontWeight: "bold",
+                }}
+              />
+            </Box>
+
+            <Collapse
+              in={expanded}
+              collapsedSize={20}
+              sx={{
+                mt: 2,
+                fontSize: "1rem",
+                color: "#444",
+                lineHeight: 1.6,
+              }}
+            >
+              {data.Resource.description}
+            </Collapse>
+
             <Button
-              endIcon={expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
               onClick={handleToggle}
-              sx={{ mt: 1, textTransform: "none" }}
+              sx={{
+                mt: 1,
+                color: COLORS.navy,
+                textTransform: "none",
+                fontWeight: "600",
+                "&:hover": {
+                  color: COLORS.orange,
+                },
+              }}
+              endIcon={expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
             >
               {expanded ? "Show less" : "Show more"}
             </Button>
-          </Box>
-          <Divider sx={{ my: 4 }} />
-          <Box>
-            <Comments blogId={sampleResources[index].id} />
+
+            <Divider sx={{ my: 4 }} />
+            <AuthorIntro authors={data.Resource.authors} />
+
+            <Typography
+              variant="h6"
+              fontWeight="600"
+              sx={{ color: COLORS.navy, mb: 1, mt: 4 }}
+            >
+              Community Discussion
+            </Typography>
+
+            <Comments blogId={data.Resource._id} />
           </Box>
         </Box>
       )}
     </>
   );
-};
-
-export default VideoPlayer;
+}

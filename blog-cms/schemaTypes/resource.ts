@@ -13,6 +13,13 @@ export default defineType({
       validation: (rule: StringRule) => rule.required(),
     }),
     defineField({
+      name: 'authors',
+      title: 'Authors',
+      type: 'array',
+      of: [{type: 'author'}],
+      hidden: ({parent}) => parent?.category !== 'Training', // 👈 CONDITIONAL VISIBILITY
+    }),
+    defineField({
       name: 'category',
       title: 'Category',
       type: 'string',

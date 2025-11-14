@@ -4,7 +4,8 @@ const User = require("../Schema/User");
 const router = express.Router();
 const cron = require("node-cron");
 const Stripe = require("stripe");
-
+const fs = require("fs");
+const path = require("path");
 cron.schedule("0 0 * * *", async () => {
   // Runs every day at midnight
   const users = await User.find();
@@ -176,8 +177,48 @@ router.get("/:file", (req, res) => {
   const file = req.params.file;
   console.log(file);
   const filePath = `/var/www/protected/${file}`;
-  // const filePath = "C:/Users/LENOVO/Downloads/FFC-features.pdf";
+  // const filePath = `C:/Users/LENOVO/Downloads/${file}`;
   res.download(filePath); // sets headers for download
 });
 
+router.get("/videos/stream/:id", ensureAuth, (req, res) => {
+  const id = req.params.id;
+
+  // Map ID → File path
+  const videoPath = path.join("/var/www/protected/", `${id}`);
+
+  if (!fs.existsSync(videoPath)) {
+    return res.status(404).json({ error: "Video not found" });
+  }
+
+  const stat = fs.statSync(videoPath);
+  const fileSize = stat.size;
+  const range = req.headers.range;
+
+  // Handle streaming (Range requests)
+  if (range) {
+    const parts = range.replace(/bytes=/, "").split("-");
+    const start = parseInt(parts[0], 10);
+    const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+    const chunkSize = end - start + 1;
+
+    const file = fs.createReadStream(videoPath, { start, end });
+
+    res.writeHead(206, {
+      "Content-Range": `bytes ${start}-${end}/${fileSize}`,
+      "Accept-Ranges": "bytes",
+      "Content-Length": chunkSize,
+      "Content-Type": "video/mp4",
+    });
+
+    file.pipe(res);
+  } else {
+    res.writeHead(200, {
+      "Content-Length": fileSize,
+      "Content-Type": "video/mp4",
+    });
+
+    fs.createReadStream(videoPath).pipe(res);
+  }
+});
 module.exports = router;

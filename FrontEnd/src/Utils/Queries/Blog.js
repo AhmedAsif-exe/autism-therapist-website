@@ -95,6 +95,18 @@ export const RESOURCE = gql`
           url
         }
       }
+      authors {
+        name
+        description
+        image {
+          asset {
+            url
+          }
+        }
+        facebook
+        instagram
+        linkedIn
+      }
       description
     }
   }
