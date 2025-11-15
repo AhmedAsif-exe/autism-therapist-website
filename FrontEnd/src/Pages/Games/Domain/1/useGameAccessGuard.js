@@ -31,11 +31,13 @@ export function useGameAccessGuard(domainIdExpected = 1) {
         return; // Still loading, don't make any redirects yet
       }
       
+      // Allow anonymous users to play without checking access
       if (!loggedIn) {
-        // Auth has loaded and user is not logged in
-        navigate('/login');
+        setAllowed(true);
+        setChecking(false);
         return;
       }
+      
       if (domainId !== domainIdExpected || isNaN(gameId)) {
         navigate('/games');
         return;

@@ -5,7 +5,10 @@ const GameScore = require('../Schema/GameScore');
 // Simple auth guard leveraging passport session
 function ensureAuth(req, res, next) {
   if (req.isAuthenticated && req.isAuthenticated()) return next();
-  return res.status(401).json({ message: 'Not authenticated' });
+  return res.status(401).json({ 
+    message: 'Not authenticated',
+    hint: 'Please sign in to save your scores and track progress'
+  });
 }
 
 // POST /scores - Save a new game score

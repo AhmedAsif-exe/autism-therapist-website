@@ -57,5 +57,5 @@ app.use("/mail", mailRoutes);
 app.use("/newsletter", newsletterRoutes);
 app.use("/games", gamesAccessRoutes);
 app.use("/scores", scoresRoutes);
-const PORT = 5000;
+const PORT = 5001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

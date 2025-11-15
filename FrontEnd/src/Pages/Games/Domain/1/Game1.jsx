@@ -7,6 +7,7 @@ import PageTemplate from "Utils/PageTemplate";
 import bannerImage from "Assets/Images/banner.jpeg";
 import { buildProgressGraph } from "./ProgressGraph";
 import { buildSummaryUI } from "./SummaryUI";
+import { buildSignUpBenefitsUI } from "./SignUpBenefits";
 import {
   FUNCTION_ASSET_MAPPINGS,
   getAllFunctions,
@@ -514,17 +515,37 @@ export function ReceptiveFunctionGame() {
           // Remove noisy logs
           if (this.qIndex >= QUESTIONS_PER_RUN) {
             // End after configured number of questions
-            // Save score to database instead of localStorage
-            import("Utils/ProgressTracker").then(({ recordSession }) => {
-              recordSession(1, this.totalCorrect).catch((error) => {
-                console.error("Error saving score for Game 1:", error);
-              });
-            });
-
-            this.scene.start("SummaryScene", {
-              correct: this.totalCorrect,
-              total: QUESTIONS_PER_RUN, // Use configured question count
-            });
+            // Check authentication before saving score
+            const checkAuth = async () => {
+              try {
+                const storedUser = localStorage.getItem('user');
+                const isAuthenticated = !!(storedUser && JSON.parse(storedUser)?._id);
+                
+                if (isAuthenticated) {
+                  // Save score to database for authenticated users
+                  import("Utils/ProgressTracker").then(({ recordSession }) => {
+                    recordSession(1, this.totalCorrect).catch((error) => {
+                      console.error("Error saving score for Game 1:", error);
+                    });
+                  });
+                }
+                
+                this.scene.start("SummaryScene", {
+                  correct: this.totalCorrect,
+                  total: QUESTIONS_PER_RUN,
+                  isAuthenticated,
+                });
+              } catch (error) {
+                console.error("Error checking authentication:", error);
+                this.scene.start("SummaryScene", {
+                  correct: this.totalCorrect,
+                  total: QUESTIONS_PER_RUN,
+                  isAuthenticated: false,
+                });
+              }
+            };
+            
+            checkAuth();
             return;
           }
 
@@ -751,17 +772,23 @@ export function ReceptiveFunctionGame() {
         async init(data) {
           this.correct = data.correct || 0;
           this.total = data.total || 0;
+          this.isAuthenticated = data.isAuthenticated || false;
 
-          // Load history from database instead of localStorage
-          try {
-            const { getLastNSessions } = await import("Utils/ProgressTracker");
-            this.history = await getLastNSessions(1, 20);
-          } catch (e) {
-            console.error("Error loading game history:", e);
+          if (this.isAuthenticated) {
+            // Load history from database for authenticated users
+            try {
+              const { getLastNSessions } = await import("Utils/ProgressTracker");
+              this.history = await getLastNSessions(1, 20);
+            } catch (e) {
+              console.error("Error loading game history:", e);
+              this.history = [];
+            }
+            this.localHistory = this.history.slice(-5);
+          } else {
+            // No history for unauthenticated users
             this.history = [];
+            this.localHistory = [];
           }
-
-          this.localHistory = this.history.slice(-5);
         }
 
         preload() {
@@ -789,32 +816,71 @@ export function ReceptiveFunctionGame() {
         }
 
         setupSummary() {
-          // Use shared Summary UI builder to render heading, restart button, and graph
-          buildSummaryUI(this, {
-            correct: this.correct,
-            total: this.total,
-            history: this.localHistory,
-            onRestart: () => {
-              const fn = this.game?.reactHandleShuffle;
-              if (typeof fn === "function") {
-                fn();
-              } else {
-                this.scene.start("MainScene");
-              }
-            },
-            texts: {
-              heading: `You got ${this.correct} correct on first try!`,
-              playAgain: "Play Again",
-            },
-            graph: {
-              x: this.scale.width / 2,
-              y: this.scale.height / 2 + 150,
-              width: 400,
-              height: 250,
-              titleText: "Progress Over Past 5 Attempts",
-              entrance: { fromYOffset: 300, delay: 200 },
-            },
-          });
+          if (this.isAuthenticated) {
+            // Use shared Summary UI builder to render heading, restart button, and graph for authenticated users
+            buildSummaryUI(this, {
+              correct: this.correct,
+              total: this.total,
+              history: this.localHistory,
+              onRestart: () => {
+                const fn = this.game?.reactHandleShuffle;
+                if (typeof fn === "function") {
+                  fn();
+                } else {
+                  this.scene.start("MainScene");
+                }
+              },
+              texts: {
+                heading: `You got ${this.correct} correct on first try!`,
+                playAgain: "Play Again",
+              },
+              graph: {
+                x: this.scale.width / 2,
+                y: this.scale.height / 2 + 150,
+                width: 400,
+                height: 250,
+                titleText: "Progress Over Past 5 Attempts",
+                entrance: { fromYOffset: 300, delay: 200 },
+              },
+            });
+          } else {
+            // Show sign-up benefits UI for unauthenticated users
+            buildSignUpBenefitsUI(this, {
+              correct: this.correct,
+              total: this.total,
+              onRestart: () => {
+                const fn = this.game?.reactHandleShuffle;
+                if (typeof fn === "function") {
+                  fn();
+                } else {
+                  this.scene.start("MainScene");
+                }
+              },
+              onSignUp: () => {
+                if (typeof window !== 'undefined') {
+                  window.location.href = '/signup';
+                }
+              },
+              onSignIn: () => {
+                if (typeof window !== 'undefined') {
+                  window.location.href = '/login';
+                }
+              },
+              texts: {
+                headingPrimary: "Sign In to Track Progress!",
+                headingSecondary: `You got ${this.correct}/${this.total} on first try`,
+                description: "Create an account to save your scores, view detailed progress charts, and track your improvement over time.",
+                signUpText: "Create Free Account",
+                signInText: "Already have an account? Sign In",
+                playAgainText: "Play Again",
+              },
+              benefits: {
+                x: this.scale.width / 2,
+                y: this.scale.height / 2,
+                entrance: { fromYOffset: 300, delay: 200 },
+              },
+            });
+          }
         }
       }
 
@@ -893,3 +959,5 @@ export function ReceptiveFunctionGame() {
     </div>
   );
 }
+
+export default ReceptiveFunctionGame;

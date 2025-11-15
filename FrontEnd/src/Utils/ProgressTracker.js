@@ -47,19 +47,62 @@ export async function getLastNSessions(gameId, n = 10) {
 }
 
 export async function recordSession(gameId, score) {
+  // Check if user is authenticated before attempting to save
+  const isAuthenticated = await checkUserAuthentication();
+  
+  if (!isAuthenticated) {
+    console.log(`[Anonymous] Score not saved for Game ${gameId}: ${score} (user not logged in)`);
+    return { 
+      saved: false, 
+      reason: 'not_authenticated',
+      score 
+    };
+  }
+  
   try {
     await saveGameScore(1, gameId, score); // Domain 1 for now
     console.log(`Score recorded for Game ${gameId}: ${score}`);
+    return { 
+      saved: true, 
+      score 
+    };
   } catch (error) {
     console.error('Error saving score to database, falling back to localStorage:', error);
     // Fallback to localStorage if API fails
-    if (!isBrowser) return;
+    if (!isBrowser) return { saved: false, reason: 'no_browser', score };
     const key = storageKeyForGame(gameId);
     const arr = readHistory(gameId);
     arr.push(typeof score === 'number' ? score : Number(score) || 0);
     try {
       window.localStorage.setItem(key, JSON.stringify(arr.slice(-20)));
-    } catch {}
+      return { 
+        saved: true, 
+        fallback: 'localStorage',
+        score 
+      };
+    } catch {
+      return { 
+        saved: false, 
+        reason: 'storage_error',
+        score 
+      };
+    }
+  }
+}
+
+// Helper function to check if user is authenticated
+async function checkUserAuthentication() {
+  if (!isBrowser) return false;
+  try {
+    // Check localStorage first (quick check)
+    const storedUser = window.localStorage.getItem('user');
+    if (storedUser) {
+      const user = JSON.parse(storedUser);
+      return !!(user && user._id);
+    }
+    return false;
+  } catch {
+    return false;
   }
 }
 

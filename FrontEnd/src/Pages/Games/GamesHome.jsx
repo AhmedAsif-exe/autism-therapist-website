@@ -274,6 +274,11 @@ export default function GamesHome() {
   };
 
   const handlePurchaseClick = (game) => {
+    // Require login to purchase games
+    if (!loggedIn) {
+      navigate('/signup');
+      return;
+    }
     setModalLockedGame(game);
     setModalOpen(true);
   };
@@ -355,6 +360,77 @@ export default function GamesHome() {
       subtitle="Choose a game to play!"
       src={require("Assets/Images/banner.jpeg")}
     >
+      {/* Sign-in prompt banner when viewing games in a domain */}
+      {selectedDomain !== null && !loggedIn && (
+        <div
+          style={{
+            width: "100%",
+            maxWidth: 700,
+            margin: "12px auto 20px",
+            padding: "20px 28px",
+            background: "linear-gradient(135deg, #fff8f5 0%, #ffece6 100%)",
+            border: "2.5px solid #f97544",
+            borderRadius: 18,
+            boxShadow: "0 6px 20px rgba(249,117,68,0.15)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 20,
+            flexWrap: "wrap",
+          }}
+        >
+          <div style={{ flex: 1, minWidth: 240 }}>
+            <div
+              style={{
+                color: "#265c7e",
+                fontSize: 18,
+                fontWeight: 800,
+                marginBottom: 6,
+                fontFamily: "Fredoka One, sans-serif",
+              }}
+            >
+              Sign In to Save Your Scores!
+            </div>
+            <div
+              style={{
+                color: "#627d8f",
+                fontSize: 14,
+                fontWeight: 600,
+                lineHeight: 1.4,
+              }}
+            >
+              Track your progress and compete with others
+            </div>
+          </div>
+          <button
+            onClick={() => navigate("/login")}
+            style={{
+              padding: "12px 28px",
+              background: "#f97544",
+              color: "#fff",
+              border: "none",
+              borderRadius: 999,
+              fontSize: 16,
+              fontWeight: 800,
+              cursor: "pointer",
+              boxShadow: "0 4px 12px rgba(249,117,68,0.3)",
+              transition: "transform 150ms ease, box-shadow 150ms ease",
+              fontFamily: "Fredoka One, sans-serif",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-2px)";
+              e.currentTarget.style.boxShadow = "0 6px 18px rgba(249,117,68,0.4)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "0 4px 12px rgba(249,117,68,0.3)";
+            }}
+          >
+            Sign In
+          </button>
+        </div>
+      )}
+
       {/* Toggle pill with animated slider - only show when a domain is selected */}
       {selectedDomain !== null && (
         // Keep equal spacing between the toggle, the "All Domains" button and the domain title
@@ -436,84 +512,194 @@ export default function GamesHome() {
       )}
 
       {selectedDomain !== null && view === "progress" && (
-        <DomainProgress domainId={selectedDomain} />
+        loggedIn ? (
+          <DomainProgress domainId={selectedDomain} />
+        ) : (
+          <div
+            style={{
+              width: "100%",
+              background: "#f7f9fb",
+              padding: "60px 24px",
+              borderTop: "1px solid #e6edf2",
+              borderBottom: "1px solid #e6edf2",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 20,
+            }}
+          >
+            <div
+              style={{
+                maxWidth: 500,
+                textAlign: "center",
+                padding: "40px 32px",
+                background: "linear-gradient(135deg, #fff8f5 0%, #ffece6 100%)",
+                border: "2.5px solid #f97544",
+                borderRadius: 20,
+                boxShadow: "0 8px 24px rgba(249,117,68,0.15)",
+              }}
+            >
+              <div
+                style={{
+                  width: "100%",
+                  maxWidth: 280,
+                  margin: "0 auto 16px",
+                  padding: "12px",
+                  background: "transparent",
+                }}
+              >
+                <MiniProgressChart 
+                  history={[8, 12, 10, 15, 14, 18, 16, 19, 17, 20]} 
+                  max={20} 
+                  color="#f97544" 
+                />
+              </div>
+              <div
+                style={{
+                  color: "#265c7e",
+                  fontSize: 24,
+                  fontWeight: 800,
+                  marginBottom: 12,
+                  fontFamily: "Fredoka One, sans-serif",
+                }}
+              >
+                Sign In to Track Progress!
+              </div>
+              <div
+                style={{
+                  color: "#627d8f",
+                  fontSize: 16,
+                  fontWeight: 600,
+                  lineHeight: 1.5,
+                  marginBottom: 24,
+                }}
+              >
+                Create an account to save your scores, view detailed progress charts, and track your improvement over time.
+              </div>
+              <button
+                onClick={() => navigate("/login")}
+                style={{
+                  padding: "14px 32px",
+                  background: "#f97544",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 999,
+                  fontSize: 18,
+                  fontWeight: 800,
+                  cursor: "pointer",
+                  boxShadow: "0 4px 14px rgba(249,117,68,0.35)",
+                  transition: "transform 150ms ease, box-shadow 150ms ease",
+                  fontFamily: "Fredoka One, sans-serif",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.boxShadow = "0 6px 20px rgba(249,117,68,0.45)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "0 4px 14px rgba(249,117,68,0.35)";
+                }}
+              >
+                Sign In Now
+              </button>
+            </div>
+          </div>
+        )
       )}
 
       {view === "games" && (
         <React.Fragment>
           {/* If no domain selected yet, show the Domain cards */}
           {selectedDomain === null && (
-            <div
-              className="w-full flex flex-wrap justify-center gap-8 py-8"
-              style={{
-                background: "#fff",
-                opacity: gamesReveal ? 1 : 0,
-                transform: `translateY(${gamesReveal ? 0 : 8}px)`,
-                transition: "opacity 320ms ease, transform 360ms ease",
-              }}
-            >
-              {/* If the user is not logged in, show a CTA encouraging sign in before playing */}
+            <React.Fragment>
+              {/* Sign-in prompt banner for anonymous users */}
               {!loggedIn && (
                 <div
                   style={{
                     width: "100%",
+                    maxWidth: 700,
+                    margin: "0 auto 20px",
+                    padding: "20px 28px",
+                    background: "linear-gradient(135deg, #fff8f5 0%, #ffece6 100%)",
+                    border: "2.5px solid #f97544",
+                    borderRadius: 18,
+                    boxShadow: "0 6px 20px rgba(249,117,68,0.15)",
                     display: "flex",
-                    justifyContent: "center",
-                    marginBottom: 18,
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 20,
+                    flexWrap: "wrap",
                   }}
                 >
-                  <div
-                    style={{
-                      maxWidth: 920,
-                      width: "100%",
-                      background: "#fff6f2",
-                      border: "1px solid #f6d9cf",
-                      padding: 16,
-                      borderRadius: 12,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 16,
-                    }}
-                  >
+                  <div style={{ flex: 1, minWidth: 240 }}>
                     <div
                       style={{
-                        flex: "1 1 auto",
                         color: "#265c7e",
-                        fontWeight: 700,
+                        fontSize: 18,
+                        fontWeight: 800,
+                        marginBottom: 6,
+                        fontFamily: "Fredoka One, sans-serif",
                       }}
                     >
-                      Sign in to play the games and save your progress
+                      Sign In to Save Your Scores!
                     </div>
-                    <div style={{ display: "flex", gap: 8 }}>
-                      <button
-                        onClick={() => navigate("/login")}
-                        className="px-4 py-2 rounded bg-[#f97544] text-white font-semibold"
-                        style={{ border: "none", cursor: "pointer" }}
-                      >
-                        Sign in
-                      </button>
-                      <button
-                        onClick={() => navigate("/signup")}
-                        className="px-4 py-2 rounded border border-[#f97544] text-[#f97544] font-semibold bg-white"
-                        style={{ cursor: "pointer" }}
-                      >
-                        Create account
-                      </button>
+                    <div
+                      style={{
+                        color: "#627d8f",
+                        fontSize: 14,
+                        fontWeight: 600,
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      Track your progress and compete with others
                     </div>
                   </div>
+                  <button
+                    onClick={() => navigate("/login")}
+                    style={{
+                      padding: "12px 28px",
+                      background: "#f97544",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: 999,
+                      fontSize: 16,
+                      fontWeight: 800,
+                      cursor: "pointer",
+                      boxShadow: "0 4px 12px rgba(249,117,68,0.3)",
+                      transition: "transform 150ms ease, box-shadow 150ms ease",
+                      fontFamily: "Fredoka One, sans-serif",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = "translateY(-2px)";
+                      e.currentTarget.style.boxShadow = "0 6px 18px rgba(249,117,68,0.4)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = "translateY(0)";
+                      e.currentTarget.style.boxShadow = "0 4px 12px rgba(249,117,68,0.3)";
+                    }}
+                  >
+                    Sign In
+                  </button>
                 </div>
               )}
-              {domains.map((d) => {
+              <div
+                className="w-full flex flex-wrap justify-center gap-8 py-8"
+                style={{
+                  background: "#fff",
+                  opacity: gamesReveal ? 1 : 0,
+                  transform: `translateY(${gamesReveal ? 0 : 8}px)`,
+                  transition: "opacity 320ms ease, transform 360ms ease",
+                }}
+              >
+                {domains.map((d) => {
                 const isAvailable = !!d.available;
                 return (
                   <div
                     key={d.id}
                     className={`${style.card} domain-card-custom relative group`}
                     onClick={() =>
-                      isAvailable &&
-                      (loggedIn
-                        ? navigate(`/games/domain/${d.id}`)
-                        : navigate("/login"))
+                      isAvailable && navigate(`/games/domain/${d.id}`)
                     }
                     style={{
                       width: 300,
@@ -600,6 +786,7 @@ export default function GamesHome() {
                 );
               })}
             </div>
+            </React.Fragment>
           )}
 
           {/* If Domain 1 selected, show its 10 games and a header */}
@@ -661,15 +848,13 @@ export default function GamesHome() {
                       className={`${style.card} game-card-custom relative group`}
                       onClick={() =>
                         !isLocked &&
-                        (loggedIn
-                          ? navigate(`/games/domain/1/${game.id}`, {
-                              state: {
-                                backTo: selectedDomain
-                                  ? `/games/domain/${selectedDomain}`
-                                  : "/games",
-                              },
-                            })
-                          : navigate("/login"))
+                        navigate(`/games/domain/1/${game.id}`, {
+                          state: {
+                            backTo: selectedDomain
+                              ? `/games/domain/${selectedDomain}`
+                              : "/games",
+                          },
+                        })
                       }
                       style={{
                         width: 260,
