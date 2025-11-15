@@ -76,6 +76,15 @@ export const ALL_RESOURCES = gql`
           url
         }
       }
+      authors {
+        name
+        description
+        image {
+          asset {
+            url
+          }
+        }
+      }
       description
     }
   }
@@ -103,9 +112,6 @@ export const RESOURCE = gql`
             url
           }
         }
-        facebook
-        instagram
-        linkedIn
       }
       description
     }

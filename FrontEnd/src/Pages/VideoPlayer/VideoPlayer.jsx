@@ -71,52 +71,11 @@ function AuthorIntro({ authors }) {
           >
             {author.name}
           </h3>
-
-          {/* Social Icons */}
-          <div className="flex gap-4 mt-3 text-gray-600 text-xl">
-            {author.facebook && (
-              <a
-                href={author.facebook}
-                aria-label="Facebook"
-                className="hover:text-[#16b981]"
-              >
-                <Facebook />
-              </a>
-            )}
-            {author.twitter && (
-              <a
-                href={author.twitter}
-                aria-label="Twitter"
-                className="hover:text-[#16b981]"
-              >
-                <Twitter />
-              </a>
-            )}
-            {author.instagram && (
-              <a
-                href={author.instagram}
-                aria-label="Instagram"
-                className="hover:text-[#16b981]"
-              >
-                <Instagram />
-              </a>
-            )}
-            {author.linkedIn && (
-              <a
-                href={author.linkedIn}
-                aria-label="LinkedIn"
-                className="hover:text-[#16b981]"
-              >
-                <LinkedIn />
-              </a>
-            )}
-          </div>
         </div>
       </div>
     </section>
   );
 }
-
 export default function VideoPlayer() {
   const videoRef = useRef(null);
   const { id } = useParams();
