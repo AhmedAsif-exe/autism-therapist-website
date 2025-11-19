@@ -13,6 +13,7 @@ import { CheckCircle, ExpandMore, ExpandLess } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useProjectContext } from "Utils/Context";
 import api from "axiosInstance";
+import Alert from "@mui/material/Alert";
 
 function AuthorIntro({ authors }) {
   const author = authors?.[0];
@@ -25,7 +26,7 @@ function AuthorIntro({ authors }) {
         {/* Left: Text */}
         <div className="flex-1 text-center md:text-left">
           <h1 className="text-3xl md:text-4xl font-extrabold text-[#265c7e]">
-            About the Author
+            About the Trainer
           </h1>
 
           <div className="mt-5 space-y-4 text-gray-700 leading-relaxed">
@@ -270,66 +271,14 @@ export default function ResourceCard({ resource, category, preview = false }) {
               </div>
             </header>{" "}
             <section>
-              {/* <ul
-                style={{
-                  listStyle: "none",
-                  margin: 0,
-                  padding: 0,
-                  display: "grid",
-                  background: "#fafafa",
-                  gap: 4,
-                }}
-              >
-                {" "}
-                {[
-                  "One-time purchase, a year of access",
-                  "Enhances learning and engagement",
-                ].map((b, i) => (
-                  <li
-                    key={i}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 14,
+              {resource.category === "Training" && (
+                <Alert severity="warning">
+                  Our trainings are for{" "}
+                  <strong>educational purposes only</strong> and do not qualify
+                  for continuing education units (CEUs).
+                </Alert>
+              )}
 
-                      padding: "14px 18px",
-
-                      boxShadow: "0 2px 6px rgba(4,37,57,0.06)",
-                    }}
-                  >
-                    {" "}
-                    <span
-                      style={{
-                        width: 34,
-                        height: 34,
-                        borderRadius: 12,
-                        background: "#f97544",
-                        color: "#fff",
-                        fontSize: 18,
-                        fontWeight: 800,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        boxShadow: "0 2px 6px rgba(249,117,68,0.32)",
-                      }}
-                    >
-                      {" "}
-                      {i + 1}{" "}
-                    </span>{" "}
-                    <span
-                      style={{
-                        fontSize: 17,
-                        fontWeight: 600,
-                        color: "#265c7e",
-                        lineHeight: 1.35,
-                      }}
-                    >
-                      {" "}
-                      {b}{" "}
-                    </span>{" "}
-                  </li>
-                ))}{" "}
-              </ul>{" "} */}
               <AuthorIntro authors={resource.authors} />
             </section>{" "}
             <div

@@ -37,7 +37,7 @@ function AuthorIntro({ authors }) {
             className="text-4xl font-bold"
             style={{ color: "#265c7e" }} // Navy
           >
-            About the Author
+            About the Trainer
           </h1>
 
           {author.description?.map((d, i) => (
