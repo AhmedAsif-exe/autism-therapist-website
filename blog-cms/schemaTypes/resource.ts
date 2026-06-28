@@ -57,6 +57,12 @@ export default defineType({
       description: 'Cloud storage link, PayPal item ID, or video identifier',
     }),
     defineField({
+      name: 'transcripturl',
+      title: 'transcript URL',
+      type: 'string',
+      description: 'Cloud storage link, PayPal item ID, or video identifier',
+    }),
+    defineField({
       name: 'image',
       title: 'Preview Image',
       type: 'image',

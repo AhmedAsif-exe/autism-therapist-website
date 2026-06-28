@@ -46,6 +46,10 @@ export default function AppAppBar() {
   };
 
   const navigate = useNavigate();
+  const handleNavigation = (path) => {
+    navigate(path);
+    setOpen(false);
+  };
   return (
     <AppBar
       position="fixed"
@@ -85,60 +89,66 @@ export default function AppAppBar() {
             </Box>
 
             <Box sx={{ display: { xs: "none", md: "flex" } }}>
-              <Button
-                variant="text"
-                color="info"
-                size="small"
-                sx={{ minWidth: 0, color: "#ffffff", mx: 1 }}
-                onClick={navigate.bind(this, "/")}
-              >
-                Home
-              </Button>
-              <Button
-                variant="text"
-                color="info"
-                size="small"
-                sx={{ minWidth: 0, color: "#ffffff", mx: 1 }}
-                onClick={navigate.bind(this, "/about")}
-              >
-                About
-              </Button>
-
-              <Button
-                variant="text"
-                color="info"
-                size="small"
-                sx={{ minWidth: 0, color: "#ffffff", mx: 1 }}
-                onClick={navigate.bind(this, "/blogs")}
-              >
-                Blog
-              </Button>
-              <Button
-                variant="text"
-                color="info"
-                size="small"
-                sx={{ minWidth: 0, color: "#ffffff", mx: 1 }}
-                onClick={navigate.bind(this, "/resources")}
-              >
-                Resources
-              </Button>
-              <Button
-                variant="text"
-                color="info"
-                size="small"
-                onClick={navigate.bind(this, "/games")}
-                sx={{ minWidth: 0, color: "#ffffff", mx: 1 }}
-              >
-                Games
-              </Button>
-              <Button
-                variant="text"
-                size="small"
-                onClick={navigate.bind(this, "/contact")}
-                sx={{ minWidth: 0, color: "#ffffff", mx: 1 }}
-              >
-                Contact
-              </Button>
+              <a href="/" style={{ textDecoration: "none" }}>
+                <Button
+                  variant="text"
+                  color="info"
+                  size="small"
+                  sx={{ minWidth: 0, color: "#ffffff", mx: 1 }}
+                >
+                  Home
+                </Button>
+              </a>
+              <a href="/about" style={{ textDecoration: "none" }}>
+                <Button
+                  variant="text"
+                  color="info"
+                  size="small"
+                  sx={{ minWidth: 0, color: "#ffffff", mx: 1 }}
+                >
+                  About
+                </Button>
+              </a>
+              <a href="/blogs" style={{ textDecoration: "none" }}>
+                <Button
+                  variant="text"
+                  color="info"
+                  size="small"
+                  sx={{ minWidth: 0, color: "#ffffff", mx: 1 }}
+                >
+                  Blog
+                </Button>
+              </a>
+              <a href="/resources" style={{ textDecoration: "none" }}>
+                <Button
+                  variant="text"
+                  color="info"
+                  size="small"
+                  sx={{ minWidth: 0, color: "#ffffff", mx: 1 }}
+                >
+                  Resources
+                </Button>
+              </a>
+              <a href="/games" style={{ textDecoration: "none" }}>
+                <Button
+                  variant="text"
+                  color="info"
+                  size="small"
+                  onClick={navigate.bind(this, "/games")}
+                  sx={{ minWidth: 0, color: "#ffffff", mx: 1 }}
+                >
+                  Games
+                </Button>
+              </a>
+              <a href="/contact" style={{ textDecoration: "none" }}>
+                <Button
+                  variant="text"
+                  size="small"
+                  sx={{ minWidth: 0, color: "#ffffff", mx: 1 }}
+                >
+                  Contact
+                </Button>
+              </a>
             </Box>
 
             {loggedIn ? (
@@ -172,22 +182,20 @@ export default function AppAppBar() {
                   alignItems: "center",
                 }}
               >
-                <Button
-                  color="#f97544"
-                  variant="text"
-                  size="small"
-                  onClick={navigate.bind(this, "/login")}
-                >
-                  Sign in
-                </Button>
-                <Button
-                  sx={{ backgroundColor: "#f97544" }}
-                  variant="contained"
-                  size="small"
-                  onClick={navigate.bind(this, "/signup")}
-                >
-                  Sign up
-                </Button>
+                <a href="/login" style={{ textDecoration: "none" }}>
+                  <Button color="#f97544" variant="text" size="small">
+                    Sign in
+                  </Button>
+                </a>
+                <a href="/signup" style={{ textDecoration: "none" }}>
+                  <Button
+                    sx={{ backgroundColor: "#f97544" }}
+                    variant="contained"
+                    size="small"
+                  >
+                    Sign up
+                  </Button>
+                </a>
               </Box>
             )}
           </Box>
@@ -223,96 +231,101 @@ export default function AppAppBar() {
                   </IconButton>
                 </Box>{" "}
                 <MenuItem>
-                  <Button
-                    variant="text"
-                    color="info"
-                    size="small"
-                    sx={{ minWidth: 0, color: "#ffffff" }}
-                    onClick={navigate.bind(this, "/")}
-                  >
-                    Home
-                  </Button>
+                  <a href="/" style={{ textDecoration: "none" }}>
+                    <Button
+                      variant="text"
+                      color="info"
+                      size="small"
+                      sx={{ minWidth: 0, color: "#ffffff" }}
+                    >
+                      Home
+                    </Button>
+                  </a>
                 </MenuItem>
                 <MenuItem>
-                  <Button
-                    variant="text"
-                    color="info"
-                    size="small"
-                    sx={{ minWidth: 0, color: "#ffffff" }}
-                    onClick={navigate.bind(this, "/about")}
-                  >
-                    About
-                  </Button>
+                  <a href="/about" style={{ textDecoration: "none" }}>
+                    <Button
+                      variant="text"
+                      color="info"
+                      size="small"
+                      sx={{ minWidth: 0, color: "#ffffff" }}
+                    >
+                      About
+                    </Button>
+                  </a>
                 </MenuItem>
                 <MenuItem>
-                  <Button
-                    variant="text"
-                    color="info"
-                    size="small"
-                    sx={{ minWidth: 0, color: "#ffffff" }}
-                    onClick={navigate.bind(this, "/blogs")}
-                  >
-                    Blog
-                  </Button>
+                  <a href="/blogs" style={{ textDecoration: "none" }}>
+                    <Button
+                      variant="text"
+                      color="info"
+                      size="small"
+                      sx={{ minWidth: 0, color: "#ffffff" }}
+                    >
+                      Blog
+                    </Button>
+                  </a>
                 </MenuItem>
                 <MenuItem>
-                  {" "}
-                  <Button
-                    variant="text"
-                    color="info"
-                    size="small"
-                    sx={{ minWidth: 0, color: "#ffffff" }}
-                    onClick={navigate.bind(this, "/resources")}
-                  >
-                    Resources
-                  </Button>
+                  <a href="/resources" style={{ textDecoration: "none" }}>
+                    <Button
+                      variant="text"
+                      color="info"
+                      size="small"
+                      sx={{ minWidth: 0, color: "#ffffff" }}
+                    >
+                      Resources
+                    </Button>
+                  </a>
                 </MenuItem>
                 <MenuItem>
-                  {" "}
-                  <Button
-                    variant="text"
-                    color="info"
-                    size="small"
-                    onClick={navigate.bind(this, "/games")}
-                    sx={{ minWidth: 0, color: "#ffffff" }}
-                  >
-                    Games
-                  </Button>
+                  <a href="/games" style={{ textDecoration: "none" }}>
+                    <Button
+                      variant="text"
+                      color="info"
+                      size="small"
+                      sx={{ minWidth: 0, color: "#ffffff" }}
+                    >
+                      Games
+                    </Button>
+                  </a>
                 </MenuItem>
                 <MenuItem>
-                  {" "}
-                  <Button
-                    variant="text"
-                    size="small"
-                    onClick={navigate.bind(this, "/contact")}
-                    sx={{ minWidth: 0, color: "#ffffff" }}
-                  >
-                    Contact
-                  </Button>
+                  <a href="/contact" style={{ textDecoration: "none" }}>
+                    <Button
+                      variant="text"
+                      size="small"
+                      sx={{ minWidth: 0, color: "#ffffff" }}
+                    >
+                      Contact
+                    </Button>
+                  </a>
                 </MenuItem>
                 <Divider sx={{ my: 3 }} />
                 <MenuItem>
-                  <Button
-                    color="#f97544"
-                    variant="text"
-                    size="small"
-                    fullWidth
-                    sx={{ color: "white" }}
-                    onClick={navigate.bind(this, "/login")}
-                  >
-                    Sign in
-                  </Button>
+                  <a href="/login" style={{ textDecoration: "none" }}>
+                    <Button
+                      color="#f97544"
+                      variant="text"
+                      size="small"
+                      fullWidth
+                      sx={{ color: "white" }}
+                    >
+                      Sign in
+                    </Button>
+                  </a>
                 </MenuItem>
                 <MenuItem>
-                  <Button
-                    sx={{ backgroundColor: "#f97544" }}
-                    variant="contained"
-                    size="small"
-                    fullWidth
-                    onClick={navigate.bind(this, "/signup")}
-                  >
-                    Sign up
-                  </Button>
+                  <a href="/signup" style={{ textDecoration: "none" }}>
+                    <Button
+                      sx={{ backgroundColor: "#f97544" }}
+                      variant="contained"
+                      size="small"
+                      fullWidth
+                    >
+                      Sign up
+                    </Button>
+                  </a>
                 </MenuItem>
               </Box>
             </Drawer>

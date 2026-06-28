@@ -99,6 +99,7 @@ export const RESOURCE = gql`
       type
       price
       url
+      transcripturl
       image {
         asset {
           url

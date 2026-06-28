@@ -16,6 +16,7 @@ import src from "Assets/Images/logo-removebg-preview.png";
 import { Facebook, Twitter, Instagram, LinkedIn } from "@mui/icons-material";
 import { useQuery } from "@apollo/client";
 import { RESOURCE } from "Utils/Queries/Blog";
+import api from "axiosInstance";
 
 const COLORS = {
   orange: "#f97544",
@@ -85,7 +86,25 @@ export default function VideoPlayer() {
 
   const handleToggle = () => setExpanded((p) => !p);
   const { loading, data } = useQuery(RESOURCE, { variables: { id } });
-
+  const onClickHandler = async (resource) => {
+    try {
+      const res = await api.get(`/paypal/${resource}`, {
+        responseType: "blob",
+      });
+      const blob = new Blob([res.data], {
+        type: res.headers["content-type"],
+      });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `${resource.title}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+    } catch (err) {
+      console.error("Download failed:", err);
+    }
+  };
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -188,6 +207,58 @@ export default function VideoPlayer() {
                 }}
               />
             </Box>
+            {/* 📄 Transcript Download Section */}
+            {
+              <Box
+                sx={{
+                  mt: 3,
+                  p: 3,
+                  borderRadius: "14px",
+                  background: "#ffffff",
+                  boxShadow: "0px 4px 12px rgba(0,0,0,0.1)",
+                  borderLeft: `6px solid ${COLORS.teal}`,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                  gap: 2,
+                }}
+              >
+                <Box>
+                  <Typography
+                    variant="h6"
+                    fontWeight="600"
+                    sx={{ color: COLORS.navy, mb: 0.5, textAlign: "left" }}
+                  >
+                    📄 Transcript Included
+                  </Typography>
+
+                  <Typography sx={{ color: "#555", fontSize: "0.95rem" }}>
+                    Download the transcript for offline reading or note-taking.
+                  </Typography>
+                </Box>
+
+                <Button
+                  variant="contained"
+                  sx={{
+                    background: COLORS.teal,
+                    color: "white",
+                    px: 3,
+                    py: 1.2,
+                    fontWeight: 600,
+                    borderRadius: "10px",
+                    "&:hover": { background: COLORS.orange },
+                  }}
+                  onClick={onClickHandler.bind(
+                    this,
+                    data.Resource.transcripturl
+                  )}
+                  download
+                >
+                  Download Transcript
+                </Button>
+              </Box>
+            }
 
             <Collapse
               in={expanded}

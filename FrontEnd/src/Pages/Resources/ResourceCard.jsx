@@ -56,7 +56,6 @@ export default function ResourceCard({ resource, category, preview = false }) {
   const { dispatch, user, cart } = useProjectContext();
   const navigate = useNavigate();
   const [isPaid, setIsPaid] = useState(false);
-  const [showMore, setShowMore] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const bundleInCart = cart.some((item) => item.id === resource.id);
 
@@ -118,7 +117,7 @@ export default function ResourceCard({ resource, category, preview = false }) {
       {/* Card */}
       <div className="bg-white rounded-2xl shadow-lg flex flex-col overflow-hidden hover:shadow-xl transition-shadow duration-300">
         <img
-          src={resource.image.asset.url}
+          src={resource?.image?.asset?.url}
           alt={resource.title}
           className="aspect-video object-cover border-b border-gray-200"
         />

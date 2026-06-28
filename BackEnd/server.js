@@ -33,6 +33,8 @@ app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
 // );
 
 app.use(express.json()); // Now safe
+app.use(express.urlencoded({ extended: true }));
+
 app.use(
   session({
     secret: process.env.MONGODB_SESSION_SECRET,
@@ -42,7 +44,7 @@ app.use(
     cookie: {
       maxAge: 1000 * 60 * 60 * 24 * 7, // 👈 7 days
     },
-  })
+  }),
 );
 
 app.use(passport.initialize());

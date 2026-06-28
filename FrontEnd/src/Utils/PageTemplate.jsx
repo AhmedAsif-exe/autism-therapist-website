@@ -1,4 +1,4 @@
-import { Container, Box, Typography } from "@mui/material";
+import { Container, Box } from "@mui/material";
 const PageTemplate = ({ children, title, subtitle, src }) => {
   return (
     <Container
@@ -10,9 +10,10 @@ const PageTemplate = ({ children, title, subtitle, src }) => {
         sx={{
           display: "flex",
           flexDirection: "column",
-          gap: 4,
+          gap: 2,
           maxWidth: "100%",
           Height: "100vh",
+          marginTop: { xs: "75px", sm: "0px" },
         }}
       >
         <Box
@@ -22,9 +23,11 @@ const PageTemplate = ({ children, title, subtitle, src }) => {
             backgroundSize: "cover",
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat",
-            padding: "100px 0",
+            padding: { xs: "40px 20px", sm: "100px 40px" },
             borderRadius: "10px",
-            overflow: "hidden", // ensures overlay stays inside
+            overflow: "hidden",
+
+            maxHeight: { xs: "300px", sm: "none" },
           }}
         >
           {/* Overlay */}
@@ -39,10 +42,10 @@ const PageTemplate = ({ children, title, subtitle, src }) => {
 
           {/* Content on top */}
           <Box sx={{ position: "relative", zIndex: 2, textAlign: "center" }}>
-            <h1 className="ml:text-[70px] text-[40px] text-[#f97544] font-[raleway] mb-4">
+            <h1 className="ml:text-[70px] text-[30px] text-[#f97544] font-[raleway] ml:mb-4">
               {title}
             </h1>
-            <p className="text-white ml:text-[20px] text-[14px]">{subtitle}</p>
+            <p className="text-white ml:text-[20px] text-[10px]">{subtitle}</p>
           </Box>
         </Box>
 
@@ -51,4 +54,5 @@ const PageTemplate = ({ children, title, subtitle, src }) => {
     </Container>
   );
 };
+
 export default PageTemplate;
