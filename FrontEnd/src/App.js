@@ -19,6 +19,7 @@ import Contact from "Pages/Contact/Contact";
 import ResourcesPreview from "Pages/Home/ResourcesPreview";
 import Expertise from "Pages/About/PerksSection";
 import GamesHome from "Pages/Games/GamesHome";
+import PolicyPage from "Pages/Policies/PolicyPage";
 
 // Domain-based game imports (Domain 1 moved)
 import { ReceptiveFunctionGame } from "Pages/Games/Domain/1/Game1";
@@ -92,6 +93,22 @@ function App() {
             />
             <Route path="/success" element={<SuccessPayment />} />
             <Route path="/error" element={<ErrorPayment />} />
+            <Route
+              path="/privacy-policy"
+              element={<PolicyPage slug="privacy-policy" />}
+            />
+            <Route
+              path="/refund-policy"
+              element={<PolicyPage slug="refund-policy" />}
+            />
+            <Route
+              path="/terms-and-conditions"
+              element={<PolicyPage slug="terms-and-conditions" />}
+            />
+            <Route
+              path="/service-delivery-policy"
+              element={<PolicyPage slug="service-delivery-policy" />}
+            />
           </Routes>
         </Layout>
       </Router>

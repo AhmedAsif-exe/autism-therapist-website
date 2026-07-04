@@ -14,6 +14,14 @@ import { toast } from "react-toastify";
 import InstagramIcon from "@mui/icons-material/Instagram";
 // import SitemarkIcon from "./SitemarkIcon";
 import { useState } from "react";
+
+const legalLinks = [
+  { href: "/privacy-policy", label: "Privacy Policy" },
+  { href: "/refund-policy", label: "Refund Policy" },
+  { href: "/terms-and-conditions", label: "Terms & Conditions" },
+  { href: "/service-delivery-policy", label: "Service Delivery Policy" },
+];
+
 function Copyright() {
   return (
     <Typography variant="body2" sx={{ color: "#ffffff", mt: 1 }}>
@@ -216,6 +224,41 @@ export default function Footer() {
             Contact
           </Link>
         </Box>
+        <Box
+          sx={{
+            display: { xs: "none", sm: "flex" },
+            flexDirection: "column",
+            gap: 1,
+          }}
+        >
+          <Typography
+            variant="body2"
+            sx={{ fontWeight: "medium", color: "#EC5923" }}
+          >
+            Legal
+          </Typography>
+          {legalLinks.map(({ href, label }) => (
+            <Link key={href} color="#ffffff" variant="body2" href={href}>
+              {label}
+            </Link>
+          ))}
+        </Box>
+      </Box>
+
+      <Box
+        sx={{
+          display: { xs: "flex", sm: "none" },
+          flexWrap: "wrap",
+          gap: 2,
+          width: "100%",
+          pt: 2,
+        }}
+      >
+        {legalLinks.map(({ href, label }) => (
+          <Link key={href} color="#ffffff" variant="body2" href={href}>
+            {label}
+          </Link>
+        ))}
       </Box>
 
       <Box
