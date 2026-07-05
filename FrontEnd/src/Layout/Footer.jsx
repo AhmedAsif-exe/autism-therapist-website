@@ -12,7 +12,6 @@ import { LinkedIn } from "@mui/icons-material";
 import api from "axiosInstance";
 import { toast } from "react-toastify";
 import InstagramIcon from "@mui/icons-material/Instagram";
-// import SitemarkIcon from "./SitemarkIcon";
 import { useState } from "react";
 
 const legalLinks = [
@@ -22,10 +21,33 @@ const legalLinks = [
   { href: "/service-delivery-policy", label: "Service Delivery Policy" },
 ];
 
+const navColumns = [
+  {
+    title: "Portfolio",
+    links: [
+      { href: "/", label: "Home" },
+      { href: "/about", label: "About" },
+      { href: "/testimonials", label: "Testimonials" },
+    ],
+  },
+  {
+    title: "Content Writing",
+    links: [{ href: "/blogs", label: "Blogs" }],
+  },
+  {
+    title: "E-Commerce",
+    links: [
+      { href: "/resources", label: "Resources" },
+      { href: "/games", label: "Games" },
+      { href: "/contact", label: "Contact" },
+    ],
+  },
+  { title: "Legal", links: legalLinks },
+];
+
 function Copyright() {
   return (
-    <Typography variant="body2" sx={{ color: "#ffffff", mt: 1 }}>
-      {" "}
+    <Typography variant="body2" sx={{ color: "#ffffff", mt: { xs: 0, sm: 1 } }}>
       {"Copyright © "}
       <Link color="#ffffff" href="#">
         aba.virtual
@@ -36,21 +58,42 @@ function Copyright() {
   );
 }
 
+const NavColumn = ({ title, links }) => (
+  <Box
+    sx={{
+      display: "flex",
+      flexDirection: "column",
+      gap: 1,
+      "@media (max-width: 1440px)": {
+        alignItems: "center",
+        textAlign: "center",
+      },
+    }}
+  >
+    <Typography variant="body2" sx={{ fontWeight: "medium", color: "#EC5923" }}>
+      {title}
+    </Typography>
+    {links.map(({ href, label }) => (
+      <Link key={href} color="#ffffff" variant="body2" href={href}>
+        {label}
+      </Link>
+    ))}
+  </Box>
+);
+
 export default function Footer() {
   const [email, setEmail] = useState("");
   const handleSubscribe = async () => {
-    // ✅ Basic client-side validation
     if (!email || !/\S+@\S+\.\S+/.test(email)) {
       toast.info("Please enter a valid email address.");
       return;
     }
 
     try {
-      // ✅ Send request to backend
       const res = await api.post("newsletter/subscribe", { email });
 
       if (res.data.success) {
-        setEmail(""); // clear input
+        setEmail("");
         toast.success(res.data.message || "You’ve successfully subscribed!");
       } else {
         toast.error(res.data.error || "Subscription failed. Please try again.");
@@ -58,7 +101,6 @@ export default function Footer() {
     } catch (err) {
       console.error("Subscription error:", err);
 
-      // ✅ Handle specific error cases
       if (err.response) {
         toast.error(
           err.response.data.error || "Server error, try again later."
@@ -77,213 +119,164 @@ export default function Footer() {
       sx={{
         display: "flex",
         flexDirection: "column",
-        alignItems: "center",
-        gap: { xs: 4, sm: 8 },
-        // m: 0,
+        gap: { xs: 4, md: 6 },
         width: "100%",
-        py: { xs: 8, sm: 10 },
-        textAlign: { sm: "center", md: "left" },
+        px: { xs: 2, sm: 3, md: 4 },
+        py: { xs: 6, sm: 8, md: 10 },
         backgroundColor: "#042539",
       }}
     >
       <Box
         sx={{
           display: "flex",
-          flexDirection: { xs: "column", sm: "row" },
+          flexDirection: { xs: "column", lg: "row" },
+          gap: { xs: 5, md: 6 },
           width: "100%",
-          justifyContent: "space-between",
+          "@media (max-width: 1440px)": {
+            alignItems: "center",
+            justifyContent: "center",
+          },
+          "@media (min-width: 1441px)": {
+            justifyContent: "space-between",
+          },
         }}
       >
         <Box
           sx={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 4,
-            minWidth: { xs: "100%", sm: "60%" },
+            width: { xs: "100%", lg: "42%" },
+            maxWidth: 480,
+            "@media (max-width: 1440px)": {
+              textAlign: "center",
+              mx: "auto",
+            },
           }}
         >
-          <Box sx={{ width: { xs: "100%", sm: "60%" } }}>
-            <Typography
-              variant="body2"
-              gutterBottom
+          <Typography
+            variant="body2"
+            gutterBottom
+            sx={{
+              fontWeight: 600,
+              fontFamily: "'Raleway', sans-serif",
+              fontSize: { xs: "18px", sm: "20px" },
+              color: "white",
+            }}
+          >
+            Stay Updated with Our Blog
+          </Typography>
+          <Typography variant="body2" sx={{ mb: 2, color: "white" }}>
+            Subscribe to get the latest posts and updates delivered straight to
+            your inbox.
+          </Typography>
+          <InputLabel
+            htmlFor="email-newsletter"
+            sx={{
+              color: "white",
+              "@media (max-width: 1440px)": {
+                width: "100%",
+                textAlign: "center",
+              },
+            }}
+          >
+            Email
+          </InputLabel>
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={1}
+            useFlexGap
+            sx={{
+              width: "100%",
+              "@media (max-width: 1440px)": {
+                alignItems: "center",
+                justifyContent: "center",
+              },
+            }}
+          >
+            <TextField
+              id="email-newsletter"
+              hiddenLabel
+              size="small"
+              value={email}
+              fullWidth
+              aria-label="Enter your email address"
+              placeholder="Your email address"
+              onChange={(e) => setEmail(e.target.value)}
+              slotProps={{
+                htmlInput: {
+                  autoComplete: "off",
+                  "aria-label": "Enter your email address",
+                },
+              }}
+              sx={{ color: "whiteSmoke", backgroundColor: "white" }}
+            />
+            <Button
+              onClick={handleSubscribe}
               sx={{
-                fontWeight: 600,
-                mt: 2,
-                fontFamily: "'Raleway', sans-serif",
-                fontSize: "20px",
+                borderRadius: "5px",
+                padding: "10px 20px",
+                backgroundColor: "#EC5923",
                 color: "white",
+                borderWidth: "0px",
+                width: { xs: "100%", sm: "auto" },
+                flexShrink: 0,
+                "&:hover": { backgroundColor: "#d44d1c" },
               }}
             >
-              Stay Updated with Our Blog
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{ color: "text.secondary", mb: 2, color: "white" }}
-            >
-              Subscribe to get the latest posts and updates delivered straight
-              to your inbox.
-            </Typography>
-            <InputLabel htmlFor="email-newsletter" sx={{ color: "white" }}>
-              Email
-            </InputLabel>
-            <Stack direction="row" spacing={1} useFlexGap>
-              <TextField
-                id="email-newsletter"
-                hiddenLabel
-                size="small"
-                value={email}
-                fullWidth
-                aria-label="Enter your email address"
-                placeholder="Your email address"
-                onChange={(e) => setEmail(e.target.value)}
-                slotProps={{
-                  htmlInput: {
-                    autoComplete: "off",
-                    "aria-label": "Enter your email address",
-                  },
-                }}
-                sx={{
-                  width: "250px",
-                  color: "whiteSmoke",
-                  backgroundColor: "white",
-                }}
-              />
-              <Button
-                onClick={handleSubscribe}
-                sx={{
-                  borderRadius: "5px",
-                  // fontSize: "20px",
-                  padding: "10px 20px",
-                  backgroundColor: "#EC5923",
-                  color: "white",
-                  borderWidth: "0px",
-                }}
-              >
-                Subscribe
-              </Button>
-            </Stack>
-          </Box>
+              Subscribe
+            </Button>
+          </Stack>
         </Box>
+
         <Box
           sx={{
-            display: { xs: "none", sm: "flex" },
-            flexDirection: "column",
-            gap: 1,
+            display: "grid",
+            gridTemplateColumns: {
+              xs: "repeat(2, minmax(0, 1fr))",
+              sm: "repeat(2, minmax(0, 1fr))",
+              md: "repeat(4, auto)",
+            },
+            gap: { xs: 3, sm: 4, md: 5 },
+            width: { xs: "100%", lg: "auto" },
+            flex: 1,
+            "@media (max-width: 1440px)": {
+              justifyContent: "center",
+              justifyItems: "center",
+              mx: "auto",
+            },
+            "@media (min-width: 1441px)": {
+              justifyContent: "end",
+            },
           }}
         >
-          <Typography
-            variant="body2"
-            sx={{ fontWeight: "medium", color: "#EC5923" }}
-          >
-            Portfolio
-          </Typography>
-          <Link color="#ffffff" variant="body2" href="/">
-            Home
-          </Link>
-          <Link color="#ffffff" variant="body2" href="/about">
-            About
-          </Link>
-          <Link color="#ffffff" variant="body2" href="/testimonials">
-            Testimonials
-          </Link>
-        </Box>
-        <Box
-          sx={{
-            display: { xs: "none", sm: "flex" },
-            flexDirection: "column",
-            gap: 1,
-          }}
-        >
-          <Typography
-            variant="body2"
-            sx={{ fontWeight: "medium", color: "#EC5923" }}
-          >
-            Content Writing
-          </Typography>
-          <Link color="#ffffff" variant="body2" href="/blogs">
-            Blogs
-          </Link>
-        </Box>
-        <Box
-          sx={{
-            display: { xs: "none", sm: "flex" },
-            flexDirection: "column",
-            gap: 1,
-          }}
-        >
-          <Typography
-            variant="body2"
-            sx={{ fontWeight: "medium", color: "#EC5923" }}
-          >
-            E-Commerce
-          </Typography>
-          <Link color="#ffffff" variant="body2" href="/resources">
-            Resources
-          </Link>
-          <Link color="#ffffff" variant="body2" href="/contact">
-            Contact
-          </Link>
-        </Box>
-        <Box
-          sx={{
-            display: { xs: "none", sm: "flex" },
-            flexDirection: "column",
-            gap: 1,
-          }}
-        >
-          <Typography
-            variant="body2"
-            sx={{ fontWeight: "medium", color: "#EC5923" }}
-          >
-            Legal
-          </Typography>
-          {legalLinks.map(({ href, label }) => (
-            <Link key={href} color="#ffffff" variant="body2" href={href}>
-              {label}
-            </Link>
+          {navColumns.map((column) => (
+            <NavColumn key={column.title} {...column} />
           ))}
         </Box>
       </Box>
 
       <Box
         sx={{
-          display: { xs: "flex", sm: "none" },
-          flexWrap: "wrap",
-          gap: 2,
-          width: "100%",
-          pt: 2,
-        }}
-      >
-        {legalLinks.map(({ href, label }) => (
-          <Link key={href} color="#ffffff" variant="body2" href={href}>
-            {label}
-          </Link>
-        ))}
-      </Box>
-
-      <Box
-        sx={{
           display: "flex",
+          flexDirection: { xs: "column", sm: "row" },
+          alignItems: { xs: "center", sm: "flex-end" },
           justifyContent: "space-between",
-          pt: { xs: 4, sm: 8 },
+          gap: 2,
+          pt: { xs: 3, sm: 4 },
           width: "100%",
           borderTop: "1px solid",
           borderColor: "divider",
         }}
       >
-        <div>
-          <Copyright />
-        </div>
+        <Copyright />
         <Stack
           direction="row"
           spacing={1}
           useFlexGap
-          sx={{ justifyContent: "left", color: "white" }}
+          sx={{ justifyContent: "center", color: "white" }}
         >
           <IconButton
             color="inherit"
             size="small"
-            aria-label="X"
+            aria-label="LinkedIn"
             sx={{ alignSelf: "center" }}
           >
             <a href="http://www.linkedin.com/in/faiza-faizan-b-s-qasp-s-509b03206">
