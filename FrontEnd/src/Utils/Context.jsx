@@ -89,18 +89,31 @@ export function ContextProvider({ children }) {
 
   useEffect(() => {
     let isMounted = true;
-    api
-      .get("/paypal/currency")
-      .then((res) => {
+    (async () => {
+      let countryHint = "";
+      try {
+        // Browser's public IP country (not the VPS) — fixes PK users hitting NL-hosted API
+        const geo = await fetch("https://api.country.is/");
+        if (geo.ok) {
+          const data = await geo.json();
+          countryHint = data.country || "";
+        }
+      } catch (_) {
+        /* ignore — backend may still resolve from request IP */
+      }
+      try {
+        const res = await api.get("/paypal/currency", {
+          params: countryHint ? { country: countryHint } : undefined,
+        });
         if (!isMounted) return;
         setCurrency(res.data?.currency || "EUR");
         setRate(Number(res.data?.rate) > 0 ? Number(res.data.rate) : 1);
-      })
-      .catch(() => {
+      } catch {
         if (!isMounted) return;
         setCurrency("EUR");
         setRate(1);
-      });
+      }
+    })();
     return () => {
       isMounted = false;
     };

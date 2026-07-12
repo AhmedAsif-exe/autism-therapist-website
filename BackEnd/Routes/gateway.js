@@ -103,10 +103,25 @@ async function getEurRates() {
   return data.rates;
 }
 
+function isLoopback(ip) {
+  if (!ip) return true;
+  const s = String(ip).replace(/^::ffff:/, "");
+  return s === "127.0.0.1" || s === "::1" || s.startsWith("127.");
+}
+
 function clientIp(req) {
-  const fwd = req.headers["x-forwarded-for"];
-  if (fwd) return String(fwd).split(",")[0].trim();
-  return req.ip || req.socket?.remoteAddress || "";
+  const candidates = [
+    req.headers["cf-connecting-ip"],
+    req.headers["x-real-ip"],
+    req.headers["x-forwarded-for"] &&
+      String(req.headers["x-forwarded-for"]).split(",")[0].trim(),
+    req.ip,
+    req.socket?.remoteAddress,
+  ];
+  for (const c of candidates) {
+    if (c && !isLoopback(c)) return String(c).replace(/^::ffff:/, "");
+  }
+  return "";
 }
 
 // --- PayPal Client Setup ---
@@ -233,19 +248,28 @@ router.post("/create-stripe-session", ensureAuth, async (req, res) => {
 // Must be before GET /:file
 router.get("/currency", async (req, res) => {
   try {
-    let ip = clientIp(req);
-    if (ip === "::1" || ip === "127.0.0.1" || ip.startsWith("::ffff:127.")) {
-      ip = ""; // local → geo API uses server egress IP
+    let country = null;
+    const ip = clientIp(req);
+
+    // Prefer real visitor IP — never geo "empty" (that = server/VPS country, e.g. NL)
+    if (ip) {
+      const geoRes = await fetch(
+        `http://ip-api.com/json/${encodeURIComponent(ip)}?fields=status,countryCode`,
+      );
+      if (geoRes.ok) {
+        const geo = await geoRes.json();
+        if (geo.status === "success") country = geo.countryCode || null;
+      }
     }
 
-    let country = null;
-    const geoUrl = ip
-      ? `http://ip-api.com/json/${encodeURIComponent(ip)}?fields=status,countryCode`
-      : "http://ip-api.com/json/?fields=status,countryCode";
-    const geoRes = await fetch(geoUrl);
-    if (geoRes.ok) {
-      const geo = await geoRes.json();
-      if (geo.status === "success") country = geo.countryCode || null;
+    // Fallback: browser-supplied country (from client-side geo) when IP is missing
+    if (!country && req.query.country) {
+      country = String(req.query.country).slice(0, 2).toUpperCase();
+    }
+
+    // Local-only override: CURRENCY_DEV_COUNTRY=PK in .env
+    if (!country && process.env.CURRENCY_DEV_COUNTRY) {
+      country = process.env.CURRENCY_DEV_COUNTRY.slice(0, 2).toUpperCase();
     }
 
     const currency = classifyCurrency(country);

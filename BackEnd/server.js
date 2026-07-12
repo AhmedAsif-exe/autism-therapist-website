@@ -15,6 +15,8 @@ const newsletterRoutes = require("./Routes/newsletter");
 const gamesAccessRoutes = require("./Routes/games");
 const scoresRoutes = require("./Routes/scores");
 const app = express();
+// Behind nginx/Cloudflare: use real visitor IP from X-Forwarded-For
+app.set("trust proxy", 1);
 
 mongoose
   .connect(process.env.MONGODB_URI, {
