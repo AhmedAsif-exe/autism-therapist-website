@@ -8,7 +8,7 @@ import {
   Button,
   Chip,
 } from "@mui/material";
-import { useProjectContext } from "Utils/Context";
+import { useProjectContext, formatPrice } from "Utils/Context";
 import Comments from "Utils/Comments";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
@@ -80,7 +80,7 @@ function AuthorIntro({ authors }) {
 export default function VideoPlayer() {
   const videoRef = useRef(null);
   const { id } = useParams();
-  const { user } = useProjectContext();
+  const { user, currency, rate } = useProjectContext();
 
   const [expanded, setExpanded] = useState(false);
 
@@ -199,7 +199,7 @@ export default function VideoPlayer() {
                 sx={{ background: COLORS.teal, color: "#fff" }}
               />
               <Chip
-                label={`€ ${data.Resource.price.toFixed(2)}`}
+                label={formatPrice(data.Resource.price, currency, rate)}
                 sx={{
                   background: COLORS.navy,
                   color: "#fff",

@@ -15,7 +15,7 @@ import {
   ListItemText,
 } from "@mui/material";
 import gsap from "gsap";
-import { Instagram, LinkedIn, Email } from "@mui/icons-material";
+import { Instagram, LinkedIn, Email, LocationOn } from "@mui/icons-material";
 import { useState } from "react";
 import { toast } from "react-toastify";
 export const ContactInfoSection = () => {
@@ -31,6 +31,8 @@ export const ContactInfoSection = () => {
     phone: "aba.virtual",
     email: "contact@abavirtual.net",
     address: "http://www.linkedin.com/in/faiza-faizan-b-s-qasp-s-509b03206",
+    city: "Islamabad",
+    zipCode: "44000",
   };
 
   const subjectOptions = [
@@ -70,13 +72,13 @@ export const ContactInfoSection = () => {
         },
         duration: 1.5,
         ease: "none",
-      }
+      },
     );
     t1.fromTo(
       "#contact",
       { scale: 0, opacity: 0 },
       { scale: 1, opacity: 1, duration: 1.5 },
-      "<"
+      "<",
     );
   }, []);
   console.log(formData);
@@ -164,6 +166,14 @@ export const ContactInfoSection = () => {
                 <a href="http://www.linkedin.com/in/faiza-faizan-b-s-qasp-s-509b03206">
                   Faiza Faizan (B.S, QASP-S)
                 </a>
+              </ListItemText>
+            </ListItem>
+            <ListItem>
+              <ListItemAvatar>
+                <LocationOn sx={{ color: "white" }} />
+              </ListItemAvatar>
+              <ListItemText className="text-white">
+                {contactInfo.city}, {contactInfo.zipCode}
               </ListItemText>
             </ListItem>
           </List>

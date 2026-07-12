@@ -47,14 +47,19 @@ const navColumns = [
 
 function Copyright() {
   return (
-    <Typography variant="body2" sx={{ color: "#ffffff", mt: { xs: 0, sm: 1 } }}>
-      {"Copyright © "}
-      <Link color="#ffffff" href="#">
-        aba.virtual
-      </Link>
-      &nbsp;
-      {new Date().getFullYear()}
-    </Typography>
+    <Box>
+      <Typography variant="body2" sx={{ color: "#ffffff" }}>
+        Islamabad, 44000
+      </Typography>
+      <Typography variant="body2" sx={{ color: "#ffffff", mt: { xs: 0, sm: 1 } }}>
+        {"Copyright © "}
+        <Link color="#ffffff" href="#">
+          aba.virtual
+        </Link>
+        &nbsp;
+        {new Date().getFullYear()}
+      </Typography>
+    </Box>
   );
 }
 
@@ -103,7 +108,7 @@ export default function Footer() {
 
       if (err.response) {
         toast.error(
-          err.response.data.error || "Server error, try again later."
+          err.response.data.error || "Server error, try again later.",
         );
       } else if (err.request) {
         toast.error("No response from server. Check your connection.");

@@ -14,7 +14,7 @@ cron.schedule("0 0 * * *", async () => {
 
   for (const user of users) {
     user.paidItems = user.paidItems.filter(
-      (item) => now - new Date(item.purchasedAt).getTime() < oneYear
+      (item) => now - new Date(item.purchasedAt).getTime() < oneYear,
     );
     await user.save();
   }
@@ -28,6 +28,87 @@ function ensureAuth(req, res, next) {
   }
   res.status(401).json({ message: "Not authenticated" });
 }
+
+// Europe ISO codes → display EUR (ponytail: flat set, not EU-only)
+const EUROPE = new Set([
+  "AL",
+  "AD",
+  "AT",
+  "BY",
+  "BE",
+  "BA",
+  "BG",
+  "HR",
+  "CY",
+  "CZ",
+  "DK",
+  "EE",
+  "FI",
+  "FR",
+  "DE",
+  "GR",
+  "HU",
+  "IS",
+  "IE",
+  "IT",
+  "XK",
+  "LV",
+  "LI",
+  "LT",
+  "LU",
+  "MT",
+  "MD",
+  "MC",
+  "ME",
+  "NL",
+  "MK",
+  "NO",
+  "PL",
+  "PT",
+  "RO",
+  "RU",
+  "SM",
+  "RS",
+  "SK",
+  "SI",
+  "ES",
+  "SE",
+  "CH",
+  "UA",
+  "GB",
+  "VA",
+]);
+
+function classifyCurrency(countryCode) {
+  if (!countryCode) return "EUR";
+  const cc = countryCode.toUpperCase();
+  if (cc === "PK") return "PKR";
+  if (EUROPE.has(cc)) return "EUR";
+  return "USD";
+}
+
+// ponytail: 1h memory cache; Redis if rate-limits bite
+let fxCache = { at: 0, rates: null };
+const FX_TTL_MS = 60 * 60 * 1000;
+
+async function getEurRates() {
+  if (fxCache.rates && Date.now() - fxCache.at < FX_TTL_MS)
+    return fxCache.rates;
+  const res = await fetch("https://open.er-api.com/v6/latest/EUR");
+  if (!res.ok) throw new Error("FX fetch failed");
+  const data = await res.json();
+  if (data.result !== "success" || !data.rates)
+    throw new Error("FX bad payload");
+  fxCache = { at: Date.now(), rates: data.rates };
+  return data.rates;
+}
+
+function clientIp(req) {
+  const fwd = req.headers["x-forwarded-for"];
+  if (fwd) return String(fwd).split(",")[0].trim();
+  return req.ip || req.socket?.remoteAddress || "";
+}
+
 // --- PayPal Client Setup ---
 function paypalClient() {
   // const env = new paypal.core.SandboxEnvironment(
@@ -39,7 +120,7 @@ function paypalClient() {
   //
   const env = new paypal.core.LiveEnvironment(
     process.env.PAYPAL_CLIENT_ID,
-    process.env.PAYPAL_CLIENT_SECRET
+    process.env.PAYPAL_CLIENT_SECRET,
   );
   //   :
 
@@ -70,7 +151,7 @@ router.post("/create-order", ensureAuth, async (req, res) => {
     const total = items.reduce(
       (sum, item) =>
         sum + parseFloat(item.unit_amount.value) * parseInt(item.quantity),
-      0
+      0,
     );
 
     const request = new paypal.orders.OrdersCreateRequest();
@@ -111,21 +192,28 @@ router.post("/create-order", ensureAuth, async (req, res) => {
 });
 router.post("/create-stripe-session", ensureAuth, async (req, res) => {
   try {
-    const { cart } = req.body;
+    const { cart, currency: bodyCurrency, rate: bodyRate } = req.body;
     if (!cart || !cart.length) {
       return res.status(400).json({ error: "Cart cannot be empty" });
     }
 
-    const line_items = cart.map((item) => ({
-      price_data: {
-        currency: "eur",
-        product_data: {
-          name: item.title || "Item",
+    const currency = (bodyCurrency || "eur").toLowerCase();
+    const rate = Number(bodyRate) > 0 ? Number(bodyRate) : 1;
+
+    const line_items = cart.map((item) => {
+      // Round converted amount to 1 decimal, then to minor units
+      const display = Math.round((item.price || 0) * rate * 10) / 10;
+      return {
+        price_data: {
+          currency,
+          product_data: {
+            name: item.title || "Item",
+          },
+          unit_amount: Math.round(display * 100),
         },
-        unit_amount: Math.round((item.price || 0) * 100), // cents
-      },
-      quantity: item.quantity || 1,
-    }));
+        quantity: item.quantity || 1,
+      };
+    });
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
@@ -139,6 +227,39 @@ router.post("/create-stripe-session", ensureAuth, async (req, res) => {
   } catch (err) {
     console.error("Stripe session error:", err);
     res.status(500).json({ error: "Failed to create Stripe checkout session" });
+  }
+});
+
+// Must be before GET /:file
+router.get("/currency", async (req, res) => {
+  try {
+    let ip = clientIp(req);
+    if (ip === "::1" || ip === "127.0.0.1" || ip.startsWith("::ffff:127.")) {
+      ip = ""; // local → geo API uses server egress IP
+    }
+
+    let country = null;
+    const geoUrl = ip
+      ? `http://ip-api.com/json/${encodeURIComponent(ip)}?fields=status,countryCode`
+      : "http://ip-api.com/json/?fields=status,countryCode";
+    const geoRes = await fetch(geoUrl);
+    if (geoRes.ok) {
+      const geo = await geoRes.json();
+      if (geo.status === "success") country = geo.countryCode || null;
+    }
+
+    const currency = classifyCurrency(country);
+    let rate = 1;
+    if (currency !== "EUR") {
+      const rates = await getEurRates();
+      rate = rates[currency];
+      if (!rate) throw new Error(`No rate for ${currency}`);
+    }
+
+    res.json({ currency, rate, country });
+  } catch (err) {
+    console.error("Currency resolve error:", err);
+    res.json({ currency: "EUR", rate: 1, country: null });
   }
 });
 

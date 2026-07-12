@@ -6,7 +6,7 @@ import {
   useState,
   useReducer,
 } from "react";
-import { checkAuthStatus } from "axiosInstance";
+import api, { checkAuthStatus } from "axiosInstance";
 
 const ProjectContext = createContext();
 const reducer = (state, action) => {
@@ -36,11 +36,34 @@ const getInitialCart = () => {
   const localData = localStorage.getItem("cart");
   return localData ? JSON.parse(localData) : [];
 };
+
+const SYMBOLS = { EUR: "€", USD: "$", PKR: "Rs " };
+
+/** Convert EUR → display amount, rounded to 1 decimal. */
+export function convertPrice(eur, rate = 1) {
+  return Math.round((Number(eur) || 0) * (Number(rate) || 1) * 10) / 10;
+}
+
+/** Format Sanity/cart EUR amount into display currency (1 decimal). */
+export function formatPrice(eur, currency = "EUR", rate = 1) {
+  const symbol = SYMBOLS[currency] || `${currency} `;
+  return `${symbol}${convertPrice(eur, rate).toFixed(1)}`;
+}
+
+/** Format an already-converted display amount. */
+export function formatAmount(amount, currency = "EUR") {
+  const symbol = SYMBOLS[currency] || `${currency} `;
+  return `${symbol}${(Math.round((Number(amount) || 0) * 10) / 10).toFixed(1)}`;
+}
+
 export function ContextProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loggedIn, setLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
   const [cart, dispatch] = useReducer(reducer, [], getInitialCart);
+  const [currency, setCurrency] = useState("EUR");
+  const [rate, setRate] = useState(1);
+
   useEffect(() => {
     let isMounted = true; // ✅ prevent state update on unmounted component
 
@@ -64,9 +87,28 @@ export function ContextProvider({ children }) {
     };
   }, []);
 
+  useEffect(() => {
+    let isMounted = true;
+    api
+      .get("/paypal/currency")
+      .then((res) => {
+        if (!isMounted) return;
+        setCurrency(res.data?.currency || "EUR");
+        setRate(Number(res.data?.rate) > 0 ? Number(res.data.rate) : 1);
+      })
+      .catch(() => {
+        if (!isMounted) return;
+        setCurrency("EUR");
+        setRate(1);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
     <ProjectContext.Provider
-      value={{ user, loggedIn, loading, cart, dispatch }}
+      value={{ user, loggedIn, loading, cart, dispatch, currency, rate }}
     >
       {children}
     </ProjectContext.Provider>

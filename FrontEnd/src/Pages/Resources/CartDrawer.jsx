@@ -1,18 +1,27 @@
-import { useProjectContext } from "Utils/Context";
+import {
+  useProjectContext,
+  formatPrice,
+  formatAmount,
+  convertPrice,
+} from "Utils/Context";
 import { initiateCheckoutSession } from "Utils/Queries/Checkout";
 import { IconButton, Badge, Menu } from "@mui/material";
 import { useState } from "react";
 import { ShoppingCart, Delete } from "@mui/icons-material";
 import paypal from "Assets/Icons/paypal.png";
 export default function CartDrawer() {
-  const { cart, dispatch, user } = useProjectContext();
+  const { cart, dispatch, user, currency, rate } = useProjectContext();
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
 
   const handleClick = (event) => setAnchorEl(event.currentTarget);
   const handleClose = () => setAnchorEl(null);
 
-  const total = cart.reduce((sum, item) => sum + (item.price || 0), 0);
+  // Sum per-line rounded display amounts (matches Stripe line rounding)
+  const totalDisplay = cart.reduce(
+    (sum, item) => sum + convertPrice(item.price, rate),
+    0,
+  );
 
   if (cart.length === 0) {
     if (anchorEl !== null) setAnchorEl(null);
@@ -66,7 +75,7 @@ export default function CartDrawer() {
                 <div className="flex-1 mr-2">
                   <p className="text-sm font-medium truncate">{item.title}</p>
                   <p className="text-xs text-gray-500">
-                    €{item.price?.toFixed(2) ?? "0.00"}
+                    {formatPrice(item.price, currency, rate)}
                   </p>
                 </div>
                 <IconButton
@@ -82,14 +91,20 @@ export default function CartDrawer() {
 
           <div className="mt-4">
             <p className="text-right font-semibold text-gray-700">
-              Total: <span className="text-gray-900">€{total.toFixed(2)}</span>
+              Total:{" "}
+              <span className="text-gray-900">
+                {formatAmount(totalDisplay, currency)}
+              </span>
             </p>
 
             <div className="mt-3 flex flex-col gap-2">
               <button
                 className="w-full bg-[#f9644d] text-white py-2 rounded-lg font-medium hover:bg-[#e25640] transition-all"
                 onClick={async () =>
-                  await initiateCheckoutSession(cart, user, "stripe")
+                  await initiateCheckoutSession(cart, user, "stripe", {
+                    currency,
+                    rate,
+                  })
                 }
               >
                 Checkout

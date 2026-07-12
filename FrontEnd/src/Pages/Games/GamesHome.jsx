@@ -3,7 +3,7 @@ import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import PageTemplate from "Utils/PageTemplate";
 import style from "Utils/Card/Card.module.css";
-import { useProjectContext } from "Utils/Context";
+import { useProjectContext, formatPrice } from "Utils/Context";
 import DomainProgress from "./Domain/1/DomainProgress";
 import BackToGames from "./BackToGames";
 
@@ -139,7 +139,7 @@ function MiniProgressChart({ history = [], max = 20, color = "#57c785" }) {
           }
         });
       },
-      { threshold: 0.2 }
+      { threshold: 0.2 },
     );
     io.observe(el);
     return () => {
@@ -204,7 +204,8 @@ export default function GamesHome() {
   const navigate = useNavigate();
   const params = useParams();
   const location = useLocation();
-  const { cart, dispatch, loggedIn, user } = useProjectContext();
+  const { cart, dispatch, loggedIn, user, currency, rate } =
+    useProjectContext();
   const [modalOpen, setModalOpen] = useState(false);
   const [modalLockedGame, setModalLockedGame] = useState(null);
 
@@ -276,7 +277,7 @@ export default function GamesHome() {
   const handlePurchaseClick = (game) => {
     // Require login to purchase games
     if (!loggedIn) {
-      navigate('/signup');
+      navigate("/signup");
       return;
     }
     setModalLockedGame(game);
@@ -419,11 +420,13 @@ export default function GamesHome() {
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = "translateY(-2px)";
-              e.currentTarget.style.boxShadow = "0 6px 18px rgba(249,117,68,0.4)";
+              e.currentTarget.style.boxShadow =
+                "0 6px 18px rgba(249,117,68,0.4)";
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 4px 12px rgba(249,117,68,0.3)";
+              e.currentTarget.style.boxShadow =
+                "0 4px 12px rgba(249,117,68,0.3)";
             }}
           >
             Sign In
@@ -511,8 +514,9 @@ export default function GamesHome() {
         </div>
       )}
 
-      {selectedDomain !== null && view === "progress" && (
-        loggedIn ? (
+      {selectedDomain !== null &&
+        view === "progress" &&
+        (loggedIn ? (
           <DomainProgress domainId={selectedDomain} />
         ) : (
           <div
@@ -549,10 +553,10 @@ export default function GamesHome() {
                   background: "transparent",
                 }}
               >
-                <MiniProgressChart 
-                  history={[8, 12, 10, 15, 14, 18, 16, 19, 17, 20]} 
-                  max={20} 
-                  color="#f97544" 
+                <MiniProgressChart
+                  history={[8, 12, 10, 15, 14, 18, 16, 19, 17, 20]}
+                  max={20}
+                  color="#f97544"
                 />
               </div>
               <div
@@ -575,7 +579,8 @@ export default function GamesHome() {
                   marginBottom: 24,
                 }}
               >
-                Create an account to save your scores, view detailed progress charts, and track your improvement over time.
+                Create an account to save your scores, view detailed progress
+                charts, and track your improvement over time.
               </div>
               <button
                 onClick={() => navigate("/login")}
@@ -594,19 +599,20 @@ export default function GamesHome() {
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = "translateY(-2px)";
-                  e.currentTarget.style.boxShadow = "0 6px 20px rgba(249,117,68,0.45)";
+                  e.currentTarget.style.boxShadow =
+                    "0 6px 20px rgba(249,117,68,0.45)";
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow = "0 4px 14px rgba(249,117,68,0.35)";
+                  e.currentTarget.style.boxShadow =
+                    "0 4px 14px rgba(249,117,68,0.35)";
                 }}
               >
                 Sign In Now
               </button>
             </div>
           </div>
-        )
-      )}
+        ))}
 
       {view === "games" && (
         <React.Fragment>
@@ -621,7 +627,8 @@ export default function GamesHome() {
                     maxWidth: 700,
                     margin: "0 auto 20px",
                     padding: "20px 28px",
-                    background: "linear-gradient(135deg, #fff8f5 0%, #ffece6 100%)",
+                    background:
+                      "linear-gradient(135deg, #fff8f5 0%, #ffece6 100%)",
                     border: "2.5px solid #f97544",
                     borderRadius: 18,
                     boxShadow: "0 6px 20px rgba(249,117,68,0.15)",
@@ -672,11 +679,13 @@ export default function GamesHome() {
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.transform = "translateY(-2px)";
-                      e.currentTarget.style.boxShadow = "0 6px 18px rgba(249,117,68,0.4)";
+                      e.currentTarget.style.boxShadow =
+                        "0 6px 18px rgba(249,117,68,0.4)";
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.transform = "translateY(0)";
-                      e.currentTarget.style.boxShadow = "0 4px 12px rgba(249,117,68,0.3)";
+                      e.currentTarget.style.boxShadow =
+                        "0 4px 12px rgba(249,117,68,0.3)";
                     }}
                   >
                     Sign In
@@ -693,99 +702,100 @@ export default function GamesHome() {
                 }}
               >
                 {domains.map((d) => {
-                const isAvailable = !!d.available;
-                return (
-                  <div
-                    key={d.id}
-                    className={`${style.card} domain-card-custom relative group`}
-                    onClick={() =>
-                      isAvailable && navigate(`/games/domain/${d.id}`)
-                    }
-                    style={{
-                      width: 300,
-                      height: 220,
-                      border: isAvailable
-                        ? "2.5px solid #f97544"
-                        : "2.5px dashed #cdd9e1",
-                      borderRadius: 22,
-                      boxShadow: isAvailable
-                        ? "0 6px 24px rgba(4,37,57,0.08), 0 1.5px 6px rgba(4,37,57,0.07)"
-                        : "0 2px 8px rgba(4,37,57,0.06)",
-                      padding: 24,
-                      background: isAvailable
-                        ? "linear-gradient(135deg, #fff 60%, #f9f6f3 100%)"
-                        : "linear-gradient(135deg, #f7f9fb 60%, #eff3f6 100%)",
-                      margin: 8,
-                      opacity: isAvailable ? 1 : 0.7,
-                      cursor: isAvailable ? "pointer" : "default",
-                      position: "relative",
-                      overflow: "hidden",
-                      display: "grid",
-                      gridTemplateRows: "120px 1fr",
-                      alignItems: "stretch",
-                      justifyItems: "center",
-                      transition: "transform 200ms ease, box-shadow 200ms ease",
-                    }}
-                    onMouseEnter={(e) => {
-                      if (isAvailable)
-                        e.currentTarget.style.transform = "translateY(-4px)";
-                    }}
-                    onMouseLeave={(e) => {
-                      if (isAvailable)
-                        e.currentTarget.style.transform = "translateY(0)";
-                    }}
-                  >
+                  const isAvailable = !!d.available;
+                  return (
                     <div
-                      className={style["icon-title"]}
+                      key={d.id}
+                      className={`${style.card} domain-card-custom relative group`}
+                      onClick={() =>
+                        isAvailable && navigate(`/games/domain/${d.id}`)
+                      }
                       style={{
-                        width: "100%",
-                        height: "100%",
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        justifyContent: "center",
+                        width: 300,
+                        height: 220,
+                        border: isAvailable
+                          ? "2.5px solid #f97544"
+                          : "2.5px dashed #cdd9e1",
+                        borderRadius: 22,
+                        boxShadow: isAvailable
+                          ? "0 6px 24px rgba(4,37,57,0.08), 0 1.5px 6px rgba(4,37,57,0.07)"
+                          : "0 2px 8px rgba(4,37,57,0.06)",
+                        padding: 24,
+                        background: isAvailable
+                          ? "linear-gradient(135deg, #fff 60%, #f9f6f3 100%)"
+                          : "linear-gradient(135deg, #f7f9fb 60%, #eff3f6 100%)",
+                        margin: 8,
+                        opacity: isAvailable ? 1 : 0.7,
+                        cursor: isAvailable ? "pointer" : "default",
+                        position: "relative",
+                        overflow: "hidden",
+                        display: "grid",
+                        gridTemplateRows: "120px 1fr",
+                        alignItems: "stretch",
+                        justifyItems: "center",
+                        transition:
+                          "transform 200ms ease, box-shadow 200ms ease",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (isAvailable)
+                          e.currentTarget.style.transform = "translateY(-4px)";
+                      }}
+                      onMouseLeave={(e) => {
+                        if (isAvailable)
+                          e.currentTarget.style.transform = "translateY(0)";
                       }}
                     >
-                      <img
-                        src={d.img}
-                        alt={d.title}
+                      <div
+                        className={style["icon-title"]}
                         style={{
-                          maxHeight: 72,
-                          marginBottom: 6,
-                          borderRadius: 12,
-                          display: "block",
-                        }}
-                      />
-                      <h3
-                        style={{
-                          color: isAvailable ? "#f97544" : "#8AA3B5",
-                          fontWeight: 800,
-                          fontSize: 20,
-                          margin: 0,
-                          textAlign: "center",
-                          fontFamily: "Raleway, sans-serif",
-                          letterSpacing: 0.5,
+                          width: "100%",
+                          height: "100%",
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          justifyContent: "center",
                         }}
                       >
-                        {d.title}
-                      </h3>
+                        <img
+                          src={d.img}
+                          alt={d.title}
+                          style={{
+                            maxHeight: 72,
+                            marginBottom: 6,
+                            borderRadius: 12,
+                            display: "block",
+                          }}
+                        />
+                        <h3
+                          style={{
+                            color: isAvailable ? "#f97544" : "#8AA3B5",
+                            fontWeight: 800,
+                            fontSize: 20,
+                            margin: 0,
+                            textAlign: "center",
+                            fontFamily: "Raleway, sans-serif",
+                            letterSpacing: 0.5,
+                          }}
+                        >
+                          {d.title}
+                        </h3>
+                      </div>
+                      <p
+                        className={style["card-body"]}
+                        style={{
+                          paddingTop: 12,
+                          color: isAvailable ? "#265c7e" : "#8AA3B5",
+                          fontSize: 15,
+                          textAlign: "center",
+                          fontWeight: 500,
+                        }}
+                      >
+                        {isAvailable ? d.description : "Coming soon"}
+                      </p>
                     </div>
-                    <p
-                      className={style["card-body"]}
-                      style={{
-                        paddingTop: 12,
-                        color: isAvailable ? "#265c7e" : "#8AA3B5",
-                        fontSize: 15,
-                        textAlign: "center",
-                        fontWeight: 500,
-                      }}
-                    >
-                      {isAvailable ? d.description : "Coming soon"}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
             </React.Fragment>
           )}
 
@@ -1164,7 +1174,7 @@ export default function GamesHome() {
                           color: "#57c785",
                         }}
                       >
-                        €{INDIVIDUAL_GAME_PRICE.toFixed(2)}
+                        {formatPrice(INDIVIDUAL_GAME_PRICE, currency, rate)}
                       </div>
                     </div>
                     <p
@@ -1179,7 +1189,8 @@ export default function GamesHome() {
                       {modalLockedGame.id})
                     </p>
                     {!cart.some(
-                      (item) => item.id === `domain1-game-${modalLockedGame.id}`
+                      (item) =>
+                        item.id === `domain1-game-${modalLockedGame.id}`,
                     ) ? (
                       <button
                         onClick={handleAddIndividualGameToCart}
@@ -1277,7 +1288,7 @@ export default function GamesHome() {
                         color: "#f97544",
                       }}
                     >
-                      €{GAMES_BUNDLE_PRICE.toFixed(2)}
+                      {formatPrice(GAMES_BUNDLE_PRICE, currency, rate)}
                     </div>
                   </div>
                   <ul

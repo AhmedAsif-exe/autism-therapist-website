@@ -3,17 +3,22 @@ import api, { checkAuthStatus } from "axiosInstance";
 export const initiateCheckoutSession = async (
   cart,
   user,
-  method = "paypal"
+  method = "paypal",
+  { currency = "EUR", rate = 1 } = {}
 ) => {
   try {
     let res;
     if (method === "stripe") {
-      res = await api.post("/paypal/create-stripe-session", { cart });
+      res = await api.post("/paypal/create-stripe-session", {
+        cart,
+        currency,
+        rate,
+      });
       if (res.data?.url) {
         window.location.href = res.data.url;
       }
     } else {
-      // Default: PayPal
+      // PayPal: always EUR from cart base prices
       const { data } = await api.post("/paypal/create-order", { cart });
       const approvalUrl =
         data.links?.find((link) => link.rel === "approve")?.href +

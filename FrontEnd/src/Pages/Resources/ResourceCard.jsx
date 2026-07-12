@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import { CheckCircle, ExpandMore, ExpandLess } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
-import { useProjectContext } from "Utils/Context";
+import { useProjectContext, formatPrice } from "Utils/Context";
 import api from "axiosInstance";
 import Alert from "@mui/material/Alert";
 
@@ -53,7 +53,7 @@ function AuthorIntro({ authors }) {
 }
 
 export default function ResourceCard({ resource, category, preview = false }) {
-  const { dispatch, user, cart } = useProjectContext();
+  const { dispatch, user, cart, currency, rate } = useProjectContext();
   const navigate = useNavigate();
   const [isPaid, setIsPaid] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -134,7 +134,7 @@ export default function ResourceCard({ resource, category, preview = false }) {
           </p>
           {/* Price */}
           <p className="text-lg font-bold text-[#f97544] mt-auto">
-            €{resource.price?.toFixed(2) ?? "0.00"} ONLY
+            {formatPrice(resource.price, currency, rate)} ONLY
           </p>
           {/* Buttons */}
           <Button
@@ -333,7 +333,7 @@ export default function ResourceCard({ resource, category, preview = false }) {
                     e.currentTarget.style.transform = "translateY(0)";
                   }}
                 >
-                  {`Buy for €${resource.price?.toFixed(2) ?? "0.00"}`}
+                  {`Buy for ${formatPrice(resource.price, currency, rate)}`}
                 </button>
               )}{" "}
               {isPaid && (
