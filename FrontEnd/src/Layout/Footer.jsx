@@ -49,7 +49,12 @@ function Copyright() {
   return (
     <Box>
       <Typography variant="body2" sx={{ color: "#ffffff" }}>
-        Islamabad, 44000
+        Media Town, Islamabad, 44000
+      </Typography>
+      <Typography variant="body2" sx={{ color: "#ffffff" }}>
+        <Link color="#ffffff" href="tel:03180580948">
+          03180580948
+        </Link>
       </Typography>
       <Typography variant="body2" sx={{ color: "#ffffff", mt: { xs: 0, sm: 1 } }}>
         {"Copyright © "}
