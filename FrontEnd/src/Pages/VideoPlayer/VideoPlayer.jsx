@@ -16,7 +16,7 @@ import src from "Assets/Images/logo-removebg-preview.png";
 import { Facebook, Twitter, Instagram, LinkedIn } from "@mui/icons-material";
 import { useQuery } from "@apollo/client";
 import { RESOURCE } from "Utils/Queries/Blog";
-import api from "axiosInstance";
+import { downloadResource } from "Pages/Resources/downloadResource";
 
 const COLORS = {
   orange: "#f97544",
@@ -86,25 +86,11 @@ export default function VideoPlayer() {
 
   const handleToggle = () => setExpanded((p) => !p);
   const { loading, data } = useQuery(RESOURCE, { variables: { id } });
-  const onClickHandler = async (resource) => {
-    try {
-      const res = await api.get(`/paypal/${resource}`, {
-        responseType: "blob",
-      });
-      const blob = new Blob([res.data], {
-        type: res.headers["content-type"],
-      });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = `${resource.title}`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(link.href);
-    } catch (err) {
-      console.error("Download failed:", err);
-    }
-  };
+  const onClickHandler = async () =>
+    downloadResource({
+      url: data.Resource.transcripturl,
+      title: `${data.Resource.title} - Transcript`,
+    });
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -249,10 +235,7 @@ export default function VideoPlayer() {
                     borderRadius: "10px",
                     "&:hover": { background: COLORS.orange },
                   }}
-                  onClick={onClickHandler.bind(
-                    this,
-                    data.Resource.transcripturl
-                  )}
+                  onClick={onClickHandler}
                   download
                 >
                   Download Transcript

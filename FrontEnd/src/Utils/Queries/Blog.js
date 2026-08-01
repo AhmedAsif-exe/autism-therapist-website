@@ -100,6 +100,7 @@ export const RESOURCE = gql`
       price
       url
       transcripturl
+      perks
       image {
         asset {
           url

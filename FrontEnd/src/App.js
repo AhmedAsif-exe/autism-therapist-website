@@ -10,6 +10,7 @@ import BlogPage from "Pages/BlogPage/BlogPage";
 import Login from "Pages/Login/Login";
 import About from "Pages/About/About";
 import Resources from "Pages/Resources/Resources";
+import ResourceDetail from "Pages/Resources/ResourceDetail";
 import SuccessPayment from "Utils/SuccessPayment";
 import ErrorPayment from "Utils/ErrorPayment";
 import VideoPlayer from "Pages/VideoPlayer/VideoPlayer";
@@ -20,6 +21,7 @@ import ResourcesPreview from "Pages/Home/ResourcesPreview";
 import Expertise from "Pages/About/PerksSection";
 import GamesHome from "Pages/Games/GamesHome";
 import PolicyPage from "Pages/Policies/PolicyPage";
+import ScrollToTop from "Utils/ScrollToTop";
 
 // Domain-based game imports (Domain 1 moved)
 import { ReceptiveFunctionGame } from "Pages/Games/Domain/1/Game1";
@@ -37,6 +39,7 @@ function App() {
   return (
     <div className="App">
       <Router>
+        <ScrollToTop />
         <Layout>
           <Routes>
             <Route
@@ -82,7 +85,8 @@ function App() {
             <Route path="/games/domain/1/10" element={<Game10 />} />
             {/* Removed legacy top-level /games/:id routes to enforce /games/domain/1/:gameId pattern */}
             <Route path="/resources" element={<Resources />} />
-            <Route path="/resources/:id" element={<VideoPlayer />} />
+            <Route path="/resources/:id" element={<ResourceDetail />} />
+            <Route path="/resources/:id/watch" element={<VideoPlayer />} />
             <Route
               path="/contact"
               element={
