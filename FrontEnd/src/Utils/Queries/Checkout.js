@@ -1,58 +1,52 @@
-import api, { checkAuthStatus } from "axiosInstance";
+import api from "axiosInstance";
 
+/**
+ * Start a PayFast checkout.
+ *
+ * The server prices the cart itself from the item IDs, so nothing money-related
+ * is sent from here — a tampered price in localStorage can't change the charge.
+ * PayFast's hosted page needs a real browser form POST, so the returned fields
+ * are submitted as a hidden form rather than fetched.
+ */
 export const initiateCheckoutSession = async (
   cart,
-  user,
-  method = "paypal",
-  { currency = "EUR", rate = 1 } = {}
+  { mobile, currency = "EUR", displayAmount } = {},
 ) => {
-  try {
-    let res;
-    if (method === "stripe") {
-      res = await api.post("/paypal/create-stripe-session", {
-        cart,
-        currency,
-        rate,
-      });
-      if (res.data?.url) {
-        window.location.href = res.data.url;
-      }
-    } else {
-      // PayPal: always EUR from cart base prices
-      const { data } = await api.post("/paypal/create-order", { cart });
-      const approvalUrl =
-        data.links?.find((link) => link.rel === "approve")?.href +
-        "&locale.x=en_US";
-      if (approvalUrl) window.location.href = approvalUrl;
-    }
-  } catch (err) {
-    if (err.response?.status === 401) {
-      window.location.href = "/login";
-    } else {
-      console.error("Checkout error:", err);
-    }
+  const { data } = await api.post("/payfast/initiate", {
+    itemIds: cart.map((item) => item.id),
+    mobile,
+    displayCurrency: currency,
+    displayAmount,
+  });
+
+  if (!data?.postUrl || !data?.fields) {
+    throw new Error("Checkout could not be started");
   }
+
+  const form = document.createElement("form");
+  form.method = "POST";
+  form.action = data.postUrl;
+  form.style.display = "none";
+
+  Object.entries(data.fields).forEach(([name, value]) => {
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = name;
+    input.value = value ?? "";
+    form.appendChild(input);
+  });
+
+  document.body.appendChild(form);
+  form.submit();
 };
-export async function successCallback(cart, user) {
+
+/** Fetch a completed order so the success page can show what was bought. */
+export async function fetchOrder(basketId) {
   try {
-    console.log("Calling payment success callback for user:", user?.email);
-    console.log(
-      "Cart items:",
-      cart?.map((item) => ({ id: item.id, title: item.title }))
-    );
-
-    const { data } = await api.post("/paypal/callback", {
-      cart,
-      user,
-    });
-
-    console.log("Payment callback successful:", data);
+    const { data } = await api.get(`/payfast/order/${basketId}`);
     return data;
   } catch (err) {
-    console.error(
-      "Payment callback failed:",
-      err.response?.data || err.message
-    );
+    console.error("Could not load order:", err.response?.data || err.message);
     return null;
   }
 }

@@ -14,6 +14,7 @@ const mailRoutes = require("./Routes/mail");
 const newsletterRoutes = require("./Routes/newsletter");
 const gamesAccessRoutes = require("./Routes/games");
 const scoresRoutes = require("./Routes/scores");
+const payfastRoutes = require("./Routes/payfast");
 const app = express();
 // Behind nginx/Cloudflare: use real visitor IP from X-Forwarded-For
 app.set("trust proxy", 1);
@@ -61,5 +62,6 @@ app.use("/mail", mailRoutes);
 app.use("/newsletter", newsletterRoutes);
 app.use("/games", gamesAccessRoutes);
 app.use("/scores", scoresRoutes);
+app.use("/payfast", payfastRoutes);
 const PORT = 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
