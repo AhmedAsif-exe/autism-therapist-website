@@ -11,7 +11,7 @@ const Layout = (props) => {
       <ApolloProvider client={sanityGraphQLClient}>
         <ContextProvider>
           <Header />
-          <ToastContainer />
+          <ToastContainer position="top-right" />
           {props.children}
           <CartDrawer />
           <Footer />

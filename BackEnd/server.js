@@ -1,4 +1,5 @@
 require("dotenv").config();
+const path = require("path");
 const express = require("express");
 const mongoose = require("mongoose");
 const session = require("express-session");
@@ -37,6 +38,7 @@ app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
 
 app.use(express.json()); // Now safe
 app.use(express.urlencoded({ extended: true }));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use(
   session({

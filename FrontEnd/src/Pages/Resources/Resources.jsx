@@ -2,11 +2,11 @@ import PageTemplate from "Utils/PageTemplate";
 import resourcesImg from "Assets/Images/resources.jpg";
 import { useState } from "react";
 import ResourceList from "./ResourceList";
-import CartDrawer from "./CartDrawer";
 import Filter from "Utils/Filter";
 
 import { useQuery } from "@apollo/client";
 import { ALL_RESOURCES } from "Utils/Queries/Blog";
+import { STATIC_RESOURCES } from "Utils/staticResources";
 
 const Resources = () => {
   const [category, setCategory] = useState("All");
@@ -18,10 +18,13 @@ const Resources = () => {
     setCategory(tag);
   };
 
-  const resources = (data?.allResource || []).map(({ _id, ...rest }) => ({
-    id: _id,
-    ...rest,
-  }));
+  const resources = [
+    ...STATIC_RESOURCES,
+    ...(data?.allResource || []).map(({ _id, ...rest }) => ({
+      id: _id,
+      ...rest,
+    })),
+  ];
   console.log(error);
   return (
     <PageTemplate
@@ -32,12 +35,11 @@ const Resources = () => {
       <div className="ml:px-6">
         <Filter
           handleClick={handleClick}
-          tags={["All", "My-Learning", "Training", "Downloadable"]}
+          tags={["My-Learning", "Training", "Downloadable"]}
         />
         {!loading && (
           <ResourceList resources={resources} category={category} type={type} />
         )}
-        <CartDrawer />
       </div>
     </PageTemplate>
   );

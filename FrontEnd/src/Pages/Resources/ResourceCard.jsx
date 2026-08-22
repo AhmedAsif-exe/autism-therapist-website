@@ -27,7 +27,8 @@ export default function ResourceCard({ resource, category, preview = false }) {
       <img
         src={resource?.image?.asset?.url}
         alt={resource.title}
-        className="aspect-video object-cover border-b border-gray-200"
+        onClick={handleSeeMore}
+        className="aspect-video object-cover border-b border-gray-200 cursor-pointer"
       />
 
       <div className="p-4 flex flex-col flex-grow">
