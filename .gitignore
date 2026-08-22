@@ -21,6 +21,8 @@ BackEnd/uploads
 **/.env
 **/.env.*
 **/env
+# Browser downloads dedupe with a suffix like "env (1)" — catch those too.
+**/env (*)
 
 # Vendor reference material, not part of the app
 *.zip
