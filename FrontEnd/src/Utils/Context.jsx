@@ -63,6 +63,7 @@ export function ContextProvider({ children }) {
   const [cart, dispatch] = useReducer(reducer, [], getInitialCart);
   const [currency, setCurrency] = useState("EUR");
   const [rate, setRate] = useState(1);
+  const [cartOpen, setCartOpen] = useState(false);
 
   useEffect(() => {
     let isMounted = true; // ✅ prevent state update on unmounted component
@@ -119,9 +120,27 @@ export function ContextProvider({ children }) {
     };
   }, []);
 
+  const refreshUser = async () => {
+    const res = await checkAuthStatus();
+    setUser(res);
+    setLoggedIn(!!res);
+    return res;
+  };
+
   return (
     <ProjectContext.Provider
-      value={{ user, loggedIn, loading, cart, dispatch, currency, rate }}
+      value={{
+        user,
+        loggedIn,
+        loading,
+        cart,
+        dispatch,
+        currency,
+        rate,
+        refreshUser,
+        cartOpen,
+        setCartOpen,
+      }}
     >
       {children}
     </ProjectContext.Provider>

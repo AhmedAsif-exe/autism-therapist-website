@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@apollo/client";
+import { toast } from "react-toastify";
 import {
   Alert,
   Box,
@@ -11,11 +12,15 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
+  Typography,
 } from "@mui/material";
-import { ArrowBack, CheckCircle } from "@mui/icons-material";
+import { ArrowBack, CheckCircle, Lock } from "@mui/icons-material";
 import { RESOURCE } from "Utils/Queries/Blog";
 import { useProjectContext, formatPrice } from "Utils/Context";
 import { downloadResource } from "./downloadResource";
+import { findStaticResource, FFC_BUNDLE_ID } from "Utils/staticResources";
+import { getResourcePreview } from "Utils/resourcePreviews";
+import BundleLanding from "./BundleLanding";
 
 function AuthorIntro({ authors }) {
   const author = authors?.[0];
@@ -54,6 +59,59 @@ function AuthorIntro({ authors }) {
   );
 }
 
+function HeroPreview({ preview, title }) {
+  const [expanded, setExpanded] = useState(false);
+  const previewRef = useRef(null);
+
+  useEffect(() => {
+    if (expanded) {
+      previewRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [expanded]);
+
+  return (
+    <div ref={previewRef} className="w-full t:w-1/2">
+      <Typography variant="h6" sx={{ color: "#265c7e", fontWeight: 800, mb: 1.5 }}>
+        Preview
+      </Typography>
+      <div
+        onClick={() => setExpanded((v) => !v)}
+        className={`relative rounded-lg shadow-lg overflow-hidden border border-gray-200 ${
+          expanded ? "cursor-zoom-out" : "cursor-zoom-in hover:opacity-95 transition-opacity"
+        }`}
+      >
+        <img
+          src={preview.unlockedImage}
+          alt={`${title} preview page`}
+          className={expanded ? "w-full h-auto" : "w-full aspect-[3/4] object-cover object-top"}
+        />
+
+        {!expanded && (
+          <>
+            {/* Only a peek of the real page stays clear; the rest fades under a locked layer. */}
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background:
+                  "linear-gradient(to bottom, rgba(4,37,57,0) 0%, rgba(4,37,57,0.25) 18%, rgba(4,37,57,0.85) 42%, rgba(4,37,57,0.95) 100%)",
+              }}
+            />
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 pt-[18%]">
+              <Lock sx={{ color: "#ffffff", fontSize: 34 }} />
+              <span className="text-white font-bold text-center px-4">
+                {preview.totalPages} pages total
+              </span>
+              <span className="text-white/80 text-sm text-center px-4">
+                Unlocked after purchase
+              </span>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 const actionButtonStyle = {
   gap: 12,
   padding: "10px 26px",
@@ -71,11 +129,17 @@ const actionButtonStyle = {
 export default function ResourceDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { dispatch, user, cart, currency, rate } = useProjectContext();
+  const { dispatch, user, cart, currency, rate, setCartOpen } =
+    useProjectContext();
   const [isPaid, setIsPaid] = useState(false);
 
-  const { loading, error, data } = useQuery(RESOURCE, { variables: { id } });
-  const resource = data?.Resource;
+  const staticResource = findStaticResource(id);
+  const { loading, error, data } = useQuery(RESOURCE, {
+    variables: { id },
+    skip: !!staticResource,
+  });
+  const resource = staticResource || data?.Resource;
+  const preview = getResourcePreview(id);
 
   const inCart = cart.some((item) => item.id === id);
 
@@ -89,6 +153,8 @@ export default function ResourceDetail() {
         type: "ADD",
         item: { id, title: resource.title, price: resource.price },
       });
+      toast.success(`${resource.title} added to cart`);
+      setCartOpen(true);
     }
   };
 
@@ -128,6 +194,20 @@ export default function ResourceDetail() {
     );
   }
 
+  if (resource.id === FFC_BUNDLE_ID) {
+    return (
+      <BundleLanding
+        resource={resource}
+        isPaid={isPaid}
+        inCart={inCart}
+        onBuy={handleAddToCart}
+        onOpen={handleOpen}
+        currency={currency}
+        rate={rate}
+      />
+    );
+  }
+
   return (
     <Container
       maxWidth="lg"
@@ -144,13 +224,17 @@ export default function ResourceDetail() {
         Back to Resources
       </button>
 
-      {/* Hero: image + details */}
+      {/* Hero: image (or preview gallery) + details */}
       <div className="flex t:flex-row flex-col gap-10 items-start">
-        <img
-          src={resource.image?.asset?.url}
-          alt={resource.title}
-          className="w-full t:w-1/2 rounded-lg shadow-lg object-cover"
-        />
+        {preview && !isPaid ? (
+          <HeroPreview preview={preview} title={resource.title} />
+        ) : (
+          <img
+            src={resource.image?.asset?.url}
+            alt={resource.title}
+            className="w-full t:w-1/2 rounded-lg shadow-lg object-cover"
+          />
+        )}
 
         <div className="flex-1">
           <h1 className="text-3xl ml:text-4xl font-extrabold text-[#45B4B3]">
@@ -162,14 +246,51 @@ export default function ResourceDetail() {
             <Chip label={resource.type} size="small" variant="outlined" />
           </Box>
 
-          <p className="text-2xl font-bold text-[#f97544] mt-4">
-            {formatPrice(resource.price, currency, rate)}
-          </p>
+          <div className="flex items-center gap-3 flex-wrap mt-4">
+            {!!resource.compareAtPrice && (
+              <span className="text-lg text-gray-400 line-through">
+                {formatPrice(resource.compareAtPrice, currency, rate)}
+              </span>
+            )}
+            <span className="text-2xl font-bold text-[#f97544]">
+              {formatPrice(resource.price, currency, rate)}
+            </span>
+            {!!resource.compareAtPrice && resource.compareAtPrice > resource.price && (
+              <span className="text-xs font-bold bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full">
+                Save {formatPrice(resource.compareAtPrice - resource.price, currency, rate)} (
+                {Math.round(
+                  ((resource.compareAtPrice - resource.price) / resource.compareAtPrice) * 100,
+                )}
+                %)
+              </span>
+            )}
+          </div>
 
           <p className="mt-4 text-base leading-relaxed text-black">
             <b className="text-[#f97544]">Description: </b>
             {resource.description}
           </p>
+
+          {!!resource.bundleContents?.length && (
+            <div className="mt-5 grid grid-cols-1 t:grid-cols-3 gap-3">
+              {resource.bundleContents.map((group) => (
+                <div
+                  key={group.label}
+                  className="border border-[#45B4B3]/30 bg-[#45B4B3]/5 rounded-lg p-3"
+                >
+                  <div className="text-sm font-bold text-[#265c7e] mb-1.5">
+                    {group.label}{" "}
+                    <span className="text-[#f97544]">({group.items.length})</span>
+                  </div>
+                  <ul className="text-xs text-gray-700 space-y-0.5">
+                    {group.items.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          )}
 
           {!!resource.perks?.length && (
             <List dense className="mt-2 space-y-1">
@@ -216,7 +337,9 @@ export default function ResourceDetail() {
                   e.currentTarget.style.transform = "translateY(0)";
                 }}
               >
-                {`Buy for ${formatPrice(resource.price, currency, rate)}`}
+                {resource.compareAtPrice && resource.compareAtPrice > resource.price
+                  ? `Buy the Bundle for ${formatPrice(resource.price, currency, rate)}`
+                  : `Buy for ${formatPrice(resource.price, currency, rate)}`}
               </button>
             )}
           </div>

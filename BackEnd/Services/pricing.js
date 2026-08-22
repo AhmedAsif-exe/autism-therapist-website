@@ -42,6 +42,22 @@ function priceGameItem(id) {
   return null;
 }
 
+// --- FFC Bundle -------------------------------------------------------
+// Not a Sanity document either — mirrors FrontEnd/src/Utils/staticResources.js.
+// Keep the id and price in step with that file if either changes.
+const FFC_BUNDLE_ID = "ffc-bundle";
+// Priced below the sum of its parts (5 guide/workbooks @ 8.5 + 8 paid games
+// @ 3.5 = 70.5) so the bundle is an actual discount, not a markup. Keep in
+// step with FrontEnd/src/Utils/staticResources.js if either changes.
+const FFC_BUNDLE_PRICE_EUR = 56.0;
+
+function priceStaticItem(id) {
+  if (id === FFC_BUNDLE_ID) {
+    return { title: "FFC Bundle", priceEur: FFC_BUNDLE_PRICE_EUR };
+  }
+  return null;
+}
+
 // --- FX --------------------------------------------------------------------
 // Same source and cache policy as the existing /paypal/currency endpoint.
 let fxCache = { at: 0, rates: null };
@@ -110,7 +126,10 @@ async function resolveCart(itemIds) {
 
   for (const id of ids) {
     const game = priceGameItem(id);
+    const staticItem = priceStaticItem(id);
     if (game) items.push({ id, title: game.title, priceEur: game.priceEur });
+    else if (staticItem)
+      items.push({ id, title: staticItem.title, priceEur: staticItem.priceEur });
     else sanityIds.push(id);
   }
 

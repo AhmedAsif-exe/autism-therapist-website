@@ -8,7 +8,9 @@ import {
   IconButton,
   Container,
   Divider,
+  Menu,
   MenuItem,
+  ListItemIcon,
   Drawer,
   Typography,
   Avatar,
@@ -20,6 +22,8 @@ import { useProjectContext } from "Utils/Context";
 import logo from "Assets/Images/logo-removebg-preview.png";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import SettingsIcon from "@mui/icons-material/Settings";
+import LogoutIcon from "@mui/icons-material/Logout";
 import { useNavigate } from "react-router-dom";
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   display: "flex",
@@ -40,6 +44,7 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
 
 export default function AppAppBar() {
   const [open, setOpen] = React.useState(false);
+  const [profileMenuAnchor, setProfileMenuAnchor] = React.useState(null);
   const { user, loggedIn, loading, cart } = useProjectContext();
   const toggleDrawer = (newOpen) => () => {
     setOpen(newOpen);
@@ -49,6 +54,16 @@ export default function AppAppBar() {
   const handleNavigation = (path) => {
     navigate(path);
     setOpen(false);
+  };
+
+  const handleSignOut = async () => {
+    setProfileMenuAnchor(null);
+    setOpen(false);
+    await logout();
+    toast.success("Logged Out Successfully");
+    if (window.location.pathname !== "/login") {
+      window.location.href = "/login";
+    }
   };
   return (
     <AppBar
@@ -163,16 +178,41 @@ export default function AppAppBar() {
               >
                 <IconButton
                   sx={{ padding: 0 }}
-                  onClick={async () => {
-                    await logout();
-                    toast.success("Logged Out Successfully");
-                    if (window.location.pathname !== "/login") {
-                      window.location.href = "/login";
-                    }
-                  }}
+                  aria-controls={
+                    profileMenuAnchor ? "profile-menu" : undefined
+                  }
+                  aria-haspopup="true"
+                  aria-expanded={profileMenuAnchor ? "true" : undefined}
+                  onClick={(e) => setProfileMenuAnchor(e.currentTarget)}
                 >
                   {<Avatar src={user.pfp} />}
                 </IconButton>
+                <Menu
+                  id="profile-menu"
+                  anchorEl={profileMenuAnchor}
+                  open={Boolean(profileMenuAnchor)}
+                  onClose={() => setProfileMenuAnchor(null)}
+                  anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                  transformOrigin={{ vertical: "top", horizontal: "right" }}
+                >
+                  <MenuItem
+                    onClick={() => {
+                      setProfileMenuAnchor(null);
+                      navigate("/account");
+                    }}
+                  >
+                    <ListItemIcon>
+                      <SettingsIcon fontSize="small" />
+                    </ListItemIcon>
+                    Settings
+                  </MenuItem>
+                  <MenuItem onClick={handleSignOut}>
+                    <ListItemIcon>
+                      <LogoutIcon fontSize="small" />
+                    </ListItemIcon>
+                    Sign Out
+                  </MenuItem>
+                </Menu>
               </Box>
             ) : (
               <Box
@@ -302,31 +342,56 @@ export default function AppAppBar() {
                   </a>
                 </MenuItem>
                 <Divider sx={{ my: 3 }} />
-                <MenuItem>
-                  <a href="/login" style={{ textDecoration: "none" }}>
-                    <Button
-                      color="#f97544"
-                      variant="text"
-                      size="small"
-                      fullWidth
+                {loggedIn ? (
+                  <>
+                    <MenuItem
+                      onClick={() => handleNavigation("/account")}
                       sx={{ color: "white" }}
                     >
-                      Sign in
-                    </Button>
-                  </a>
-                </MenuItem>
-                <MenuItem>
-                  <a href="/signup" style={{ textDecoration: "none" }}>
-                    <Button
-                      sx={{ backgroundColor: "#f97544" }}
-                      variant="contained"
-                      size="small"
-                      fullWidth
-                    >
-                      Sign up
-                    </Button>
-                  </a>
-                </MenuItem>
+                      <ListItemIcon>
+                        <Avatar
+                          src={user?.pfp}
+                          sx={{ width: 24, height: 24 }}
+                        />
+                      </ListItemIcon>
+                      Settings
+                    </MenuItem>
+                    <MenuItem onClick={handleSignOut} sx={{ color: "white" }}>
+                      <ListItemIcon>
+                        <LogoutIcon fontSize="small" sx={{ color: "white" }} />
+                      </ListItemIcon>
+                      Sign Out
+                    </MenuItem>
+                  </>
+                ) : (
+                  <>
+                    <MenuItem>
+                      <a href="/login" style={{ textDecoration: "none" }}>
+                        <Button
+                          color="#f97544"
+                          variant="text"
+                          size="small"
+                          fullWidth
+                          sx={{ color: "white" }}
+                        >
+                          Sign in
+                        </Button>
+                      </a>
+                    </MenuItem>
+                    <MenuItem>
+                      <a href="/signup" style={{ textDecoration: "none" }}>
+                        <Button
+                          sx={{ backgroundColor: "#f97544" }}
+                          variant="contained"
+                          size="small"
+                          fullWidth
+                        >
+                          Sign up
+                        </Button>
+                      </a>
+                    </MenuItem>
+                  </>
+                )}
               </Box>
             </Drawer>
           </Box>

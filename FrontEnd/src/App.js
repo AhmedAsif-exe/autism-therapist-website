@@ -8,6 +8,7 @@ import Layout from "Layout/Layout";
 import Blogs from "Pages/Blogs/Blogs";
 import BlogPage from "Pages/BlogPage/BlogPage";
 import Login from "Pages/Login/Login";
+import Account from "Pages/Account/Account";
 import About from "Pages/About/About";
 import Resources from "Pages/Resources/Resources";
 import ResourceDetail from "Pages/Resources/ResourceDetail";
@@ -65,6 +66,7 @@ function App() {
             <Route path="/blogs/:id" element={<BlogPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Login />} />
+            <Route path="/account" element={<Account />} />
             <Route path="/about" element={<About />} />
             <Route path="/games" element={<GamesHome />} />
             {/* Domain listing route */}
