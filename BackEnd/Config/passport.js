@@ -40,12 +40,25 @@ module.exports = (passport) => {
   );
 
   // Google Strategy
+  //
+  // callbackURL must be an absolute URL, not a relative one. A relative path
+  // lets passport build it from the incoming request's own protocol/host,
+  // which is wrong behind nginx: it reported plain http:// instead of https,
+  // and dropped whatever path prefix nginx uses to route to this API,
+  // producing a redirect_uri Google's console never had registered ("Error
+  // 400: redirect_uri_mismatch"). Building it from BACKEND_PUBLIC_URL instead
+  // — the same publicly-reachable base PayFast's callback already relies on
+  // — makes it deterministic.
+  const backendBase = (process.env.BACKEND_PUBLIC_URL || "http://localhost:5000").replace(
+    /\/+$/,
+    "",
+  );
   passport.use(
     new GoogleStrategy(
       {
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: "/auth/google/callback",
+        callbackURL: `${backendBase}/auth/google/callback`,
       },
       async (accessToken, refreshToken, profile, done) => {
         try {
